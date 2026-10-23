@@ -1,0 +1,5160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="بازی حمله رودخانه‌ای (River Raid) — نسخه بازسازی‌شده با گرافیک CRT، باس‌فایت، پاورآپ و حالت‌های متنوع. طراحی: AliGraph">
+<!-- PWA: متا تگ‌های نصب روی موبایل -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="River Raid">
+<!-- فونت وزیرمتن از CDN (تنها وابستگی خارجی مجاز) با fallback محلی -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<title>حمله رودخانه‌ای | River Raid</title>
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+/* صفت hidden باید همیشه بر display کلاس‌ها غلبه کند (آیتم تایمر HUD) */
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; padding: 0; }
+body {
+  font-family: Vazirmatn, Tahoma, "Segoe UI", system-ui, sans-serif;
+  background: #0d0f12;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* بافت نویز ظریف روی پس‌زمینه */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .055;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+
+/* ============================================================
+   ATTRACT MODE — بوم دموی خودکار پشت لندینگ
+   ============================================================ */
+#attractCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#attractScrim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 100% at 50% 0%, rgba(0,0,0,.18), rgba(0,0,0,.62) 85%),
+    linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.1) 40%, rgba(0,0,0,.5));
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+header {
+  position: relative;
+  z-index: 5;
+  flex: 0 0 56px;
+  height: 56px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;   /* RTL => اولین آیتم سمت راست */
+  gap: 10px;
+  padding: 0 14px;
+  box-shadow: 0 3px 18px rgba(0, 0, 0, .75);
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  color: #c6c6c6;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: background .18s ease, transform .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background: #262626;
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(255, 255, 255, .12);
+  outline: none;
+}
+.icon-btn:active { transform: scale(.96); }
+.icon-btn svg { display: block; }
+
+/* دکمه بی‌صدا: دو آیکون که با کلاس muted جابه‌جا می‌شوند */
+#muteBtn .ico-off { display: none; }
+#muteBtn.muted { color: #ff7b6b; }
+#muteBtn.muted .ico-off { display: block; }
+#muteBtn.muted .ico-on  { display: none; }
+
+.atari-badge {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 32% 28%, #2a2a2a, #101010 70%);
+  border: 1px solid #2e2e2e;
+  color: #e8e8e8;
+  font-weight: 900;
+  font-size: 8px;
+  letter-spacing: .14em;
+  user-select: none;
+  cursor: default;
+}
+.header-spacer { flex: 1 1 auto; }
+.header-tag {
+  font-size: 10px;
+  color: #6d7684;
+  letter-spacing: .18em;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   LANDING
+   ============================================================ */
+main {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px 14px 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(94vw, 720px);
+}
+
+.glass-card {
+  width: min(88%, 820px);
+  height: clamp(230px, 30vh, 340px);
+  display: flex;
+  flex-direction: row;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .065);
+  border: 1px solid rgba(255, 255, 255, .22);
+  box-shadow:
+    0 32px 70px rgba(0, 0, 0, .68),
+    0 2px 0 rgba(255, 255, 255, .06) inset,
+    0 0 60px rgba(0, 0, 0, .35);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+/* --- نیمه تصویری (در RTL سمت راست) --- */
+.art-half {
+  position: relative;
+  flex: 1 1 50%;
+  min-width: 0;
+  overflow: hidden;
+  background: #071427;
+}
+.art-half svg { display: block; width: 100%; height: 100%; }
+
+/* --- نیمه اطلاعات --- */
+.info-half {
+  flex: 1 1 50%;
+  min-width: 0;
+  background: linear-gradient(155deg, rgba(11,26,51,.92) 0%, rgba(10,23,48,.92) 55%, rgba(7,16,31,.94) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 18px;
+  text-align: center;
+  position: relative;
+}
+.info-half::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(90, 150, 230, .12), transparent 60%);
+}
+
+.game-title {
+  margin: 0;
+  font-weight: 300;
+  font-size: clamp(20px, 3.1vw, 38px);
+  line-height: 1.25;
+  color: #fff;
+  letter-spacing: .5px;
+  text-shadow: 0 2px 18px rgba(120, 180, 255, .22);
+}
+.game-sub {
+  margin: 0;
+  font-size: clamp(9px, 1vw, 12px);
+  font-weight: 500;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: #9fb0c8;
+  padding-inline-start: .42em;
+}
+
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 6px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 999px;
+  background: #f5c518;
+  color: #1a1500;
+  font-family: inherit;
+  font-size: clamp(14px, 1.5vw, 17px);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 26px rgba(245, 197, 24, .34), 0 1px 0 rgba(255, 255, 255, .5) inset;
+  transition: transform .16s ease, box-shadow .22s ease, background .22s ease;
+}
+.play-btn:hover {
+  background: #ffd633;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(245, 197, 24, .52), 0 1px 0 rgba(255, 255, 255, .6) inset;
+}
+.play-btn:active { transform: translateY(1px) scale(.975); }
+.play-btn svg { display: block; }
+
+/* --- لینک طراح زیر کارت (بخش ۰) --- */
+.credit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #8b96a6;
+  text-decoration: none;
+  letter-spacing: .02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.credit-link:hover, .credit-link:focus-visible {
+  color: #f5c518;
+  border-color: rgba(245, 197, 24, .35);
+  background: rgba(245, 197, 24, .07);
+  outline: none;
+}
+.credit-link svg { display: block; }
+
+/* --- انتخاب حالت بازی --- */
+.mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.mode-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 104px;
+  padding: 9px 14px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #cfd8e3;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.mode-chip b { font-size: 13.5px; font-weight: 700; }
+.mode-chip small { font-size: 10px; color: #8b96a6; }
+.mode-chip:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.32); }
+.mode-chip.sel {
+  border-color: rgba(245, 197, 24, .8);
+  background: rgba(245, 197, 24, .14);
+  box-shadow: 0 6px 20px rgba(245, 197, 24, .18);
+}
+.mode-chip.sel b { color: #f5c518; }
+.mode-chip.sel small { color: #d8c07a; }
+
+/* --- دکمه‌های منوی فرعی --- */
+.menu-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #c3cdd9;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .15s ease, color .18s ease, border-color .18s ease;
+}
+.menu-btn:hover { color: #fff; border-color: rgba(255,255,255,.34); transform: translateY(-1px); }
+.menu-btn svg { display: block; }
+
+/* ============================================================
+   GAME OVERLAY
+   ============================================================ */
+#gameWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+#gameWrap[hidden] { display: none; }
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #03060c;   /* پایه تیره — سوراخ نورافکنِ حالت شب روی همین می‌نشیند */
+  touch-action: none;
+}
+
+/* --- فیلتر CRT: اسکن‌لاین + وینیت (بخش ۱-۱) --- */
+#crtOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  pointer-events: none;
+  display: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.20) 0 1px, rgba(0,0,0,0) 1px 3px),
+    radial-gradient(125% 115% at 50% 50%, rgba(0,0,0,0) 58%, rgba(0,0,0,.42) 88%, rgba(0,0,0,.62) 100%);
+  animation: crtFlicker 5s steps(60) infinite;
+}
+#gameWrap.crt #crtOverlay { display: block; }
+@keyframes crtFlicker {
+  0%, 100% { opacity: .96; }
+  50% { opacity: 1; }
+}
+
+/* --- بازخورد آسیب: حاشیه قرمز (بخش ۴-۵) --- */
+#stage.hurt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 27;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 70px rgba(255, 35, 35, .7),
+    inset 0 0 16px rgba(255, 0, 0, .55);
+  animation: hurtFade .45s ease-out forwards;
+}
+@keyframes hurtFade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* --- HUD (بازطراحی با آیکون SVG — بخش ۴-۶) --- */
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 60px;
+  pointer-events: none;
+  font-size: 13px;
+  color: #d3dde8;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .9);
+  z-index: 4;
+}
+.hud-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.hud-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.hud-item svg { display: block; opacity: .9; }
+.hud-item b { color: #f5c518; font-weight: 700; font-size: 14px; }
+#timeItem b { color: #7fd0ff; }
+#bombItem b { color: #ffb26b; }
+
+.fuel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #b9c7d6;
+}
+.fuel-row svg { display: block; flex: 0 0 auto; }
+.fuel-bar {
+  flex: 1 1 auto;
+  max-width: 230px;
+  height: 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .13);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .1) inset;
+}
+#fuelFill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #3fdc76, #96f2b1);
+  transition: width .12s linear, background .3s ease;
+}
+#fuelFill.low { background: linear-gradient(90deg, #ff3b30, #ff8a5c); }
+#fuelPct { min-width: 34px; text-align: center; font-size: 11px; }
+
+/* نوار سلامت باس (بخش ۲-۴) */
+#bossBar {
+  display: none;
+  align-self: center;
+  width: min(340px, 78%);
+  height: 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .12);
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255, 90, 60, .35), 0 0 14px rgba(255, 60, 40, .25);
+}
+#bossBar.show { display: block; }
+#bossFill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ff3b30, #ff9a3c);
+  transition: width .18s ease;
+}
+
+/* --- دکمه‌های بالا: بستن و مکث --- */
+#closeBtn, #pauseBtn {
+  position: absolute;
+  top: 10px;
+  z-index: 6;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(20, 20, 20, .78);
+  color: #e6e6e6;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  padding: 0;
+  transition: background .16s ease, transform .16s ease;
+}
+#closeBtn { right: 12px; font-size: 20px; line-height: 1; }
+#pauseBtn { left: 12px; }
+#closeBtn:hover, #pauseBtn:hover { background: rgba(60, 60, 60, .95); transform: scale(1.06); }
+#closeBtn:active, #pauseBtn:active { transform: scale(.94); }
+#closeBtn svg, #pauseBtn svg { display: block; pointer-events: none; }
+
+/* --- D-Pad --- */
+#dpad {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .055);
+  border: 1px solid rgba(255, 255, 255, .14);
+  touch-action: none;
+  z-index: 5;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+#gameWrap[data-controls="drag"] #dpad,
+#gameWrap[data-controls="tilt"] #dpad { display: none; }
+.dbtn {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(255, 255, 255, .1);
+  color: #dfe7ef;
+  font-size: 13px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  transition: background .1s ease, transform .1s ease, color .1s ease;
+}
+.dbtn.up    { top: 4px;    left: 44px; }
+.dbtn.down  { bottom: 4px; left: 44px; }
+.dbtn.left  { left: 4px;   top: 44px; }
+.dbtn.right { right: 4px;  top: 44px; }
+.dbtn.active {
+  background: rgba(245, 197, 24, .88);
+  color: #12100a;
+  transform: scale(.94);
+}
+
+/* --- دکمه آتش --- */
+#fireBtn {
+  position: absolute;
+  right: 16px;
+  bottom: 24px;
+  z-index: 5;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .26);
+  background: radial-gradient(circle at 34% 28%, #ff7070, #c62828 72%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  padding: 0;
+  box-shadow: 0 0 26px rgba(220, 40, 40, .5), 0 4px 14px rgba(0, 0, 0, .6);
+  transition: transform .1s ease, box-shadow .2s ease;
+}
+#fireBtn.active {
+  transform: scale(.93);
+  box-shadow: 0 0 40px rgba(255, 70, 70, .85);
+}
+#fireBtn svg { display: block; pointer-events: none; }
+
+/* --- دکمه تعویض سلاح / بمب (بخش ۲-۲) --- */
+#bombBtn {
+  position: absolute;
+  right: 30px;
+  bottom: 132px;
+  z-index: 5;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .22);
+  background: radial-gradient(circle at 34% 28%, #46536b, #232c3d 75%);
+  color: #dfe7ef;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .5);
+  transition: transform .1s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+}
+#bombBtn.sel {
+  background: radial-gradient(circle at 34% 28%, #ffd76a, #d99b06 75%);
+  color: #221a00;
+  border-color: rgba(255, 230, 140, .8);
+  box-shadow: 0 0 22px rgba(245, 197, 24, .55);
+}
+#bombBtn:active { transform: scale(.92); }
+#bombBtn svg { display: block; pointer-events: none; }
+.bomb-badge {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  min-width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  background: #f5c518;
+  color: #1a1500;
+  font-size: 10.5px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  pointer-events: none;
+}
+
+/* --- اورلی انتقال مرحله (بخش ۴-۳) --- */
+#introOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 24;
+  display: none;
+  place-items: center;
+  pointer-events: none;
+  background: radial-gradient(90% 70% at 50% 50%, rgba(0,0,0,.55), rgba(0,0,0,.2) 70%, transparent);
+}
+#introOverlay.show { display: grid; }
+.intro-card { text-align: center; opacity: 0; }
+#introOverlay.show .intro-card { animation: introAnim 2.4s ease forwards; }
+@keyframes introAnim {
+  0%   { opacity: 0; transform: scale(.9); }
+  14%  { opacity: 1; transform: scale(1); }
+  72%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+#introBig {
+  margin: 0;
+  font-size: clamp(26px, 6vw, 42px);
+  font-weight: 800;
+  color: #f5c518;
+  text-shadow: 0 3px 24px rgba(245, 197, 24, .45), 0 1px 3px rgba(0,0,0,.9);
+  letter-spacing: .5px;
+}
+#introName {
+  margin: 8px 0 0;
+  font-size: clamp(13px, 2.6vw, 17px);
+  color: #dbe6f2;
+  text-shadow: 0 1px 8px rgba(0,0,0,.9);
+  letter-spacing: .04em;
+}
+
+/* --- منوی مکث (بخش ۴-۱) --- */
+#pauseOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  padding: 20px;
+}
+#pauseOverlay.show { display: flex; }
+.pm-card {
+  width: min(320px, 88vw);
+  background: linear-gradient(160deg, #131a26, #0b1018);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 20px;
+  padding: 24px 22px;
+  text-align: center;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, .8);
+  animation: pop .25s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pm-card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f5c518;
+}
+.pm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+  color: #e4ebf3;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease, transform .14s ease, color .16s ease;
+}
+.pm-btn:hover { background: rgba(255,255,255,.14); transform: translateY(-1px); }
+.pm-btn:active { transform: translateY(1px) scale(.98); }
+.pm-btn.primary {
+  background: #f5c518;
+  color: #1a1500;
+  border-color: transparent;
+  box-shadow: 0 8px 24px rgba(245, 197, 24, .34);
+}
+.pm-btn.primary:hover { background: #ffd633; }
+.pm-btn.danger:hover { background: rgba(255, 70, 60, .22); color: #ffb3ab; }
+
+/* --- Game Over --- */
+#gameOver {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 20px;
+}
+#gameOver.show { display: flex; }
+
+.go-card {
+  width: min(350px, 90vw);
+  max-height: 92%;
+  overflow: auto;
+  background: linear-gradient(160deg, #131a26, #0b1018);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 20px;
+  padding: 24px 22px 22px;
+  text-align: center;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, .8);
+  animation: pop .28s ease-out;
+}
+@keyframes pop {
+  from { transform: scale(.9); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+.go-card h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff5a5a;
+  letter-spacing: .5px;
+}
+#goReason { margin: 0 0 6px; font-size: 13px; color: #98a6b8; }
+#goMode   { margin: 0 0 12px; font-size: 11px; color: #6f7d8f; letter-spacing: .05em; }
+.go-score { margin: 0 0 12px; font-size: 15px; color: #cfd8e3; }
+.go-score b {
+  color: #f5c518;
+  font-size: 28px;
+  display: block;
+  margin-top: 4px;
+}
+#goNewRecord {
+  display: none;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #69f0ae;
+  letter-spacing: .04em;
+  animation: pulseGlow 1.2s ease infinite alternate;
+}
+#goNewRecord.show { display: block; }
+@keyframes pulseGlow {
+  from { text-shadow: 0 0 4px rgba(105, 240, 174, .3); }
+  to   { text-shadow: 0 0 16px rgba(105, 240, 174, .8); }
+}
+.go-list-title {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  color: #7b8899;
+  letter-spacing: .12em;
+}
+#goList, #scoreList, #achvList { margin: 0 0 14px; }
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px dashed rgba(255, 255, 255, .07);
+  font-size: 13px;
+  color: #b9c7d6;
+}
+.score-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score-row b { color: #f5c518; font-weight: 700; flex: 0 0 auto; }
+.score-row.new { color: #69f0ae; }
+.score-row.new b { color: #69f0ae; }
+.empty-note { font-size: 12px; color: #6f7d8f; padding: 8px 0; }
+.go-btns { display: flex; flex-direction: column; gap: 9px; }
+#restartBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 999px;
+  background: #f5c518;
+  color: #1a1500;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(245, 197, 24, .34);
+  transition: transform .15s ease, background .2s ease;
+}
+#restartBtn:hover { background: #ffd633; transform: translateY(-1px); }
+#restartBtn:active { transform: translateY(1px) scale(.97); }
+#menuBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  color: #d7e0ea;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+#menuBtn:hover { background: rgba(255,255,255,.13); }
+
+/* ============================================================
+   MODALS — تنظیمات / رکوردها / دستاوردها / نام
+   ============================================================ */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.modal.show { display: flex; }
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.modal-card {
+  position: relative;
+  width: min(430px, 94vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: linear-gradient(160deg, #141b28, #0b1018);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 20px;
+  padding: 22px 20px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .85);
+  animation: pop .25s ease-out;
+}
+.modal-card h3 {
+  margin: 0 0 14px;
+  font-size: 19px;
+  font-weight: 800;
+  color: #f5c518;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  color: #cfd8e3;
+  font-size: 15px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background .15s ease;
+}
+.modal-close:hover { background: rgba(255,255,255,.16); }
+
+/* ردیف تنظیمات */
+.set-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px dashed rgba(255, 255, 255, .08);
+}
+.set-row:last-of-type { border-bottom: none; }
+.set-label { font-size: 13.5px; color: #d5dee8; font-weight: 600; }
+.set-label small { display: block; font-size: 10.5px; color: #7b8899; font-weight: 400; margin-top: 2px; }
+.seg {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 3px;
+  border-radius: 12px;
+  flex: 0 0 auto;
+}
+.seg button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #aab6c6;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+  white-space: nowrap;
+}
+.seg button:hover { color: #fff; }
+.seg button.on { background: #f5c518; color: #1a1500; }
+
+/* تب‌های رکوردها */
+#scoreTabs { margin-bottom: 12px; justify-content: center; }
+
+/* دستاوردها */
+.achv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px dashed rgba(255, 255, 255, .08);
+}
+.achv:last-child { border-bottom: none; }
+.achv-ico {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #8b96a6;
+}
+.achv.done .achv-ico {
+  background: rgba(245, 197, 24, .16);
+  border-color: rgba(245, 197, 24, .55);
+  color: #f5c518;
+}
+.achv-txt b { display: block; font-size: 13.5px; color: #e2e9f1; }
+.achv-txt small { font-size: 11px; color: #7b8899; }
+.achv.locked { opacity: .5; }
+.achv-prog {
+  margin-top: 4px;
+  height: 5px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.1);
+  overflow: hidden;
+  max-width: 220px;
+}
+.achv-prog i { display: block; height: 100%; background: #f5c518; border-radius: 4px; }
+
+/* مودال نام */
+.name-note { margin: 0 0 12px; font-size: 13px; color: #b9c7d6; }
+#nameInput {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.07);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  text-align: center;
+  outline: none;
+  margin-bottom: 14px;
+}
+#nameInput:focus { border-color: rgba(245,197,24,.7); box-shadow: 0 0 0 3px rgba(245,197,24,.15); }
+.name-btns { display: flex; gap: 9px; justify-content: center; }
+.name-btns .pm-btn { flex: 1 1 auto; }
+
+/* ============================================================
+   TOAST — دستاوردها و پیام‌ها (بخش ۳-۵)
+   ============================================================ */
+#toasts {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+  width: min(340px, 92vw);
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: rgba(14, 20, 30, .94);
+  border: 1px solid rgba(245, 197, 24, .55);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .6), 0 0 22px rgba(245, 197, 24, .12);
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  color: #e8eef5;
+  animation: toastIn .3s ease;
+  transition: opacity .3s ease, transform .3s ease;
+}
+.toast.out { opacity: 0; transform: translateY(10px); }
+.toast .t-ico {
+  width: 30px; height: 30px; flex: 0 0 30px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  background: rgba(245, 197, 24, .15);
+  color: #f5c518;
+}
+.toast b { color: #f5c518; display: block; font-size: 12.5px; }
+.toast small { color: #9aa7b8; font-size: 11px; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px) {
+  header { flex: 0 0 48px; height: 48px; padding: 0 10px; gap: 7px; }
+  .icon-btn, .atari-badge { width: 34px; height: 34px; flex-basis: 34px; font-size: 7px; }
+  .header-tag { display: none; }
+
+  main { padding: 12px 10px 22px; }
+  .landing { gap: 11px; }
+
+  .glass-card {
+    width: 94vw;
+    height: auto;
+    flex-direction: column;
+    border-radius: 18px;
+  }
+  .art-half { flex: 0 0 138px; height: 138px; }
+  .info-half { padding: 16px 12px 20px; gap: 8px; }
+
+  .game-title { font-size: 24px; }
+  .game-sub   { font-size: 10px; letter-spacing: .34em; }
+  .play-btn   { padding: 11px 26px; font-size: 15px; }
+
+  .mode-chip { min-width: 88px; padding: 8px 10px 7px; }
+  .mode-chip b { font-size: 12.5px; }
+  .mode-chip small { font-size: 9px; }
+
+  #dpad { width: 118px; height: 118px; left: 10px; bottom: 10px; }
+  .dbtn { width: 40px; height: 40px; }
+  .dbtn.up    { top: 4px;    left: 39px; }
+  .dbtn.down  { bottom: 4px; left: 39px; }
+  .dbtn.left  { left: 4px;   top: 39px; }
+  .dbtn.right { right: 4px;  top: 39px; }
+
+  #fireBtn { width: 78px; height: 78px; right: 12px; bottom: 20px; }
+  #bombBtn { width: 46px; height: 46px; right: 20px; bottom: 112px; }
+  #hud { font-size: 12px; padding: 10px 52px; gap: 5px; }
+  .hud-row { gap: 10px; }
+  .hud-item b { font-size: 13px; }
+  #closeBtn, #pauseBtn { width: 36px; height: 36px; top: 8px; }
+  #closeBtn { right: 10px; }
+  #pauseBtn { left: 10px; }
+}
+
+/* اسکرولبار ظریف برای مودال‌ها */
+.modal-card::-webkit-scrollbar, .go-card::-webkit-scrollbar { width: 6px; }
+.modal-card::-webkit-scrollbar-thumb, .go-card::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.16); border-radius: 3px;
+}
+</style>
+</head>
+<body>
+
+<!-- بوم دموی خودکار (Attract Mode — بخش ۱-۸) پشت لندینگ -->
+<canvas id="attractCanvas" aria-hidden="true"></canvas>
+<div id="attractScrim" aria-hidden="true"></div>
+
+<!-- ==========================================================
+     HEADER
+     ========================================================== -->
+<header>
+  <!-- پشتیبانی (لینک ایتا) -->
+  <a class="icon-btn"
+     href="https://eitaa.com/Drplus_support"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="پشتیبانی"
+     title="پشتیبانی">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 14v-2a8 8 0 0 1 16 0v2"/>
+      <path d="M20 15a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2v1z"/>
+      <path d="M4 15a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2v1z"/>
+      <path d="M9 20h5a2 2 0 0 0 2-2"/>
+    </svg>
+  </a>
+
+  <!-- لینک طراح و توسعه‌دهنده (بخش ۰) -->
+  <a class="icon-btn" id="designerBtn"
+     href="https://aligraph-art.cv/"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="طراح و توسعه‌دهنده"
+     title="طراح و توسعه‌دهنده">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.7"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3a9 9 0 1 0 0 18c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6h1.3A5.3 5.3 0 0 0 21 10.3C21 6.2 16.9 3 12 3z"/>
+      <circle cx="7.2" cy="12" r="1.1" fill="currentColor" stroke="none"/>
+      <circle cx="9.8" cy="7.6" r="1.1" fill="currentColor" stroke="none"/>
+      <circle cx="14.4" cy="7.2" r="1.1" fill="currentColor" stroke="none"/>
+      <circle cx="17.4" cy="11" r="1.1" fill="currentColor" stroke="none"/>
+    </svg>
+  </a>
+
+  <!-- قطع/وصل صدا (بخش ۳-۲) -->
+  <button class="icon-btn" id="muteBtn" type="button"
+          aria-label="قطع و وصل صدا" title="صدا">
+    <svg class="ico-on" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6.5 9H3v6h3.5L11 19z"/>
+      <path d="M15.5 9a4.5 4.5 0 0 1 0 6"/>
+      <path d="M18 6.5a8 8 0 0 1 0 11"/>
+    </svg>
+    <svg class="ico-off" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6.5 9H3v6h3.5L11 19z"/>
+      <path d="m16 9.5 5 5M21 9.5l-5 5"/>
+    </svg>
+  </button>
+
+  <!-- بازگشت به آرکید -->
+  <a class="icon-btn" href="./index.html"
+     title="بازگشت به آرکید" aria-label="بازگشت به آرکید">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round" aria-hidden="true">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  </a>
+
+  <!-- آیکون اتاری (تزئینی) -->
+  <div class="atari-badge" aria-hidden="true">ATARI</div>
+
+  <div class="header-spacer"></div>
+  <span class="header-tag">RIVER RAID · REMASTERED</span>
+</header>
+
+<!-- ==========================================================
+     LANDING
+     ========================================================== -->
+<main>
+  <div class="landing">
+
+    <section class="glass-card" aria-label="حمله رودخانه‌ای">
+
+      <!-- نیمه تصویری (در RTL سمت راست) -->
+      <div class="art-half">
+        <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"
+             xmlns="http://www.w3.org/2000/svg" role="img"
+             aria-label="صحنه‌ای از بازی حمله رودخانه‌ای">
+          <defs>
+            <linearGradient id="ra-sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#050d1c"/>
+              <stop offset="55%"  stop-color="#0d2643"/>
+              <stop offset="100%" stop-color="#143f63"/>
+            </linearGradient>
+            <linearGradient id="ra-water" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#1d5c8f"/>
+              <stop offset="100%" stop-color="#0d2c4c"/>
+            </linearGradient>
+            <linearGradient id="ra-grass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stop-color="#347a3b"/>
+              <stop offset="100%" stop-color="#173d1d"/>
+            </linearGradient>
+          </defs>
+
+          <!-- آسمان -->
+          <rect width="400" height="300" fill="url(#ra-sky)"/>
+          <!-- ستاره‌ها -->
+          <g fill="#cfe4ff" opacity=".85">
+            <circle cx="42"  cy="24" r="1.4"/>
+            <circle cx="96"  cy="46" r="1"/>
+            <circle cx="150" cy="18" r="1.2"/>
+            <circle cx="215" cy="38" r="1"/>
+            <circle cx="268" cy="16" r="1.4"/>
+            <circle cx="322" cy="44" r="1.1"/>
+            <circle cx="368" cy="26" r="1"/>
+            <circle cx="196" cy="62" r="0.9"/>
+            <circle cx="20"  cy="66" r="1"/>
+            <circle cx="352" cy="72" r="1.1"/>
+          </g>
+
+          <!-- کرانه چپ -->
+          <path d="M0,96 L150,106 L120,168 L142,232 L108,300 L0,300 Z" fill="url(#ra-grass)"/>
+          <!-- کرانه راست -->
+          <path d="M400,96 L250,106 L282,168 L258,232 L292,300 L400,300 Z" fill="url(#ra-grass)"/>
+
+          <!-- بافت چمن -->
+          <g fill="#0f2c14" opacity=".45">
+            <ellipse cx="40"  cy="150" rx="16" ry="7"/>
+            <ellipse cx="76"  cy="205" rx="13" ry="6"/>
+            <ellipse cx="30"  cy="252" rx="18" ry="8"/>
+            <ellipse cx="345" cy="146" rx="16" ry="7"/>
+            <ellipse cx="372" cy="212" rx="14" ry="6"/>
+            <ellipse cx="330" cy="262" rx="19" ry="8"/>
+          </g>
+          <g fill="#48954f" opacity=".35">
+            <ellipse cx="100" cy="130" rx="10" ry="4"/>
+            <ellipse cx="300" cy="126" rx="11" ry="4"/>
+            <ellipse cx="62"  cy="230" rx="9"  ry="4"/>
+            <ellipse cx="352" cy="238" rx="10" ry="4"/>
+          </g>
+
+          <!-- رودخانه -->
+          <path d="M150,106 L250,106 L282,168 L258,232 L292,300 L108,300 L142,232 L120,168 Z"
+                fill="url(#ra-water)"/>
+
+          <!-- خطوط موج -->
+          <g stroke="#8fd2ff" stroke-width="1.4" opacity=".28" fill="none" stroke-linecap="round">
+            <path d="M160,132 q10,-4 20,0 t20,0 t20,0"/>
+            <path d="M150,164 q10,-4 20,0 t20,0 t20,0 t20,0"/>
+            <path d="M158,196 q10,-4 20,0 t20,0 t20,0"/>
+            <path d="M146,258 q10,-4 20,0 t20,0 t20,0 t20,0"/>
+            <path d="M164,286 q10,-4 20,0 t20,0 t20,0"/>
+          </g>
+
+          <!-- پل -->
+          <g>
+            <rect x="118" y="184" width="164" height="16" rx="2" fill="#5b616a"/>
+            <rect x="118" y="184" width="164" height="4"  rx="1.5" fill="#818892"/>
+            <rect x="118" y="198" width="164" height="3"  fill="#3d4249"/>
+            <rect x="126" y="201" width="7"  height="13" fill="#3f444a"/>
+            <rect x="267" y="201" width="7"  height="13" fill="#3f444a"/>
+            <g stroke="#2c3138" stroke-width="1.4" opacity=".8">
+              <path d="M126,186 L142,198 M142,186 L126,198"/>
+              <path d="M158,186 L174,198 M174,186 L158,198"/>
+              <path d="M190,186 L206,198 M206,186 L190,198"/>
+              <path d="M222,186 L238,198 M238,186 L222,198"/>
+              <path d="M254,186 L270,198 M270,186 L254,198"/>
+            </g>
+          </g>
+
+          <!-- کشتی دشمن -->
+          <g transform="translate(168,224)">
+            <path d="M-15,0 L15,0 L11,8 L-11,8 Z" fill="#7a828c"/>
+            <rect x="-6" y="-8" width="12" height="8" rx="1.5" fill="#bcc5cf"/>
+            <rect x="-1" y="-13" width="2" height="5" fill="#8e99a6"/>
+            <rect x="-15" y="0" width="30" height="2" fill="#5c646d"/>
+          </g>
+
+          <!-- مخزن سوخت -->
+          <g transform="translate(236,216)">
+            <rect x="-9" y="-11" width="18" height="18" rx="3" fill="#dde4ec"/>
+            <rect x="-9" y="-11" width="18" height="5"  rx="2" fill="#b03434"/>
+            <text x="0" y="3" font-size="9" font-weight="700"
+                  fill="#18222f" text-anchor="middle"
+                  font-family="Tahoma, sans-serif">F</text>
+          </g>
+
+          <!-- بالگرد دشمن -->
+          <g transform="translate(252,148)">
+            <ellipse cx="0" cy="0" rx="11" ry="6.5" fill="#c3cdd8"/>
+            <rect x="9" y="-2" width="11" height="3.5" rx="1" fill="#a7b2be"/>
+            <rect x="-1" y="-12" width="2" height="10" fill="#8e99a6"/>
+            <rect x="-13" y="-13" width="26" height="2.6" rx="1.3" fill="#9aa5b1"/>
+            <rect x="-15" y="2" width="30" height="1.6" fill="#7b8590"/>
+          </g>
+
+          <!-- جت بازیکن -->
+          <g transform="translate(200,262)">
+            <path d="M-4,14 L0,20 L4,14 Z" fill="#ff9a3c"/>
+            <path d="M0,-17 L5,-3 L17,7 L17,11 L5,8 L4,15 L-4,15 L-5,8 L-17,11 L-17,7 L-5,-3 Z"
+                  fill="#eef3f8" stroke="#a9b8c9" stroke-width="1"/>
+            <ellipse cx="0" cy="-4" rx="3.6" ry="6.4" fill="#2e6ea8"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- نیمه سرمه‌ای -->
+      <div class="info-half">
+        <h1 class="game-title">حمله رودخانه‌ای</h1>
+        <p class="game-sub">River Raid</p>
+        <button class="play-btn" id="playBtn" type="button">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8 5.2v13.6c0 .9 1 1.5 1.8 1L20 12.9a1.2 1.2 0 0 0 0-1.8L9.8 4.2c-.8-.5-1.8.1-1.8 1z"/>
+          </svg>
+          <span>بازی کن</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- لینک طراح پایین کارت (بخش ۰) -->
+    <a class="credit-link" href="https://aligraph-art.cv/"
+       target="_blank" rel="noopener noreferrer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+        <path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>
+      </svg>
+      <span>طراحی و توسعه: AliGraph</span>
+    </a>
+
+    <a class="credit-link" href="./index.html">
+      ← بازگشت به آرکید
+    </a>
+
+    <!-- انتخاب حالت بازی (بخش ۲-۷) -->
+    <nav class="mode-row" aria-label="حالت بازی">
+      <button class="mode-chip sel" data-mode="endless" type="button">
+        <b>بی‌پایان</b><small>کلاسیک</small>
+      </button>
+      <button class="mode-chip" data-mode="time" type="button">
+        <b>حمله زمانی</b><small>۹۰ ثانیه</small>
+      </button>
+      <button class="mode-chip" data-mode="survival" type="button">
+        <b>بقا</b><small>یک جان</small>
+      </button>
+      <button class="mode-chip" data-mode="daily" type="button">
+        <b>چالش روزانه</b><small>امتیاز امروز</small>
+      </button>
+    </nav>
+
+    <!-- منوی فرعی -->
+    <div class="menu-row">
+      <button class="menu-btn" id="openScores" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 21h8M12 17v4M17 4h3v3a5 5 0 0 1-5 5M7 4H4v3a5 5 0 0 0 5 5"/>
+          <path d="M7 4h10v5a5 5 0 0 1-10 0z"/>
+        </svg>
+        <span>رکوردها</span>
+      </button>
+      <button class="menu-btn" id="openSettings" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.09a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/>
+        </svg>
+        <span>تنظیمات</span>
+      </button>
+      <button class="menu-btn" id="openAchv" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="9" r="6"/><path d="M8.2 14.4 7 22l5-2.5L17 22l-1.2-7.6"/>
+        </svg>
+        <span>دستاوردها</span>
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<!-- ==========================================================
+     GAME OVERLAY
+     ========================================================== -->
+<div id="gameWrap" hidden>
+  <div id="stage">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- فیلتر CRT -->
+    <div id="crtOverlay" aria-hidden="true"></div>
+
+    <!-- HUD با آیکون‌های SVG -->
+    <div id="hud">
+      <div class="hud-row">
+        <span class="hud-item" title="امتیاز">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5c518" aria-hidden="true">
+            <path d="m12 2.6 2.7 5.9 6.4.8-4.7 4.4 1.2 6.3L12 17l-5.6 3 1.2-6.3L2.9 9.3l6.4-.8z"/>
+          </svg>
+          <b id="scoreVal">0</b>
+        </span>
+        <span class="hud-item" title="مرحله">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8fd2ff" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 21V4m0 .5h11l-2.2 3.8L16 12H5"/>
+          </svg>
+          <b id="levelVal">1</b>
+        </span>
+        <span class="hud-item" title="جان">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff8a80" aria-hidden="true">
+            <path d="M12 2.5 14 9l6 3.4v2.1l-6-1.6-.5 4.6 2 1.5v1.4L12 19l-3.5 1.4V19l2-1.5-.5-4.6-6 1.6v-2.1L10 9z"/>
+          </svg>
+          <b id="livesVal">3</b>
+        </span>
+        <span class="hud-item" id="timeItem" title="زمان" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7fd0ff" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+          </svg>
+          <b id="timeVal">90</b>
+        </span>
+        <span class="hud-item" id="bombItem" title="بمب">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffb26b" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="10.5" cy="14.5" r="6.5"/><path d="M15.2 9.8 17.8 7.2"/><path d="M17.8 7.2c1.6-1.7 3.4-.4 2.2 1.4"/>
+          </svg>
+          <b id="bombVal">3</b>
+        </span>
+      </div>
+      <div class="fuel-row">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#7fd0ff" aria-hidden="true">
+          <path d="M12 2.7s6.4 6.9 6.4 11.1a6.4 6.4 0 0 1-12.8 0C5.6 9.6 12 2.7 12 2.7z"/>
+        </svg>
+        <span>سوخت</span>
+        <div class="fuel-bar"><i id="fuelFill"></i></div>
+        <span id="fuelPct">۱۰۰٪</span>
+      </div>
+      <div id="bossBar" aria-hidden="true"><i id="bossFill"></i></div>
+    </div>
+
+    <button id="pauseBtn" type="button" aria-label="مکث" title="مکث (P)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+        <path d="M9 5v14M15 5v14"/>
+      </svg>
+    </button>
+    <button id="closeBtn" type="button" aria-label="بستن بازی">✕</button>
+
+    <!-- D-Pad -->
+    <div id="dpad" aria-label="دکمه‌های جهت">
+      <button class="dbtn up"    data-dir="up"    type="button" aria-label="بالا">▲</button>
+      <button class="dbtn down"  data-dir="down"  type="button" aria-label="پایین">▼</button>
+      <button class="dbtn left"  data-dir="left"  type="button" aria-label="چپ">◀</button>
+      <button class="dbtn right" data-dir="right" type="button" aria-label="راست">▶</button>
+    </div>
+
+    <!-- تعویض سلاح: مسلسل / بمب (بخش ۲-۲) -->
+    <button id="bombBtn" type="button" aria-label="تعویض سلاح">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="10.5" cy="14.5" r="6.5"/>
+        <path d="M15.2 9.8 17.8 7.2"/>
+        <path d="M17.8 7.2c1.6-1.7 3.4-.4 2.2 1.4"/>
+        <path d="M20.5 4.5v2M19.5 5.5h2" stroke-width="1.4"/>
+      </svg>
+      <span class="bomb-badge" id="bombBadge">3</span>
+    </button>
+
+    <!-- Fire -->
+    <button id="fireBtn" type="button" aria-label="شلیک">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.9"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/>
+        <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>
+        <path d="M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>
+      </svg>
+    </button>
+
+    <!-- انتقال بین مراحل -->
+    <div id="introOverlay" aria-hidden="true">
+      <div class="intro-card">
+        <h2 id="introBig">مرحله ۱</h2>
+        <p id="introName">رودخانه سبز — روز روشن</p>
+      </div>
+    </div>
+
+    <!-- منوی مکث -->
+    <div id="pauseOverlay">
+      <div class="pm-card">
+        <h2>مکث</h2>
+        <button class="pm-btn primary" id="resumeBtn" type="button">ادامه بازی</button>
+        <button class="pm-btn" id="prestartBtn" type="button">شروع دوباره</button>
+        <button class="pm-btn" id="psettingsBtn" type="button">تنظیمات</button>
+        <button class="pm-btn danger" id="pquitBtn" type="button">خروج به منو</button>
+      </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameOver">
+      <div class="go-card">
+        <h2>بازی تمام شد!</h2>
+        <p id="goReason">هواپیما نابود شد!</p>
+        <p id="goMode"></p>
+        <p class="go-score">امتیاز نهایی <b id="finalScore">0</b></p>
+        <p id="goNewRecord">🏆 رکورد جدید!</p>
+        <p class="go-list-title">بهترین‌ها</p>
+        <div id="goList"></div>
+        <div class="go-btns">
+          <button id="restartBtn" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/>
+            </svg>
+            دوباره بازی کن
+          </button>
+          <button id="menuBtn" type="button">بازگشت به منو</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================
+     MODALS
+     ========================================================== -->
+<!-- تنظیمات -->
+<div class="modal" id="settingsModal">
+  <div class="modal-backdrop" data-close="settingsModal"></div>
+  <div class="modal-card" role="dialog" aria-label="تنظیمات">
+    <button class="modal-close" type="button" data-close="settingsModal" aria-label="بستن">✕</button>
+    <h3>⚙️ تنظیمات</h3>
+
+    <div class="set-row">
+      <span class="set-label">صدا<small>موسیقی و افکت‌ها</small></span>
+      <div class="seg" data-set="sound">
+        <button type="button" data-v="1">روشن</button>
+        <button type="button" data-v="0">خاموش</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">لرزش<small>ویبره هنگام انفجار</small></span>
+      <div class="seg" data-set="vibration">
+        <button type="button" data-v="off">خاموش</button>
+        <button type="button" data-v="low">کم</button>
+        <button type="button" data-v="high">زیاد</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">فیلتر CRT<small>اسکن‌لاین و وینیت</small></span>
+      <div class="seg" data-set="crt">
+        <button type="button" data-v="1">روشن</button>
+        <button type="button" data-v="0">خاموش</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">سختی<small>سرعت و تراکم دشمن‌ها</small></span>
+      <div class="seg" data-set="difficulty">
+        <button type="button" data-v="easy">آسان</button>
+        <button type="button" data-v="normal">عادی</button>
+        <button type="button" data-v="hard">سخت</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">نوع کنترل<small>کیبورد و دسته همیشه فعال‌اند</small></span>
+      <div class="seg" data-set="controls">
+        <button type="button" data-v="dpad">D-pad</button>
+        <button type="button" data-v="drag">کشیدن</button>
+        <button type="button" data-v="tilt">کج‌کردن</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- رکوردها -->
+<div class="modal" id="scoresModal">
+  <div class="modal-backdrop" data-close="scoresModal"></div>
+  <div class="modal-card" role="dialog" aria-label="رکوردها">
+    <button class="modal-close" type="button" data-close="scoresModal" aria-label="بستن">✕</button>
+    <h3>🏆 رکوردها</h3>
+    <div class="seg" id="scoreTabs">
+      <button type="button" data-tab="endless" class="on">بی‌پایان</button>
+      <button type="button" data-tab="time">زمانی</button>
+      <button type="button" data-tab="survival">بقا</button>
+      <button type="button" data-tab="daily">روزانه</button>
+    </div>
+    <div id="scoreList"></div>
+  </div>
+</div>
+
+<!-- دستاوردها -->
+<div class="modal" id="achvModal">
+  <div class="modal-backdrop" data-close="achvModal"></div>
+  <div class="modal-card" role="dialog" aria-label="دستاوردها">
+    <button class="modal-close" type="button" data-close="achvModal" aria-label="بستن">✕</button>
+    <h3>🎖️ دستاوردها</h3>
+    <div id="achvList"></div>
+  </div>
+</div>
+
+<!-- ثبت نام رکورد -->
+<div class="modal" id="nameModal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-card" role="dialog" aria-label="رکورد جدید" style="width:min(360px,92vw)">
+    <h3>🏆 رکورد جدید!</h3>
+    <p class="name-note">اسمت رو وارد کن تا در جدول رکوردها ثبت بشه:</p>
+    <input id="nameInput" type="text" maxlength="14" placeholder="مثلاً: Ali" autocomplete="off">
+    <div class="name-btns">
+      <button class="pm-btn primary" id="nameSave" type="button">ثبت</button>
+      <button class="pm-btn" id="nameSkip" type="button">بعداً</button>
+    </div>
+  </div>
+</div>
+
+<!-- توست‌ها -->
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     ۰) کمکی‌های پایه
+     ============================================================ */
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const lerp  = (a, b, t) => a + (b - a) * t;
+  const TAU   = Math.PI * 2;
+
+  /* RNG با seed از نوع mulberry32 — برای چالش روزانه (باگ ۵-۱۰) */
+  function mulberry32(seed) {
+    let t = seed >>> 0;
+    return function () {
+      t += 0x6D2B79F5;
+      let r = Math.imul(t ^ (t >>> 15), 1 | t);
+      r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  /* تمام تصادف‌های گیم‌پلی از این تابع می‌آیند تا با seed قابل کنترل باشند */
+  let gameRNG = Math.random;
+  const rnd = () => gameRNG();
+  const rr  = (a, b) => a + gameRNG() * (b - a);
+  /* تصادف‌های صرفاً بصری (ذرات و افکت) از جریان جدا می‌آیند تا
+     seed گیم‌پلی در چالش روزانه دست‌نخورده بماند */
+  const mrr = (a, b) => a + Math.random() * (b - a);
+
+  /* هش سینوسی قطعی برای عوارض محیطی (بر اساس مختصات جهانی) */
+  function hash01(i, salt) {
+    const s = Math.sin((i + 1) * (salt || 127.1)) * 43758.5453;
+    return s - Math.floor(s);
+  }
+
+  /* نمایش اعداد با رقم فارسی */
+  function faNum(n) {
+    try { return Number(n).toLocaleString('fa-IR'); }
+    catch (e) { return String(n); }
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  /* localStorage ایمن (بدون پرتاب خطا) */
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* جا نبود — مهم نیست */ } }
+  };
+
+  /* seed چالش روزانه از تاریخ امروز */
+  function dailySeed() {
+    const d = new Date();
+    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  }
+
+  /* ============================================================
+     تنظیمات (بخش ۴-۲) — ذخیره در localStorage
+     ============================================================ */
+  const SET_KEY = 'rr_settings_v3';
+  const settings = Object.assign(
+    { sound: true, vibration: 'low', crt: true, difficulty: 'normal', controls: 'dpad' },
+    LS.get(SET_KEY, {})
+  );
+  function saveSettings() { LS.set(SET_KEY, settings); }
+  function diffMul() {
+    return settings.difficulty === 'easy' ? 0.8 : settings.difficulty === 'hard' ? 1.22 : 1;
+  }
+  function enemySpeedSettingMul() {
+    return settings.difficulty === 'easy' ? 0.86 : settings.difficulty === 'hard' ? 1.14 : 1;
+  }
+
+  /* ============================================================
+     مراجع DOM
+     ============================================================ */
+  const gameWrap   = document.getElementById('gameWrap');
+  const stage      = document.getElementById('stage');
+  const canvas     = document.getElementById('gameCanvas');
+  const ctx        = canvas.getContext('2d');
+  const attractCv  = document.getElementById('attractCanvas');
+  const actx       = attractCv.getContext('2d');
+
+  const playBtn    = document.getElementById('playBtn');
+  const closeBtn   = document.getElementById('closeBtn');
+  const pauseBtn   = document.getElementById('pauseBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const menuBtn    = document.getElementById('menuBtn');
+  const fireBtn    = document.getElementById('fireBtn');
+  const bombBtn    = document.getElementById('bombBtn');
+  const bombBadge  = document.getElementById('bombBadge');
+  const muteBtn    = document.getElementById('muteBtn');
+  const dpadBtns   = Array.prototype.slice.call(document.querySelectorAll('.dbtn'));
+
+  const scoreEl    = document.getElementById('scoreVal');
+  const levelEl    = document.getElementById('levelVal');
+  const livesEl    = document.getElementById('livesVal');
+  const timeItem   = document.getElementById('timeItem');
+  const timeVal    = document.getElementById('timeVal');
+  const bombVal    = document.getElementById('bombVal');
+  const fuelFill   = document.getElementById('fuelFill');
+  const fuelPct    = document.getElementById('fuelPct');
+  const bossBar    = document.getElementById('bossBar');
+  const bossFill   = document.getElementById('bossFill');
+
+  const gameOverEl   = document.getElementById('gameOver');
+  const finalScoreEl = document.getElementById('finalScore');
+  const goReasonEl   = document.getElementById('goReason');
+  const goModeEl     = document.getElementById('goMode');
+  const goNewRecord  = document.getElementById('goNewRecord');
+  const goListEl     = document.getElementById('goList');
+
+  const introOverlay = document.getElementById('introOverlay');
+  const introBig     = document.getElementById('introBig');
+  const introName    = document.getElementById('introName');
+  const pauseOverlay = document.getElementById('pauseOverlay');
+
+  const settingsModal = document.getElementById('settingsModal');
+  const scoresModal   = document.getElementById('scoresModal');
+  const achvModal     = document.getElementById('achvModal');
+  const nameModal     = document.getElementById('nameModal');
+  const nameInput     = document.getElementById('nameInput');
+  const nameSave      = document.getElementById('nameSave');
+  const nameSkip      = document.getElementById('nameSkip');
+  const scoreTabs     = document.getElementById('scoreTabs');
+  const scoreListEl   = document.getElementById('scoreList');
+  const achvListEl    = document.getElementById('achvList');
+  const toastsEl      = document.getElementById('toasts');
+
+  /* ============================================================
+     Toast و دستاوردها (بخش ۳-۵)
+     ============================================================ */
+  function showToast(title, desc, ico) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML =
+      '<span class="t-ico">' + (ico || '🏅') + '</span>' +
+      '<span><b>' + esc(title) + '</b><small>' + esc(desc || '') + '</small></span>';
+    toastsEl.appendChild(t);
+    setTimeout(() => { t.classList.add('out'); }, 2800);
+    setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 3200);
+  }
+
+  const ACHV = [
+    { id: 'boss1',    ico: '⚓', name: 'شکارچی ناو',  desc: 'نابود کردن اولین باس' },
+    { id: 'nodmg2',   ico: '🛡️', name: 'بدون یک خراش', desc: 'گذراندن مرحله ۲ بدون آسیب' },
+    { id: 'fuel1000', ico: '⛽', name: 'سوخت‌گیر',      desc: 'جمع‌آوری ۱۰۰۰ واحد سوخت (مجموع همه بازی‌ها)' },
+    { id: 'score5000',ico: '⭐', name: 'پنج‌هزار',       desc: 'کسب امتیاز بالای ۵۰۰۰ در یک دست' }
+  ];
+  const ACHV_KEY  = 'rr_achv_v3';
+  const STATS_KEY = 'rr_stats_v3';
+  let achvUnlocked = LS.get(ACHV_KEY, {});
+  let stats        = LS.get(STATS_KEY, { fuelTotal: 0 });
+
+  function unlockAchv(id) {
+    if (achvUnlocked[id]) return;
+    achvUnlocked[id] = Date.now();
+    LS.set(ACHV_KEY, achvUnlocked);
+    const a = ACHV.find(x => x.id === id);
+    if (a) { showToast('دستاورد باز شد!', a.name, a.ico); Snd.power(); }
+  }
+  function addFuelStat(amount) {
+    stats.fuelTotal += amount;
+    LS.set(STATS_KEY, stats);
+    if (stats.fuelTotal >= 1000) unlockAchv('fuel1000');
+  }
+  function renderAchvList() {
+    achvListEl.innerHTML = ACHV.map(a => {
+      const done = !!achvUnlocked[a.id];
+      let prog = '';
+      if (a.id === 'fuel1000' && !done) {
+        const pct = clamp(stats.fuelTotal / 1000, 0, 1) * 100;
+        prog = '<div class="achv-prog"><i style="width:' + pct.toFixed(1) + '%"></i></div>';
+      }
+      return '<div class="achv ' + (done ? 'done' : 'locked') + '">' +
+        '<span class="achv-ico">' + a.ico + '</span>' +
+        '<span class="achv-txt"><b>' + esc(a.name) + '</b><small>' + esc(a.desc) + '</small>' + prog + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  /* ============================================================
+     رکوردها (بخش ۳-۱) — جدول ۱۰ تایی به تفکیک حالت
+     ============================================================ */
+  const HS_KEY = 'rr_highscores_v3';
+  function getScores(mode) {
+    const all = LS.get(HS_KEY, {});
+    return Array.isArray(all[mode]) ? all[mode] : [];
+  }
+  function saveScores(mode, arr) {
+    const all = LS.get(HS_KEY, {});
+    all[mode] = arr;
+    LS.set(HS_KEY, all);
+  }
+  function qualifies(mode, score) {
+    const t = getScores(mode);
+    return score > 0 && (t.length < 10 || score > t[t.length - 1].score);
+  }
+  function addScore(mode, name, score) {
+    const t = getScores(mode);
+    const rec = { name: name, score: score, date: Date.now() };
+    t.push(rec);
+    t.sort((a, b) => b.score - a.score);
+    saveScores(mode, t.slice(0, 10));
+    return rec;
+  }
+  function scoresHTML(mode, limit, hl) {
+    const t = getScores(mode).slice(0, limit || 10);
+    if (!t.length) return '<p class="empty-note">هنوز رکوردی ثبت نشده — اولین نفر باش!</p>';
+    return t.map((r, i) => {
+      const isNew = hl && r.name === hl.name && r.score === hl.score && r.date === hl.date;
+      return '<div class="score-row' + (isNew ? ' new' : '') + '">' +
+        '<span>' + faNum(i + 1) + '. ' + esc(r.name) + '</span>' +
+        '<b>' + faNum(r.score) + '</b>' +
+        '</div>';
+    }).join('');
+  }
+
+  /* ============================================================
+     لرزش (Vibration API — بخش ۳-۳)
+     ============================================================ */
+  function vibrate(pat) {
+    if (settings.vibration === 'off') return;
+    if (!navigator.vibrate) return;
+    const k = settings.vibration === 'high' ? 1 : 0.55;
+    const p = Array.isArray(pat)
+      ? pat.map(v => Math.max(8, Math.round(v * k)))
+      : Math.max(8, Math.round(pat * k));
+    try { navigator.vibrate(p); } catch (e) { /* پشتیبانی نمی‌شود */ }
+  }
+
+  /* ============================================================
+     موتور صدا — Web Audio API کاملاً procedural (بخش ۳-۲)
+     ============================================================ */
+  const Snd = (function () {
+    let ctxA = null, master = null, musicGain = null;
+    let engineOsc = null, engineGain = null;
+    let noiseBuf = null;
+    let musicOn = false, mTimer = 0, mStep = 0, mNext = 0, mRoot = 55;
+
+    function ensure() {
+      if (ctxA) return true;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      try { ctxA = new AC(); } catch (e) { return false; }
+      master = ctxA.createGain();
+      master.gain.value = settings.sound ? 0.85 : 0;
+      master.connect(ctxA.destination);
+      musicGain = ctxA.createGain();
+      musicGain.gain.value = 0.5;
+      musicGain.connect(master);
+      /* بافر نویز سفید — منبع مشترک افکت‌ها */
+      const len = Math.floor(ctxA.sampleRate * 0.8);
+      noiseBuf = ctxA.createBuffer(1, len, ctxA.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      return true;
+    }
+    function resume() { if (ctxA && ctxA.state === 'suspended') ctxA.resume().catch(() => {}); }
+
+    /* بوق ساده با envelope */
+    function tone(freq, dur, type, vol, slideTo) {
+      if (!ensure() || !settings.sound) return;
+      const t = ctxA.currentTime;
+      const o = ctxA.createOscillator(), g = ctxA.createGain();
+      o.type = type || 'square';
+      o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t + dur);
+      g.gain.setValueAtTime(vol || 0.14, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + dur + 0.03);
+    }
+    /* انفجار نویزی با فیلتر پایین‌گذر لغزان */
+    function noiseHit(dur, vol, f0, f1) {
+      if (!ensure() || !settings.sound || !noiseBuf) return;
+      const t = ctxA.currentTime;
+      const s = ctxA.createBufferSource(); s.buffer = noiseBuf;
+      const lp = ctxA.createBiquadFilter(); lp.type = 'lowpass';
+      lp.frequency.setValueAtTime(f0, t);
+      lp.frequency.exponentialRampToValueAtTime(Math.max(60, f1), t + dur);
+      const g = ctxA.createGain();
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      s.connect(lp); lp.connect(g); g.connect(master);
+      s.start(t); s.stop(t + dur + 0.03);
+    }
+    /* آرپژ بالارونده */
+    function arp(freqs, type, vol, gap) {
+      if (!ensure() || !settings.sound) return;
+      freqs.forEach((f, i) => setTimeout(() => tone(f, 0.09, type || 'square', vol || 0.12), i * (gap || 58)));
+    }
+
+    /* --- موسیقی ۸-بیتی: زمان‌بند look-ahead --- */
+    function mNote(f, t, dur, type, vol) {
+      if (!ctxA) return;
+      const o = ctxA.createOscillator(), g = ctxA.createGain();
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(musicGain);
+      o.start(t); o.stop(t + dur + 0.03);
+    }
+    function mTick() {
+      if (!ctxA || !musicOn || !settings.sound) return;
+      const spb = 60 / 138 / 2; /* نت‌های هشتم */
+      const arpNotes = [0, 3, 7, 12, 7, 3];
+      while (mNext < ctxA.currentTime + 0.18) {
+        const t = mNext, s = mStep % 32;
+        if (s % 4 === 0) mNote(mRoot * (s % 8 === 4 ? 1.5 : 1), t, spb * 1.8, 'triangle', 0.11);
+        mNote(mRoot * 2 * Math.pow(2, arpNotes[s % 6] / 12), t, spb * 0.9, 'square', 0.032);
+        if (s % 8 === 6) mNote(mRoot * 4 * Math.pow(2, arpNotes[(s + 2) % 6] / 12), t, spb * 0.6, 'square', 0.018);
+        mNext += spb; mStep++;
+      }
+    }
+
+    return {
+      init() { ensure(); resume(); },
+      setMuted(m) { if (master && ctxA) master.gain.setTargetAtTime(m ? 0 : 0.85, ctxA.currentTime, 0.05); },
+      /* شلیک مسلسل: نویز کوتاه + بلینت */
+      shoot() { noiseHit(0.07, 0.15, 3400, 700); tone(740, 0.055, 'square', 0.045, 250); },
+      /* پرتاب بمب */
+      bombDrop() { tone(320, 0.24, 'sine', 0.11, 90); },
+      /* انفجار: نویز + decay (+ بام سنگین برای انفجار بزرگ) */
+      explode(big) {
+        noiseHit(big ? 0.55 : 0.32, big ? 0.5 : 0.28, big ? 1500 : 2300, 55);
+        if (big) tone(72, 0.45, 'sine', 0.38, 30);
+      },
+      /* برخورد به باس: impact سنگین */
+      bossHit() { noiseHit(0.28, 0.34, 950, 60); tone(112, 0.2, 'triangle', 0.24, 56); },
+      /* جمع‌آوری سوخت: آرپژ بالا */
+      fuel() { arp([523, 659, 784], 'square', 0.12, 58); },
+      /* پاورآپ: آرپژ بلندتر */
+      power() { arp([440, 554, 659, 880], 'triangle', 0.14, 52); },
+      /* آلارم سوخت کم: دو بوق */
+      alarm() { tone(880, 0.09, 'square', 0.13); setTimeout(() => tone(880, 0.09, 'square', 0.13), 130); },
+      ui() { tone(620, 0.05, 'square', 0.07); },
+      /* موتور جت: osc مداوم با فرکانس متغیر */
+      engineStart() {
+        if (!ensure() || engineOsc) return;
+        engineOsc = ctxA.createOscillator();
+        engineGain = ctxA.createGain();
+        const lp = ctxA.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
+        engineOsc.type = 'sawtooth';
+        engineOsc.frequency.value = 62;
+        engineGain.gain.value = 0;
+        engineOsc.connect(lp); lp.connect(engineGain); engineGain.connect(master);
+        engineOsc.start();
+        engineGain.gain.linearRampToValueAtTime(settings.sound ? 0.05 : 0, ctxA.currentTime + 0.4);
+      },
+      engineSet(speed) {
+        if (engineOsc && ctxA) engineOsc.frequency.setTargetAtTime(50 + speed * 0.09, ctxA.currentTime, 0.15);
+      },
+      engineStop() {
+        if (!ctxA) return;
+        if (engineGain) engineGain.gain.setTargetAtTime(0, ctxA.currentTime, 0.1);
+        const o = engineOsc; engineOsc = null;
+        if (o) setTimeout(() => { try { o.stop(); } catch (e) { /* قبلاً متوقف شده */ } }, 450);
+      },
+      musicStart(root) {
+        if (!ensure()) return;
+        mRoot = root || 55;
+        if (musicOn) return;
+        musicOn = true; mStep = 0; mNext = ctxA.currentTime + 0.12;
+        mTimer = setInterval(mTick, 70);
+      },
+      musicStop() { musicOn = false; clearInterval(mTimer); mTimer = 0; },
+      musicRoot(r) { mRoot = r; }
+    };
+  })();
+
+  /* ============================================================
+     پالت‌های چرخه روز/شب (بخش ۱-۶)
+     ============================================================ */
+  const LEVEL_LEN = 2000; /* هر مرحله ۲۰۰۰ واحد مسافت — باگ ۵-۳ */
+  const PALETTES = [
+    { /* مرحله ۱: روز روشن */
+      title: 'رودخانه سبز', sub: 'روز روشن',
+      ground: ['#2a6b34', '#1d4d26', '#35813f', '#143a1b'],
+      river: ['#1d5c8f', '#2a72ab', '#174a75'],
+      bank: 'rgba(10,30,15,.55)', cloud: 'rgba(255,255,255,.10)',
+      tint: null, dark: 0, rain: false, fog: 0, light: false, root: 55 },
+    { /* مرحله ۲: غروب نارنجی */
+      title: 'غروب نارنجی', sub: 'آسمان آتشین',
+      ground: ['#6b5a2a', '#4a3d1c', '#7d6b34', '#332a12'],
+      river: ['#a05a35', '#c47a45', '#7a3f28'],
+      bank: 'rgba(40,20,10,.55)', cloud: 'rgba(255,180,120,.12)',
+      tint: 'rgba(255,110,40,.07)', dark: 0.16, rain: false, fog: 0, light: false, root: 49 },
+    { /* مرحله ۳: شب با نورافکن */
+      title: 'رودخانه تاریک', sub: 'شب و نورافکن',
+      ground: ['#0f1e13', '#0a140d', '#14261a', '#060d08'],
+      river: ['#0b2138', '#123050', '#081828'],
+      bank: 'rgba(2,6,4,.7)', cloud: 'rgba(120,150,200,.07)',
+      tint: null, dark: 0.58, rain: false, fog: 0, light: true, root: 61.7 },
+    { /* مرحله ۴: طوفان با باران و مه */
+      title: 'طوفان و مه', sub: 'باران سنگین',
+      ground: ['#2b4430', '#1e3123', '#334d38', '#15221a'],
+      river: ['#37506a', '#4a6785', '#28405a'],
+      bank: 'rgba(15,25,20,.6)', cloud: 'rgba(200,210,220,.16)',
+      tint: 'rgba(140,160,180,.07)', dark: 0.22, rain: true, fog: 0.13, light: false, root: 51.9 }
+  ];
+  const palOf = level => PALETTES[(level - 1) & 3];
+
+  /* ============================================================
+     Object Pooling (باگ ۵-۴) — آرایه ثابت + پرچم active
+     ============================================================ */
+  function pool(n, factory) {
+    const a = new Array(n);
+    for (let i = 0; i < n; i++) { a[i] = factory(); a[i].active = false; }
+    a.obtain = function () {
+      for (let i = 0; i < n; i++) {
+        if (!a[i].active) { a[i].active = true; return a[i]; }
+      }
+      return null; /* استخر پر بود — بی‌صدا رد می‌شویم */
+    };
+    return a;
+  }
+  function clearPool(a) { for (let i = 0; i < a.length; i++) a[i].active = false; }
+
+  /* ============================================================
+     کارخانهٔ جهان بازی — هم برای بازی اصلی، هم برای دموی لندینگ
+     ============================================================ */
+  function createWorld() {
+    const wl = {
+      W: 400, H: 700, dpr: 1,
+      t: 0,
+      state: 'MENU',        /* MENU | PLAYING | BOSS | PAUSED | LEVEL_INTRO | OUT_OF_FUEL | GAMEOVER | DEMO */
+      mode: 'endless',
+      seed: 0,
+      dist: 0, speed: 140, score: 0, level: 1, levelDist: 0,
+      fuel: 100, lives: 3, bombs: 3,
+      deaths: 0, dmgThisLevel: 0,
+      combo: 0, comboTimer: 0,
+      timeLeft: 0,
+      spawnAcc: 0, spawnGap: 320,
+      depotAcc: 0, depotGap: 820,
+      bridgeAcc: 0, bridgeGap: 2400,
+      powerAcc: 0, powerGap: 1250,
+      bubbleAcc: 0,
+      shakeT: 0, shakeDur: 0.001, shakeMag: 0,
+      flash: 0, slowmo: 0,
+      endTimer: 0, endReason: '',
+      outTimer: 0, introT: 0, alarmAcc: 0,
+      dynMul: 1,
+      weapon: 'gun', fireCd: 0,
+      hints: null,
+      prevState: 'PLAYING',
+      /* --- استخرها --- */
+      bullets:  pool(48,  () => ({ x: 0, y: 0, vx: 0, vy: 0, homing: false })),
+      ebullets: pool(52,  () => ({ x: 0, y: 0, vx: 0, vy: 0, kind: 'b', r: 3 })),
+      pbombs:   pool(12,  () => ({ x: 0, y: 0, vy: 0 })),
+      enemies:  pool(42,  () => ({ type: '', x: 0, baseX: 0, y: 0, w: 0, h: 0, hp: 1, maxHp: 1, score: 0,
+                                   vy: 0, osc: false, amp: 0, freq: 0, phase: 0, t: 0, fireCd: 0, st: 0,
+                                   side: 1, dying: 0, dyingT: 0, hitT: 0, stCode: 0, ang: Math.PI / 2 })),
+      depots:   pool(8,   () => ({ x: 0, y: 0, t: 0 })),
+      bridges:  pool(5,   () => ({ worldY: 0, y: 0, left: 0, right: 0, hp: 3, maxHp: 3 })),
+      powers:   pool(6,   () => ({ x: 0, y: 0, type: 'shield', t: 0 })),
+      particles:pool(460, () => ({ x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 1, size: 2, color: '#fff', smoke: false, grow: 0 })),
+      floats:   pool(16,  () => ({ x: 0, y: 0, vy: -34, life: 0, maxLife: 1, text: '', color: '#fff', size: 15 })),
+      bubbles:  pool(26,  () => ({ x: 0, y: 0, r: 1, t: 0, life: 1 })),
+      rain:     pool(90,  () => ({ x: 0, y: 0, v: 0, l: 0 })),
+      clouds:   [],
+      boss: { active: false, x: 0, y: 0, w: 220, h: 84, t: 0, dying: 0, parts: [], hpTotal: 0, maxHpTotal: 1 },
+      player: { x: 200, y: 560, dead: false, invuln: 0, respawn: 0, shield: 0, triple: 0, homing: 0, magnet: 0 }
+    };
+    for (let i = 0; i < 8; i++) {
+      wl.clouds.push({ x: Math.random(), y: Math.random(), s: 0.6 + Math.random() * 0.9, v: 0.8 + Math.random() * 0.5 });
+    }
+    return wl;
+  }
+
+  /* ============================================================
+     رودخانهٔ procedural + عوارض محیطی (بخش ۲-۶)
+     ------------------------------------------------------------
+     screenY = dist - worldY   =>   worldY = dist - screenY
+     ============================================================ */
+  function riverAt(wl, w) {
+    const W = wl.W;
+    const c =
+      W * 0.5 +
+      Math.sin(w * 0.00160) * W * 0.150 +
+      Math.sin(w * 0.00061 + 1.7) * W * 0.110 +
+      Math.sin(w * 0.00340 + 0.4) * W * 0.035;
+
+    let half =
+      W * 0.200 +
+      Math.sin(w * 0.00110 + 0.9) * W * 0.055 +
+      Math.sin(w * 0.00270 + 2.2) * W * 0.032;
+    half = clamp(half, W * 0.115, W * 0.265);
+
+    half *= narrowFactor(w);          /* تنگه باریک */
+    half = Math.max(30, half);
+
+    let left = c - half, right = c + half;
+    if (left < 6)      { right += 6 - left; left = 6; }
+    if (right > W - 6) { left -= right - (W - 6); right = W - 6; }
+    return { left: left, right: right, center: (left + right) * 0.5, half: (right - left) * 0.5 };
+  }
+
+  /* ضریب باریک‌شدن رودخانه در تنگه‌ها (قطعی بر اساس مختصات جهانی) */
+  function narrowFactor(w) {
+    const i = Math.floor(w / 760), h = hash01(i, 11.3);
+    if (h > 0.28) return 1;
+    const t = (w - i * 760) / 760;
+    if (t < 0.28 || t > 0.72) return 1;
+    const k = Math.sin((t - 0.28) / 0.44 * Math.PI);
+    return 1 - 0.42 * k;
+  }
+  /* جزیره میانی — فقط در بخش‌هایی که رودخانه به‌قدر کافی عریض است */
+  function islandAt(wl, w) {
+    const i = Math.floor(w / 760), h = hash01(i, 29.7);
+    if (h > 0.20) return null;
+    if (narrowFactor(w) < 0.85) return null;
+    const t = (w - i * 760) / 760;
+    if (t < 0.30 || t > 0.70) return null;
+    const e = riverAt(wl, w);
+    const k = 1 - Math.abs(t - 0.5) / 0.2;
+    const halfW = e.half * 0.42 * Math.min(1, k * 1.7);
+    if (halfW < 13) return null;
+    return { cx: e.center, half: halfW };
+  }
+  /* صخرهٔ ساحلی */
+  function rocksAt(wl, w) {
+    const i = Math.floor(w / 760), h = hash01(i, 55.1);
+    if (h > 0.34) return null;
+    const t = (w - i * 760) / 760;
+    if (t < 0.35 || t > 0.65) return null;
+    const e = riverAt(wl, w);
+    const side = hash01(i, 71.9) < 0.5 ? -1 : 1;
+    const k = clamp((1 - Math.abs(t - 0.5) / 0.15) * 1.7, 0, 1);
+    return { cx: side < 0 ? e.left + 7 : e.right - 7, side: side, r: 10 + 6 * k, protrude: (7 + 9 * h) * k };
+  }
+  /* آبشار — تزئینی با ذرات اسپری */
+  function waterfallAt(w) {
+    const i = Math.floor(w / 900), h = hash01(i, 91.3);
+    if (h > 0.13) return null;
+    const t = (w - i * 900) / 900;
+    if (t < 0.42 || t > 0.58) return null;
+    return { a: 1 - Math.abs(t - 0.5) / 0.08 };
+  }
+
+  /* ============================================================
+     بافت زمین — یک الگو به ازای هر پالت (کش‌شده به ازای هر context)
+     ============================================================ */
+  const patCache = new WeakMap();
+  function groundPatternFor(c, idx) {
+    let arr = patCache.get(c);
+    if (!arr) { arr = [null, null, null, null]; patCache.set(c, arr); }
+    if (!arr[idx]) {
+      const pal = PALETTES[idx];
+      const tile = document.createElement('canvas');
+      tile.width = tile.height = 96;
+      const g = tile.getContext('2d');
+      g.fillStyle = pal.ground[0];
+      g.fillRect(0, 0, 96, 96);
+      const counts = [26, 22, 18, 14];
+      for (let ci = 1; ci < 4; ci++) {
+        g.fillStyle = pal.ground[ci];
+        for (let i = 0; i < counts[ci]; i++) {
+          const x = Math.random() * 96, y = Math.random() * 96;
+          const r = 1 + Math.random() * 3.2;
+          g.beginPath();
+          g.ellipse(x, y, r, r * 0.62, Math.random() * Math.PI, 0, TAU);
+          g.fill();
+        }
+      }
+      arr[idx] = c.createPattern(tile, 'repeat');
+    }
+    return arr[idx];
+  }
+
+  /* ============================================================
+     HUD — به‌روزرسانی فقط در صورت تغییر مقدار (بهینه)
+     ============================================================ */
+  const hudCache = {};
+  function updateHUD(wl) {
+    if (hudCache.score !== wl.score) { hudCache.score = wl.score; scoreEl.textContent = faNum(wl.score); }
+    if (hudCache.level !== wl.level) { hudCache.level = wl.level; levelEl.textContent = faNum(wl.level); }
+    if (hudCache.lives !== wl.lives) { hudCache.lives = wl.lives; livesEl.textContent = faNum(Math.max(0, wl.lives)); }
+    if (hudCache.bombs !== wl.bombs) { hudCache.bombs = wl.bombs; bombVal.textContent = faNum(wl.bombs); bombBadge.textContent = faNum(wl.bombs); }
+    if (hudCache.weapon !== wl.weapon) { hudCache.weapon = wl.weapon; bombBtn.classList.toggle('sel', wl.weapon === 'bomb'); }
+    if (wl.mode === 'time') {
+      const t = Math.ceil(Math.max(0, wl.timeLeft));
+      if (hudCache.time !== t) { hudCache.time = t; timeVal.textContent = faNum(t); }
+    }
+    const f = clamp(wl.fuel, 0, 100);
+    const fp = Math.round(f);
+    if (hudCache.fuel !== fp) {
+      hudCache.fuel = fp;
+      fuelFill.style.width = f + '%';
+      fuelFill.classList.toggle('low', f < 28);
+      fuelPct.textContent = faNum(fp) + '٪';
+    }
+    /* نوار سلامت باس */
+    const showBoss = wl.state === 'BOSS' && wl.boss.active;
+    if (hudCache.bossShown !== showBoss) {
+      hudCache.bossShown = showBoss;
+      bossBar.classList.toggle('show', showBoss);
+    }
+    if (showBoss) {
+      const pct = clamp(wl.boss.hpTotal / wl.boss.maxHpTotal, 0, 1) * 100;
+      if (hudCache.bossHp !== pct) { hudCache.bossHp = pct; bossFill.style.width = pct + '%'; }
+    }
+  }
+
+  /* ============================================================
+     اورلی انتقال مرحله
+     ============================================================ */
+  let introTimer = 0;
+  function showIntro(wl) {
+    const pal = palOf(wl.level);
+    introBig.textContent = 'مرحله ' + faNum(wl.level);
+    introName.textContent = pal.title + ' — ' + pal.sub;
+    introOverlay.classList.remove('show');
+    void introOverlay.offsetWidth; /* ری‌استارت انیمیشن */
+    introOverlay.classList.add('show');
+    clearTimeout(introTimer);
+    introTimer = setTimeout(() => introOverlay.classList.remove('show'), 2500);
+  }
+
+  /* ============================================================
+     تعریف دشمن‌ها (بخش ۲-۳: زیردریایی، مین، برجک، بمب‌افکن، کامیکازه)
+     ============================================================ */
+  const ENEMY_STATS = {
+    balloon: { w: 24, h: 32, hp: 1, score: 30,  vy: 0,   osc: true,  amp: 14, freq: 1.3,  air: false },
+    ship:    { w: 52, h: 22, hp: 2, score: 80,  vy: 0,   osc: true,  amp: 20, freq: 0.65, air: false },
+    heli:    { w: 38, h: 24, hp: 1, score: 120, vy: 0,   osc: true,  amp: 58, freq: 1.7,  air: true,  shoots: true },
+    jet:     { w: 34, h: 28, hp: 1, score: 180, vy: 150, osc: false, amp: 0,  freq: 0,    air: true },
+    kami:    { w: 30, h: 28, hp: 1, score: 160, vy: 70,  osc: false, amp: 0,  freq: 0,    air: true },
+    sub:     { w: 46, h: 20, hp: 1, score: 150, vy: 0,   osc: true,  amp: 16, freq: 0.5,  air: false },
+    mine:    { w: 24, h: 24, hp: 1, score: 60,  vy: -22, osc: true,  amp: 10, freq: 0.9,  air: false },
+    turret:  { w: 26, h: 26, hp: 2, score: 140, vy: 0,   osc: false, amp: 0,  freq: 0,    air: false, shoots: true, bank: true },
+    bomber:  { w: 56, h: 30, hp: 3, score: 200, vy: 34,  osc: false, amp: 0,  freq: 0,    air: true,  shoots: true }
+  };
+
+  const POWER_TYPES = ['shield', 'triple', 'homing', 'magnet', 'slow'];
+  const POWER_NAMES = {
+    shield: 'سپر محافظ!', triple: 'شلیک سه‌گانه!', homing: 'موشک هومینگ!',
+    magnet: 'آهنربای سوخت!', slow: 'حرکت آهسته!'
+  };
+  const POWER_COLORS = {
+    shield: '#35c6f4', triple: '#f5c518', homing: '#ff7043',
+    magnet: '#b388ff', slow: '#69f0ae'
+  };
+
+  /* ============================================================
+     ذرات / انفجار / متن شناور
+     ============================================================ */
+  function explode(wl, x, y, n, colors) {
+    for (let i = 0; i < n; i++) {
+      const p = wl.particles.obtain(); if (!p) return;
+      const a = Math.random() * TAU, s = mrr(40, 265);
+      p.x = x; p.y = y;
+      p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
+      p.life = mrr(0.28, 0.85); p.maxLife = p.life;
+      p.size = mrr(1.4, 4.4);
+      p.smoke = false; p.grow = 0;
+      p.color = colors
+        ? (Array.isArray(colors) ? colors[(Math.random() * colors.length) | 0] : colors)
+        : (Math.random() < 0.5 ? '#ffcc33' : '#ff6b35');
+    }
+  }
+  function smokePuff(wl, x, y) {
+    const p = wl.particles.obtain(); if (!p) return;
+    p.x = x + mrr(-3, 3); p.y = y;
+    p.vx = mrr(-12, 12); p.vy = mrr(-34, -8);
+    p.life = mrr(0.5, 1.1); p.maxLife = p.life;
+    p.size = mrr(2, 4.2); p.smoke = true; p.grow = 7;
+    p.color = ['#4a4a4a', '#5c5c5c', '#6e6e6e'][(Math.random() * 3) | 0];
+  }
+  function fireTrail(wl, x, y) {
+    const p = wl.particles.obtain(); if (!p) return;
+    p.x = x + mrr(-3, 3); p.y = y + mrr(-2, 5);
+    p.vx = mrr(-16, 16); p.vy = mrr(30, 95);
+    p.life = mrr(0.16, 0.4); p.maxLife = p.life;
+    p.size = mrr(1.5, 3.2); p.smoke = false; p.grow = 0;
+    p.color = Math.random() < 0.5 ? '#ff9a3c' : '#ffd23c';
+  }
+  function sparks(wl, x, y) {
+    for (let i = 0; i < 5; i++) {
+      const p = wl.particles.obtain(); if (!p) return;
+      const a = Math.random() * TAU, s = mrr(30, 120);
+      p.x = x; p.y = y;
+      p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
+      p.life = mrr(0.1, 0.28); p.maxLife = p.life;
+      p.size = mrr(1, 2.3); p.smoke = false; p.grow = 0;
+      p.color = '#ffe9a8';
+    }
+  }
+  function floatText(wl, x, y, text, color, size) {
+    const f = wl.floats.obtain(); if (!f) return;
+    f.x = x; f.y = y; f.text = text;
+    f.color = color || '#fff'; f.size = size || 15;
+    f.life = 1; f.maxLife = 1; f.vy = -34;
+  }
+  function updateParticles(wl, dt, scroll) {
+    const arr = wl.particles;
+    for (let i = 0; i < arr.length; i++) {
+      const p = arr[i];
+      if (!p.active) continue;
+      p.life -= dt;
+      if (p.life <= 0) { p.active = false; continue; }
+      p.x += p.vx * dt;
+      p.y += p.vy * dt + (scroll || 0) * dt * 0.75;
+      p.vx *= 0.975;
+      if (!p.smoke) p.vy *= 0.975;
+      if (p.smoke) p.size += p.grow * dt;
+    }
+    const fl = wl.floats;
+    for (let i = 0; i < fl.length; i++) {
+      const f = fl[i];
+      if (!f.active) continue;
+      f.life -= dt;
+      if (f.life <= 0) { f.active = false; continue; }
+      f.y += f.vy * dt;
+      f.vy *= 0.96;
+    }
+  }
+  function shake(wl, mag, dur) {
+    if (mag > wl.shakeMag * (wl.shakeT / Math.max(wl.shakeDur, 0.001)) || wl.shakeT <= 0) {
+      wl.shakeMag = Math.max(mag, wl.shakeT > 0 ? wl.shakeMag * 0.5 : 0);
+      wl.shakeDur = dur; wl.shakeT = dur;
+    }
+  }
+
+  /* ============================================================
+     سیستم کمبو (بخش ۲-۵)
+     ============================================================ */
+  function addKill(wl, x, y, base) {
+    wl.comboTimer = 2;                       /* کمتر از ۲ ثانیه فاصله = ادامه کمبو */
+    wl.combo = Math.min(8, wl.combo + 1);
+    const m = wl.combo >= 2 ? wl.combo : 1;  /* ضریب ×۲ تا ×۸ */
+    const s = base * m;
+    wl.score += s;
+    if (m >= 2) floatText(wl, x, y - 16, '×' + faNum(m) + '  +' + faNum(s), '#ffd54a', 17);
+    else floatText(wl, x, y - 14, '+' + faNum(s), '#e8eef5', 13);
+    if (wl.state !== 'DEMO' && wl.score > 5000) unlockAchv('score5000');
+  }
+
+  /* ============================================================
+     اسپاونرها
+     ============================================================ */
+  function pickEnemyType(wl) {
+    const L = wl.level, roll = rnd();
+    if (L < 2)  return roll < 0.55 ? 'balloon' : 'ship';
+    if (L < 3)  return roll < 0.30 ? 'balloon' : roll < 0.56 ? 'ship' : roll < 0.70 ? 'mine' : roll < 0.84 ? 'sub' : 'heli';
+    if (L < 4)  return roll < 0.16 ? 'balloon' : roll < 0.38 ? 'ship' : roll < 0.52 ? 'heli' : roll < 0.64 ? 'jet' :
+                       roll < 0.74 ? 'kami' : roll < 0.82 ? 'mine' : roll < 0.90 ? 'turret' : 'sub';
+    if (L < 6)  return roll < 0.12 ? 'balloon' : roll < 0.30 ? 'ship' : roll < 0.44 ? 'heli' : roll < 0.56 ? 'jet' :
+                       roll < 0.68 ? 'kami' : roll < 0.76 ? 'turret' : roll < 0.84 ? 'mine' : roll < 0.92 ? 'bomber' : 'sub';
+    return roll < 0.10 ? 'ship' : roll < 0.26 ? 'heli' : roll < 0.40 ? 'jet' : roll < 0.54 ? 'kami' :
+           roll < 0.66 ? 'turret' : roll < 0.76 ? 'mine' : roll < 0.88 ? 'bomber' : 'sub';
+  }
+
+  function spawnEnemy(wl) {
+    const y = -60;
+    const wy = wl.dist - y;
+    const e = riverAt(wl, wy);
+    const type = pickEnemyType(wl);
+    const st = ENEMY_STATS[type];
+    const o = wl.enemies.obtain(); if (!o) return;
+
+    let x;
+    if (st.bank) {
+      /* برجک ضدهوایی روی ساحل */
+      const side = rnd() < 0.5 ? -1 : 1;
+      x = side < 0 ? Math.max(12, e.left - 17) : Math.min(wl.W - 12, e.right + 17);
+      o.side = side;
+    } else {
+      const margin = 30;
+      const isl = islandAt(wl, wy);
+      if (isl) {
+        /* اجزای داخل جزیره اسپاون نشوند — انتخاب سمت عریض‌تر */
+        const gapL = (isl.cx - isl.half - 14) - (e.left + margin);
+        const gapR = (e.right - margin) - (isl.cx + isl.half + 14);
+        if (gapL > gapR && gapL > 10) x = rr(e.left + margin, isl.cx - isl.half - 16);
+        else if (gapR > 10)           x = rr(isl.cx + isl.half + 16, e.right - margin);
+        else x = e.center;
+      } else {
+        x = (e.right - e.left > margin * 2 + 20) ? rr(e.left + margin, e.right - margin) : e.center;
+      }
+    }
+
+    const spMul = (1 + 0.05 * (wl.level - 1)) * wl.dynMul * enemySpeedSettingMul();
+    o.type = type; o.x = x; o.baseX = x; o.y = y;
+    o.w = st.w; o.h = st.h;
+    o.hp = st.hp; o.maxHp = st.hp; o.score = st.score;
+    o.vy = st.vy * spMul;
+    o.osc = st.osc; o.amp = st.amp; o.freq = st.freq;
+    o.phase = rnd() * TAU; o.t = 0;
+    o.fireCd = rr(0.9, 2.0);
+    o.st = 0; o.dying = 0; o.dyingT = 0; o.hitT = 0;
+    if (!st.bank) o.side = rnd() < 0.5 ? -1 : 1;
+  }
+
+  function spawnDepot(wl) {
+    const y = -60;
+    const wy = wl.dist - y;
+    const e = riverAt(wl, wy);
+    const isl = islandAt(wl, wy);
+    let x = (e.right - e.left > 70) ? rr(e.left + 30, e.right - 30) : e.center;
+    if (isl && Math.abs(x - isl.cx) < isl.half + 20) {
+      x = isl.cx + (x < isl.cx ? -1 : 1) * (isl.half + 26);
+      x = clamp(x, e.left + 22, e.right - 22);
+    }
+    const d = wl.depots.obtain(); if (!d) return;
+    d.x = x; d.y = y; d.t = 0;
+  }
+
+  function spawnBridge(wl) {
+    let wy = wl.dist + 70;
+    if (islandAt(wl, wy)) wy += 400;         /* پل روی جزیره نیفتد */
+    const o = wl.bridges.obtain(); if (!o) return;
+    o.worldY = wy;
+    o.hp = 3 + Math.floor(wl.level / 3);
+    o.maxHp = o.hp;
+    placeBridge(wl, o);
+  }
+  function placeBridge(wl, br) {
+    br.y = wl.dist - br.worldY;
+    const e = riverAt(wl, br.worldY);
+    br.left = e.left - 46;
+    br.right = e.right + 46;
+  }
+
+  function spawnPower(wl) {
+    const y = -50;
+    const wy = wl.dist - y;
+    const e = riverAt(wl, wy);
+    const isl = islandAt(wl, wy);
+    let x = (e.right - e.left > 60) ? rr(e.left + 26, e.right - 26) : e.center;
+    if (isl && Math.abs(x - isl.cx) < isl.half + 18) x = isl.cx + (x < isl.cx ? -1 : 1) * (isl.half + 24);
+    const p = wl.powers.obtain(); if (!p) return;
+    p.x = clamp(x, e.left + 18, e.right - 18); p.y = y;
+    p.type = POWER_TYPES[(rnd() * POWER_TYPES.length) | 0];
+    p.t = 0;
+  }
+
+  /* ============================================================
+     باس‌فایت — ناو جنگی با ۳ نقطه ضعف (بخش ۲-۴)
+     ============================================================ */
+  function spawnBoss(wl) {
+    const b = wl.boss;
+    b.active = true; b.t = 0; b.dying = 0;
+    b.w = clamp(wl.W * 0.56, 170, 250);
+    b.h = 84;
+    b.x = wl.W * 0.5;
+    b.y = -160;
+    const hp = 3 + Math.floor(wl.level * 1.1);
+    b.parts = [
+      { dx: -b.w * 0.31, dy: 8,   r: 13, hp: hp,     maxHp: hp,     kind: 'turret', cd: rr(0.8, 1.5), alive: true, ang: 0 },
+      { dx: 0,           dy: -12, r: 17, hp: hp + 2, maxHp: hp + 2, kind: 'core',   cd: rr(1.2, 2),   alive: true, ang: 0 },
+      { dx: b.w * 0.31,  dy: 8,   r: 13, hp: hp,     maxHp: hp,     kind: 'turret', cd: rr(0.8, 1.5), alive: true, ang: 0 }
+    ];
+    b.hpTotal = b.parts.reduce((s, p) => s + p.hp, 0);
+    b.maxHpTotal = b.hpTotal;
+    wl.state = 'BOSS';
+    Snd.bossHit();
+    shake(wl, 5, 0.4);
+    floatText(wl, wl.W * 0.5, wl.H * 0.42, '⚠ ناو جنگی نزدیک می‌شود!', '#ff8a65', 19);
+    updateHUD(wl);
+  }
+
+  function fireEnemyBullet(wl, x, y, tx, ty, speed, kind) {
+    const b = wl.ebullets.obtain(); if (!b) return;
+    const dx = tx - x, dy = ty - y;
+    const len = Math.hypot(dx, dy) || 1;
+    b.x = x; b.y = y;
+    b.vx = dx / len * speed;
+    b.vy = dy / len * speed;
+    b.kind = kind || 'b';
+    b.r = kind === 'bomb' ? 5 : 3.4;
+  }
+
+  function updateBoss(wl, dt, wdt) {
+    const b = wl.boss;
+    if (!b.active) return;
+    b.t += wdt;
+
+    if (b.dying > 0) {
+      /* مرحلهٔ انفجارهای زنجیره‌ای */
+      b.dying -= dt;
+      if (Math.random() < 0.35) explode(wl, b.x + mrr(-b.w * 0.4, b.w * 0.4), b.y + mrr(-b.h * 0.3, b.h * 0.3), 12);
+      b.y += 26 * wdt;
+      if (b.dying <= 0) { b.active = false; levelComplete(wl); }
+      return;
+    }
+
+    /* ورود تدریجی و شناور ماندن در بالای صفحه */
+    const e = riverAt(wl, wl.dist - Math.max(60, b.y));
+    b.y = lerp(b.y, 150, Math.min(1, wdt * 0.9));
+    b.x = lerp(b.x, e.center + Math.sin(b.t * 0.55) * e.half * 0.28, Math.min(1, wdt * 1.4));
+    /* بدنه همیشه داخل کادر بماند */
+    if (b.w < wl.W - 10) b.x = clamp(b.x, b.w * 0.5 + 4, wl.W - b.w * 0.5 - 4);
+
+    /* الگوی حمله: شلیک برجک‌ها به سمت بازیکن */
+    const p = wl.player;
+    let total = 0;
+    for (let i = 0; i < b.parts.length; i++) {
+      const pt = b.parts[i];
+      if (!pt.alive) continue;
+      total += pt.hp;
+      const px = b.x + pt.dx, py = b.y + pt.dy;
+      pt.ang = Math.atan2(p.y - py, p.x - px);
+      if (b.y > 40 && !p.dead) {
+        pt.cd -= wdt;
+        if (pt.cd <= 0) {
+          pt.cd = rr(1.15, 1.9) / (diffMul() * (1 + 0.05 * wl.level));
+          if (pt.kind === 'core') {
+            /* شلیک سه‌تایی پخش‌شونده از هستهٔ مرکزی */
+            for (let k = -1; k <= 1; k++) {
+              const a = pt.ang + k * 0.3;
+              fireEnemyBullet(wl, px, py, px + Math.cos(a) * 100, py + Math.sin(a) * 100, 165 + wl.level * 7);
+            }
+          } else {
+            fireEnemyBullet(wl, px, py, p.x, p.y, 175 + wl.level * 9);
+          }
+          Snd.shoot();
+        }
+      }
+      if (pt.hp < pt.maxHp && rnd() < 0.12) smokePuff(wl, px, py);
+    }
+    b.hpTotal = total;
+
+    /* برخورد بدنهٔ ناو با بازیکن = مرگ */
+    if (!p.dead && p.invuln <= 0 && p.shield <= 0) {
+      if (Math.abs(p.x - b.x) < b.w * 0.5 + 10 && Math.abs(p.y - b.y) < b.h * 0.5 + 10) hitPlayer(wl);
+    }
+  }
+
+  function damageBossPart(wl, pt, px, py, dmg) {
+    if (!pt.alive) return false;
+    pt.hp -= dmg;
+    sparks(wl, px, py);
+    if (pt.hp <= 0) {
+      pt.alive = false;
+      explode(wl, px, py, 26);
+      shake(wl, 8, 0.4);
+      vibrate([90, 30, 90]);
+      Snd.bossHit();
+      addKill(wl, px, py, 300);
+      floatText(wl, px, py - 26, 'نقطه ضعف نابود شد!', '#ffb26b', 13);
+    } else {
+      Snd.bossHit();
+      vibrate(28);
+    }
+    return true;
+  }
+
+  /* ============================================================
+     پایان مرحله و سختی پویا (بخش ۲-۸)
+     ============================================================ */
+  function levelComplete(wl) {
+    /* دستاورد: مرحله ۲ بدون آسیب */
+    if (wl.level === 2 && wl.dmgThisLevel === 0) unlockAchv('nodmg2');
+    unlockAchv('boss1');
+
+    wl.level++;
+    wl.levelDist = 0;
+    wl.dmgThisLevel = 0;
+    wl.bombs = Math.min(9, wl.bombs + 1);
+    wl.fuel = Math.min(100, wl.fuel + 25);   /* پاداش سوخت */
+    wl.score += 500;
+
+    /* سختی پویا: بر اساس تعداد مرگ‌ها نسبت به مرحله */
+    wl.dynMul = clamp(1 + (wl.deaths - (wl.level - 2)) * 0.08, 0.72, 1.38);
+    wl.spawnGap = Math.max(150, rr(250, 430) * wl.dynMul * diffMul());
+
+    /* پاکسازی گلوله‌های دشمن برای شروع امن مرحله بعد */
+    clearPool(wl.ebullets);
+
+    const pal = palOf(wl.level);
+    Snd.musicRoot(pal.root);
+    if (pal.rain) seedRain(wl);
+
+    wl.state = 'LEVEL_INTRO';
+    wl.introT = 2.4;
+    showIntro(wl);
+    updateHUD(wl);
+  }
+
+  /* ============================================================
+     اعمال بازیکن
+     ============================================================ */
+  /* منطق شلیک یکپارچه — همهٔ منابع از این تابع استفاده می‌کنند (باگ ۵-۸) */
+  function fireWeapon(wl) {
+    const p = wl.player;
+    if (p.dead || wl.fireCd > 0) return;
+    const demo = wl.state === 'DEMO';
+
+    if (wl.weapon === 'bomb' && !demo) {
+      if (wl.bombs <= 0) {
+        wl.weapon = 'gun';
+        floatText(wl, p.x, p.y - 30, 'بمبی نداری!', '#ff8a80', 13);
+        updateHUD(wl);
+        return;
+      }
+      wl.bombs--;
+      const b = wl.pbombs.obtain();
+      if (b) { b.x = p.x; b.y = p.y + 10; b.vy = 150; }
+      wl.fireCd = 0.45;
+      Snd.bombDrop();
+      updateHUD(wl);
+      return;
+    }
+
+    /* مسلسل (با احتساب شلیک سه‌گانه و هومینگ) */
+    const mk = (vx) => {
+      const b = wl.bullets.obtain();
+      if (!b) return;
+      b.x = p.x; b.y = p.y - 20;
+      b.vx = vx; b.vy = -640;
+      b.homing = p.homing > 0;
+    };
+    if (p.triple > 0) { mk(0); const s1 = wl.bullets.obtain();
+      if (s1) { s1.x = p.x - 8; s1.y = p.y - 15; s1.vx = -95; s1.vy = -610; s1.homing = p.homing > 0; }
+      const s2 = wl.bullets.obtain();
+      if (s2) { s2.x = p.x + 8; s2.y = p.y - 15; s2.vx = 95; s2.vy = -610; s2.homing = p.homing > 0; }
+    } else {
+      mk(0);
+    }
+    wl.fireCd = p.triple > 0 ? 0.2 : 0.17;
+    if (!demo) Snd.shoot();
+  }
+
+  function hurtFlash() {
+    stage.classList.remove('hurt');
+    void stage.offsetWidth;
+    stage.classList.add('hurt');
+  }
+
+  function hitPlayer(wl) {
+    const p = wl.player;
+    if (p.dead || wl.state === 'DEMO') return;
+    if (p.invuln > 0 || p.shield > 0) { sparks(wl, p.x, p.y - 8); return; }
+
+    explode(wl, p.x, p.y, 30);
+    shake(wl, 9, 0.45);          /* لرزش صفحه هنگام انفجار بازیکن */
+    wl.flash = 0.08;             /* فلش سفید ۸۰ms */
+    vibrate([110, 40, 110]);
+    Snd.explode(true);
+    hurtFlash();
+
+    p.dead = true;
+    p.respawn = 1.1;
+    p.shield = p.triple = p.homing = p.magnet = 0;
+    wl.lives--;
+    wl.deaths++;
+    wl.dmgThisLevel++;
+    updateHUD(wl);
+
+    if (wl.lives <= 0) {
+      wl.endReason = wl.mode === 'survival' ? 'تنها جانت رو از دست دادی!' : 'هواپیما نابود شد!';
+      wl.endTimer = 1.05;
+    }
+  }
+
+  /* حالت صریح OUT_OF_FUEL به‌جای هک respawnTimer (باگ ۵-۲) */
+  function outOfFuel(wl) {
+    const p = wl.player;
+    explode(wl, p.x, p.y, 28);
+    shake(wl, 8, 0.4);
+    vibrate([140, 50, 140]);
+    Snd.explode(true);
+    hurtFlash();
+    p.dead = true;
+    wl.lives = 0;
+    wl.fuel = 0;
+    wl.state = 'OUT_OF_FUEL';
+    wl.outTimer = 1.35;
+    updateHUD(wl);
+  }
+
+  function respawnPlayer(wl) {
+    const p = wl.player;
+    const targetY = wl.H - 130;
+    const e = riverAt(wl, wl.dist - targetY);
+    p.x = e.center;
+    p.y = targetY;
+    p.dead = false;
+    p.invuln = 2.2;
+    p.respawn = 0;
+  }
+
+  /* ============================================================
+     بمب بازیکن — انفجار شعاعی
+     ============================================================ */
+  function bombBlast(wl, x, y) {
+    const R = 78;
+    explode(wl, x, y, 30);
+    explode(wl, x, y, 14, ['#fff3c4', '#ffd23c']);
+    shake(wl, 6, 0.3);
+    Snd.explode(true);
+    vibrate(50);
+
+    /* آسیب شعاعی به دشمنان */
+    const en = wl.enemies;
+    for (let i = 0; i < en.length; i++) {
+      const e = en[i];
+      if (!e.active || e.dying) continue;
+      if (Math.hypot(e.x - x, e.y - y) < R + e.w * 0.3) {
+        killEnemy(wl, e, true);   /* صدای انفجار اصلی کافی است */
+      }
+    }
+    /* پل‌ها */
+    const br = wl.bridges;
+    for (let i = 0; i < br.length; i++) {
+      const b = br[i];
+      if (!b.active) continue;
+      if (y > b.y - R && y < b.y + 30 + R && x > b.left - R * 0.5 && x < b.right + R * 0.5) {
+        b.hp -= 2;
+        if (b.hp <= 0) destroyBridge(wl, b);
+        else sparks(wl, x, y);
+      }
+    }
+    /* باس */
+    const bs = wl.boss;
+    if (bs.active && bs.dying <= 0) {
+      for (let i = 0; i < bs.parts.length; i++) {
+        const pt = bs.parts[i];
+        if (!pt.alive) continue;
+        const px = bs.x + pt.dx, py = bs.y + pt.dy;
+        if (Math.hypot(px - x, py - y) < R + pt.r) damageBossPart(wl, pt, px, py, 2);
+      }
+    }
+  }
+
+  function destroyBridge(wl, br) {
+    br.active = false;
+    wl.score += 500;
+    for (let k = 0; k < 6; k++) explode(wl, rr(br.left, br.right), br.y + rr(0, 20), 14);
+    shake(wl, 10, 0.5);           /* لرزش شدیدتر برای پل */
+    vibrate([80, 30, 120]);
+    Snd.explode(true);
+    floatText(wl, (br.left + br.right) * 0.5, br.y - 18, 'پل نابود شد! +۵۰۰', '#ffd54a', 16);
+    if (wl.score > 5000) unlockAchv('score5000');
+  }
+
+  /* کشتن دشمن (با افتادن و دنباله آتش برای پرنده‌ها — بخش ۱-۷) */
+  function killEnemy(wl, e, silent) {
+    addKill(wl, e.x, e.y, e.score);
+    const st = ENEMY_STATS[e.type];
+    const demo = wl.state === 'DEMO';
+    if (st.air && Math.random() < 0.55) {
+      /* سقوط دراماتیک با دنباله دود/آتش */
+      e.dying = 1; e.dyingT = mrr(0.6, 1.0);
+      e.vy += 180;
+      if (!silent) { if (!demo) Snd.explode(false); explode(wl, e.x, e.y, 10); }
+    } else {
+      e.active = false;
+      explode(wl, e.x, e.y, 15);
+      if (!silent && !demo) Snd.explode(false);
+    }
+  }
+
+  /* ============================================================
+     اسپاون‌های زمان‌بندی‌شده (فاصله‌محور)
+     ============================================================ */
+  function updateSpawners(wl, wdt) {
+    const dm = diffMul();
+    if (wl.state !== 'BOSS') {
+      wl.spawnAcc += wl.speed * wdt;
+      if (wl.spawnAcc > wl.spawnGap) {
+        wl.spawnAcc = 0;
+        wl.spawnGap = Math.max(135, rr(240, 430) * wl.dynMul * dm - wl.level * 8);
+        spawnEnemy(wl);
+        if (wl.level >= 4 && rnd() < 0.25) spawnEnemy(wl); /* تراکم بیشتر در مراحل بالا */
+      }
+      wl.bridgeAcc += wl.speed * wdt;
+      if (wl.bridgeAcc > wl.bridgeGap) {
+        wl.bridgeAcc = 0;
+        wl.bridgeGap = rr(2300, 3100);
+        spawnBridge(wl);
+      }
+    }
+    wl.depotAcc += wl.speed * wdt;
+    if (wl.depotAcc > wl.depotGap) {
+      wl.depotAcc = 0;
+      wl.depotGap = rr(700, 1150);
+      spawnDepot(wl);
+    }
+    wl.powerAcc += wl.speed * wdt;
+    if (wl.powerAcc > wl.powerGap) {
+      wl.powerAcc = 0;
+      wl.powerGap = rr(1150, 1750);
+      spawnPower(wl);
+    }
+    /* حباب‌های ریز داخل آب (بخش ۱-۴) — تصادف بصری */
+    wl.bubbleAcc += wdt;
+    if (wl.bubbleAcc > 0.14) {
+      wl.bubbleAcc = 0;
+      const b = wl.bubbles.obtain();
+      if (b) {
+        const by = mrr(80, wl.H - 40);
+        const e = riverAt(wl, wl.dist - by);
+        b.x = mrr(e.left + 8, e.right - 8);
+        b.y = by;
+        b.r = mrr(0.6, 1.9);
+        b.t = 0;
+        b.life = mrr(0.9, 2.0);
+      }
+    }
+  }
+
+  function seedRain(wl) {
+    for (let i = 0; i < wl.rain.length; i++) {
+      const d = wl.rain[i];
+      d.active = true;
+      d.x = Math.random() * wl.W;
+      d.y = Math.random() * wl.H;
+      d.v = 420 + Math.random() * 260;
+      d.l = 8 + Math.random() * 10;
+    }
+  }
+
+  /* ============================================================
+     به‌روزرسانی موجودیت‌ها (مشترک بین بازی اصلی و دمو)
+     ============================================================ */
+  function updateEntities(wl, dt, wdt) {
+    const p = wl.player;
+    const isDemo = wl.state === 'DEMO';
+    const demoGuard = !isDemo && !p.dead && p.invuln <= 0 && p.shield <= 0;
+
+    /* --- گلوله‌های بازیکن (در slow-mo عادی می‌مانند) --- */
+    const bl = wl.bullets;
+    for (let i = 0; i < bl.length; i++) {
+      const b = bl[i];
+      if (!b.active) continue;
+      if (b.homing) {
+        /* موشک هومینگ: چرخش به سمت نزدیک‌ترین هدف */
+        let tx = null, tD = 1e9;
+        const en = wl.enemies;
+        for (let j = 0; j < en.length; j++) {
+          const e = en[j];
+          if (!e.active || e.dying) continue;
+          if (e.y < b.y - 8) {
+            const d = Math.hypot(e.x - b.x, e.y - b.y);
+            if (d < tD) { tD = d; tx = e; }
+          }
+        }
+        if (!tx && wl.boss.active && wl.boss.dying <= 0 && wl.boss.y > 0) {
+          tx = wl.boss;
+          tD = Math.hypot(tx.x - b.x, tx.y - b.y);
+        }
+        if (tx && tD < 420) {
+          const ang = Math.atan2(tx.y - b.y, tx.x - b.x);
+          b.vx = clamp(b.vx + Math.cos(ang) * 2400 * dt, -330, 330);
+          b.vy = lerp(b.vy, Math.sin(ang) * 640, Math.min(1, dt * 5));
+          if (Math.random() < 0.5) fireTrail(wl, b.x, b.y + 5);        }
+      }
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      if (b.y < -30 || b.x < -20 || b.x > wl.W + 20) b.active = false;
+    }
+
+    /* --- گلوله‌ها در برابر دشمنان / پل / باس --- */
+    for (let i = 0; i < bl.length; i++) {
+      const b = bl[i];
+      if (!b.active) continue;
+      let consumed = false;
+
+      const en = wl.enemies;
+      for (let j = 0; j < en.length; j++) {
+        const e = en[j];
+        if (!e.active || e.dying) continue;
+        if (e.type === 'sub' && e.stCode !== 2) continue; /* زیردریایی زیر آب هدف‌گیری نمی‌شود */
+        if (Math.abs(b.x - e.x) < e.w * 0.5 + 3 && Math.abs(b.y - e.y) < e.h * 0.5 + 6) {
+          e.hp--;
+          e.hitT = 0.12;
+          consumed = true;
+          if (e.hp <= 0) {
+            if (e.type === 'mine') {
+              /* مین با تیر منفجر می‌شود — انفجار زنجیره‌ای */
+              e.active = false;
+              addKill(wl, e.x, e.y, e.score);
+              explode(wl, e.x, e.y, 20);
+              if (!isDemo) Snd.explode(true);
+              shake(wl, 4, 0.25);
+              const en2 = wl.enemies;
+              for (let k = 0; k < en2.length; k++) {
+                const o = en2[k];
+                if (o.active && o !== e && !o.dying && Math.hypot(o.x - e.x, o.y - e.y) < 60) killEnemy(wl, o, true);
+              }
+            } else {
+              killEnemy(wl, e, false);
+            }
+          } else {
+            sparks(wl, b.x, b.y);
+          }
+          break;
+        }
+      }
+
+      if (!consumed) {
+        const br = wl.bridges;
+        for (let j = 0; j < br.length; j++) {
+          const g = br[j];
+          if (!g.active) continue;
+          if (b.x > g.left && b.x < g.right && b.y > g.y - 8 && b.y < g.y + 28) {
+            g.hp--;
+            consumed = true;
+            sparks(wl, b.x, b.y);
+            if (g.hp <= 0) destroyBridge(wl, g);
+            break;
+          }
+        }
+      }
+
+      if (!consumed && wl.boss.active && wl.boss.dying <= 0) {
+        const bs = wl.boss;
+        /* اول نقاط ضعف، بعد بدنه (جرقه) */
+        for (let j = 0; j < bs.parts.length; j++) {
+          const pt = bs.parts[j];
+          if (!pt.alive) continue;
+          const px = bs.x + pt.dx, py = bs.y + pt.dy;
+          if (Math.abs(b.x - px) < pt.r + 4 && Math.abs(b.y - py) < pt.r + 7) {
+            damageBossPart(wl, pt, px, py, 1);
+            consumed = true;
+            break;
+          }
+        }
+        if (!consumed &&
+            b.x > bs.x - bs.w * 0.5 && b.x < bs.x + bs.w * 0.5 &&
+            b.y > bs.y - bs.h * 0.5 && b.y < bs.y + bs.h * 0.5) {
+          sparks(wl, b.x, b.y);
+          consumed = true;
+        }
+      }
+
+      if (consumed) b.active = false;
+    }
+
+    /* --- بمب‌های بازیکن --- */
+    const pb = wl.pbombs;
+    for (let i = 0; i < pb.length; i++) {
+      const b = pb[i];
+      if (!b.active) continue;
+      b.y += (b.vy + wl.speed * 0.55) * wdt;
+      let boom = b.y > wl.H - 26;
+      if (!boom) {
+        const en = wl.enemies;
+        for (let j = 0; j < en.length; j++) {
+          const e = en[j];
+          if (!e.active || e.dying) continue;
+          if (Math.abs(b.x - e.x) < e.w * 0.5 + 8 && Math.abs(b.y - e.y) < e.h * 0.5 + 8) { boom = true; break; }
+        }
+      }
+      if (!boom) {
+        const br = wl.bridges;
+        for (let j = 0; j < br.length; j++) {
+          const g = br[j];
+          if (g.active && b.x > g.left && b.x < g.right && b.y > g.y - 10 && b.y < g.y + 26) { boom = true; break; }
+        }
+      }
+      if (!boom && wl.boss.active && wl.boss.dying <= 0 &&
+          Math.abs(b.x - wl.boss.x) < wl.boss.w * 0.55 && Math.abs(b.y - wl.boss.y) < wl.boss.h * 0.6) boom = true;
+      if (boom || b.y > wl.H + 40) {
+        if (boom) bombBlast(wl, b.x, Math.min(b.y, wl.H - 16));
+        b.active = false;
+      }
+    }
+
+    /* --- دشمنان --- */
+    const en = wl.enemies;
+    for (let i = 0; i < en.length; i++) {
+      const e = en[i];
+      if (!e.active) continue;
+      const st = ENEMY_STATS[e.type];
+      e.t += wdt;
+      if (e.hitT > 0) e.hitT -= dt;
+
+      if (e.dying) {
+        /* سقوط با دنباله دود/آتش */
+        e.dyingT -= dt;
+        e.y += (e.vy + wl.speed * 0.4) * wdt;
+        e.x += e.side * 40 * wdt;
+        fireTrail(wl, e.x, e.y);
+        if (rnd() < 0.4) smokePuff(wl, e.x, e.y);
+        if (e.dyingT <= 0 || e.y > wl.H + 60) {
+          if (e.y < wl.H + 40) { explode(wl, e.x, e.y, 14); if (!isDemo) Snd.explode(false); }
+          e.active = false;
+        }
+        continue;
+      }
+
+      e.y += (wl.speed + e.vy) * wdt;
+      if (e.osc) e.x = e.baseX + Math.sin(e.t * e.freq + e.phase) * e.amp;
+
+      /* رفتار ویژه هر نوع */
+      if (e.type === 'kami') {
+        /* کامیکازه: شیرجه پرسرعت به سمت بازیکن */
+        if (e.y > 110 && !p.dead) {
+          e.x += clamp(p.x - e.x, -1, 1) * 265 * wdt;
+          e.vy = Math.min(e.vy + 340 * wdt, 430);
+          fireTrail(wl, e.x, e.y - 6);
+        }
+      } else if (e.type === 'sub') {
+        /* زیردریایی: چرخهٔ زیر آب / سر زدن — stCode: ۰ زیر آب، ۱ در حال تغییر، ۲ سطح آب */
+        e.st += wdt;
+        if (e.st < 1.7)      e.stCode = 0;
+        else if (e.st < 2.2) e.stCode = 1;
+        else if (e.st < 4.4) e.stCode = 2;
+        else if (e.st < 4.9) e.stCode = 1;
+        else { e.st = 0; e.stCode = 0; }
+        if (e.stCode === 2 && Math.random() < 0.06) {
+          const bb = wl.bubbles.obtain();
+          if (bb) { bb.x = e.x + mrr(-14, 14); bb.y = e.y; bb.r = mrr(0.8, 2); bb.t = 0; bb.life = mrr(0.5, 1); }
+        }
+      } else if (st.shoots && !isDemo) {
+        /* شلیک هدفمند به سمت بازیکن (بخش ۲-۹) */
+        if (!p.dead && e.y > 20 && e.y < wl.H - 120) {
+          e.fireCd -= wdt;
+          if (e.fireCd <= 0) {
+            e.fireCd = rr(1.1, 2.1) / (diffMul() * (1 + 0.06 * wl.level));
+            if (e.type === 'bomber') {
+              fireEnemyBullet(wl, e.x, e.y + 12, p.x, p.y, 235, 'bomb');
+            } else if (e.type === 'turret') {
+              if (Math.abs(e.y - p.y) < 430) {
+                fireEnemyBullet(wl, e.x, e.y, p.x, p.y, 235);
+                Snd.shoot();
+              } else e.fireCd = 0.5;
+            } else if (e.type === 'heli') {
+              if (Math.abs(e.y - p.y) < 470) {
+                fireEnemyBullet(wl, e.x, e.y + 8, p.x, p.y, 210);
+                Snd.shoot();
+              } else e.fireCd = 0.5;
+            }
+          }
+        }
+      }
+
+      /* برجک همیشه به سمت بازیکن هدف می‌گیرد (برای شلیک و رندر لوله) */
+      if (e.type === 'turret' && !p.dead) e.ang = Math.atan2(p.y - e.y, p.x - e.x);
+
+      /* دنباله دود برای دشمن آسیب‌دیده */
+      if (e.hp < e.maxHp && Math.random() < 0.14) smokePuff(wl, e.x, e.y + 4);
+
+      if (e.y > wl.H + 90 || e.x < -60 || e.x > wl.W + 60) { e.active = false; continue; }
+
+      /* برخورد با بازیکن */
+      if (demoGuard) {
+        const lethal = !(e.type === 'sub' && e.stCode !== 2);
+        if (lethal &&
+            Math.abs(e.x - p.x) < (e.w * 0.5 + 11) &&
+            Math.abs(e.y - p.y) < (e.h * 0.5 + 12)) {
+          if (e.type === 'mine') {
+            e.active = false;
+            explode(wl, e.x, e.y, 20);
+            Snd.explode(true);
+          } else {
+            explode(wl, e.x, e.y, 12);
+            if (st.air && rnd() < 0.5) { e.dying = 1; e.dyingT = 0.7; e.vy += 140; }
+            else e.active = false;
+          }
+          hitPlayer(wl);
+          continue;
+        }
+      } else if (isDemo && !p.dead) {
+        /* در دمو، جت خودکار دشمنان نزدیک را منفجر می‌کند (برای جذابیت بصری) */
+        if (Math.abs(e.x - p.x) < (e.w * 0.5 + 11) && Math.abs(e.y - p.y) < (e.h * 0.5 + 12)) {
+          e.active = false;
+          explode(wl, e.x, e.y, 12);
+        }
+      }
+    }
+
+    /* --- گلوله‌های دشمن --- */
+    const eb = wl.ebullets;
+    for (let i = 0; i < eb.length; i++) {
+      const b = eb[i];
+      if (!b.active) continue;
+      b.x += b.vx * wdt;
+      b.y += (b.vy + wl.speed * 0.45) * wdt;
+      if (b.y > wl.H + 20 || b.y < -30 || b.x < -30 || b.x > wl.W + 30) { b.active = false; continue; }
+      if (b.kind === 'bomb' && b.y > wl.H - 24) {
+        explode(wl, b.x, wl.H - 20, 10);
+        b.active = false;
+        continue;
+      }
+      if (!isDemo && !p.dead && p.invuln <= 0 && p.shield <= 0) {
+        if (Math.abs(b.x - p.x) < 12 + b.r * 0.4 && Math.abs(b.y - p.y) < 13 + b.r * 0.4) {
+          b.active = false;
+          if (b.kind === 'bomb') explode(wl, b.x, b.y, 12);
+          hitPlayer(wl);
+        }
+      } else if (isDemo && !p.dead && Math.abs(b.x - p.x) < 14 && Math.abs(b.y - p.y) < 14) {
+        b.active = false; /* در دمو گلوله‌ها به جت نمی‌خورند */
+      }
+    }
+
+    /* --- مخزن‌های سوخت + آهنربا (بخش ۲-۱) --- */
+    const dp = wl.depots;
+    for (let i = 0; i < dp.length; i++) {
+      const d = dp[i];
+      if (!d.active) continue;
+      d.y += wl.speed * wdt;
+      d.t += wdt;
+      if (d.y > wl.H + 70) { d.active = false; continue; }
+      if (!p.dead) {
+        if (p.magnet > 0) {
+          const ddx = p.x - d.x, ddy = p.y - d.y;
+          const dist = Math.hypot(ddx, ddy);
+          if (dist < 175 && dist > 1) {
+            d.x += ddx / dist * 235 * wdt;
+            d.y += ddy / dist * 235 * wdt;
+          }
+        }
+        if (Math.abs(d.x - p.x) < 26 && Math.abs(d.y - p.y) < 28) {
+          wl.fuel = Math.min(100, wl.fuel + 38);
+          wl.score += 25;
+          if (!isDemo) {
+            addFuelStat(38);
+            Snd.fuel();
+            if (rnd() < 0.25 && wl.bombs < 9) {
+              wl.bombs++;
+              floatText(wl, d.x, d.y - 24, '+۱ بمب', '#ffb26b', 13);
+            }
+          }
+          floatText(wl, d.x, d.y - 10, 'سوخت +۳۸', '#7ee0a0', 13);
+          explode(wl, d.x, d.y, 10, '#7ee0a0');
+          d.active = false;
+          updateHUD(wl);
+        }
+      }
+    }
+
+    /* --- پل‌ها --- */
+    const br = wl.bridges;
+    for (let i = 0; i < br.length; i++) {
+      const g = br[i];
+      if (!g.active) continue;
+      placeBridge(wl, g);
+      if (g.y > wl.H + 90) { g.active = false; continue; }
+      if (!isDemo && !p.dead && p.invuln <= 0 && p.shield <= 0) {
+        if (p.x + 11 > g.left && p.x - 11 < g.right &&
+            p.y + 12 > g.y && p.y - 12 < g.y + 24) {
+          hitPlayer(wl);
+        }
+      }
+    }
+
+    /* --- پاورآپ‌ها --- */
+    const pw = wl.powers;
+    for (let i = 0; i < pw.length; i++) {
+      const u = pw[i];
+      if (!u.active) continue;
+      u.y += wl.speed * wdt;
+      u.t += wdt;
+      if (u.y > wl.H + 60) { u.active = false; continue; }
+      if (!p.dead && Math.abs(u.x - p.x) < 26 && Math.abs(u.y - p.y) < 28) {
+        u.active = false;
+        wl.score += 50;
+        if (u.type === 'shield') p.shield = 5;
+        else if (u.type === 'triple') p.triple = 10;
+        else if (u.type === 'homing') p.homing = 8;
+        else if (u.type === 'magnet') p.magnet = 10;
+        else if (u.type === 'slow') wl.slowmo = 4;
+        floatText(wl, u.x, u.y - 16, POWER_NAMES[u.type], POWER_COLORS[u.type], 15);
+        explode(wl, u.x, u.y, 12, POWER_COLORS[u.type]);
+        if (!isDemo) Snd.power();
+        vibrate(30);
+      }
+    }
+
+    /* --- حباب‌ها --- */
+    const bb = wl.bubbles;
+    for (let i = 0; i < bb.length; i++) {
+      const b = bb[i];
+      if (!b.active) continue;
+      b.t += wdt;
+      b.y += wl.speed * wdt * 0.9 - 10 * wdt;
+      b.x += Math.sin(b.t * 6 + b.r * 9) * 7 * wdt;
+      if (b.t > b.life) b.active = false;
+    }
+
+    /* --- باران (فاز طوفان) --- */
+    if (palOf(wl.level).rain) {
+      const rn = wl.rain;
+      for (let i = 0; i < rn.length; i++) {
+        const d = rn[i];
+        if (!d.active) continue;
+        d.y += d.v * wdt;
+        d.x += 70 * wdt;
+        if (d.y > wl.H + 12) { d.y = -12; d.x = Math.random() * wl.W; }
+        if (d.x > wl.W + 12) d.x -= wl.W + 24;
+      }
+    }
+  }
+
+  /* ============================================================
+     به‌روزرسانی اصلی جهان
+     ============================================================ */
+  function update(wl, dt) {
+    const st = wl.state;
+
+    /* --- انتقال مرحله --- */
+    if (st === 'LEVEL_INTRO') {
+      wl.introT -= dt;
+      updateParticles(wl, dt, 0);
+      if (wl.introT <= 0) wl.state = wl.boss.active ? 'BOSS' : 'PLAYING';
+      return;
+    }
+    /* --- حالت صریح اتمام سوخت --- */
+    if (st === 'OUT_OF_FUEL') {
+      wl.outTimer -= dt;
+      updateParticles(wl, dt, 50);
+      if (wl.outTimer <= 0) endGame(wl, 'سوخت تمام شد!');
+      return;
+    }
+    if (st === 'GAMEOVER') { updateParticles(wl, dt, 0); return; }
+    if (st !== 'PLAYING' && st !== 'BOSS') return;
+
+    /* slow-mo: همه‌چیز نصف سرعت، بازیکن عادی (بخش ۲-۱) */
+    if (wl.slowmo > 0) wl.slowmo -= dt;
+    const wdt = wl.slowmo > 0 ? dt * 0.5 : dt;
+
+    /* --- تایمر حمله زمانی --- */
+    if (wl.mode === 'time') {
+      wl.timeLeft -= dt;
+      if (wl.timeLeft <= 0) {
+        wl.timeLeft = 0;
+        endGame(wl, 'زمان تمام شد!');
+        return;
+      }
+    }
+
+    /* --- شمارش معکوس پایان بازی پس از آخرین جان --- */
+    if (wl.endTimer > 0) {
+      wl.endTimer -= dt;
+      updateParticles(wl, dt, wl.speed * 0.4);
+      if (wl.endTimer <= 0) { endGame(wl, wl.endReason || 'هواپیما نابود شد!'); return; }
+    }
+
+    /* --- کمبو --- */
+    if (wl.comboTimer > 0) {
+      wl.comboTimer -= dt;
+      if (wl.comboTimer <= 0) wl.combo = 0;
+    }
+
+    /* --- سرعت و اسکرول جهان --- */
+    const base = Math.min(140 + (wl.level - 1) * 20, 340) * (st === 'BOSS' ? 0.45 : 1);
+    wl.speed = base;
+    wl.dist += base * wdt;
+    if (st === 'PLAYING') wl.levelDist += base * wdt;
+    Snd.engineSet(base);
+
+    /* --- سوخت (dt همیشه clamp شده — باگ ۵-۷) --- */
+    if (!wl.player.dead) {
+      wl.fuel -= (1.25 + wl.level * 0.3) * diffMul() * (st === 'BOSS' ? 0.7 : 1) * wdt;
+      if (wl.fuel <= 0) { outOfFuel(wl); return; }
+      if (wl.fuel < 25) {
+        wl.alarmAcc -= dt;
+        if (wl.alarmAcc <= 0) { wl.alarmAcc = 0.62; Snd.alarm(); }
+      }
+    }
+
+    /* --- بازیکن --- */
+    const p = wl.player;
+    if (!p.dead) {
+      if (drag.active && settings.controls === 'drag') {
+        /* کنترل Drag: جت به‌نرمی به سمت انگشت می‌رود (بخش ۴-۷) */
+        p.x = lerp(p.x, drag.x, Math.min(1, dt * 13));
+        p.y = lerp(p.y, drag.y - 42, Math.min(1, dt * 13));
+      } else {
+        let dx = (input.right ? 1 : 0) - (input.left ? 1 : 0) + input.ax + input.gpx;
+        let dy = (input.down ? 1 : 0) - (input.up ? 1 : 0) + input.ay + input.gpy;
+        dx = clamp(dx, -1, 1); dy = clamp(dy, -1, 1);
+        if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+          p.x += dx * 305 * dt;
+          p.y += dy * 305 * 0.86 * dt;
+        }
+      }
+      p.x = clamp(p.x, 16, wl.W - 16);
+      p.y = clamp(p.y, 90, wl.H - 60);        /* باگ ۵-۵: جت زیر HUD نرود */
+
+      if (p.invuln > 0) p.invuln -= dt;
+      if (p.shield > 0) p.shield -= dt;
+      if (p.triple > 0) p.triple -= dt;
+      if (p.homing > 0) p.homing -= dt;
+      if (p.magnet > 0) p.magnet -= dt;
+
+      /* برخورد با کرانه‌ها */
+      const e = riverAt(wl, wl.dist - p.y);
+      if (p.x - 11 < e.left || p.x + 11 > e.right) hitPlayer(wl);
+
+      /* برخورد با عوارض محیطی — دقیقاً هم‌اندازهٔ شکل رسم‌شده:
+         جزیره و صخره در مرکز هر باند ۷۶۰ واحدی قرار دارند */
+      const pw = wl.dist - p.y;
+      const wMid = Math.floor(pw / 760) * 760 + 380;
+      if (Math.abs(pw - wMid) < 80 && !p.dead) {
+        const isl = islandAt(wl, wMid);
+        if (isl && Math.abs(pw - wMid) < 70 && Math.abs(p.x - isl.cx) < isl.half + 9) hitPlayer(wl);
+        const rk = rocksAt(wl, wMid);
+        if (!p.dead && rk && rk.protrude > 4 &&
+            Math.abs(pw - wMid) < rk.r * 0.85 &&
+            Math.abs(p.x - rk.cx) < rk.r * 0.75 + 7) hitPlayer(wl);
+      }
+    } else if (wl.lives > 0 && st !== 'BOSS') {
+      p.respawn -= dt;
+      if (p.respawn <= 0) respawnPlayer(wl);
+    } else if (wl.lives > 0 && st === 'BOSS') {
+      p.respawn -= dt;
+      if (p.respawn <= 0) respawnPlayer(wl);
+    }
+
+    /* --- شلیک (نگه‌داشتن = شلیک پیوسته) --- */
+    wl.fireCd -= dt;
+    if (input.fire && wl.fireCd <= 0) fireWeapon(wl);
+
+    /* --- اسپاون‌ها --- */
+    updateSpawners(wl, wdt);
+
+    /* --- موجودیت‌ها --- */
+    updateEntities(wl, dt, wdt);
+
+    /* --- باس --- */
+    if (st === 'BOSS') updateBoss(wl, dt, wdt);
+
+    /* --- پیشرفت مرحله با مسافت (باگ ۵-۳) + شروع باس‌فایت --- */
+    if (st === 'PLAYING' && wl.levelDist >= LEVEL_LEN && !wl.boss.active) spawnBoss(wl);
+
+    /* --- نکات آموزشی (بخش ۴-۴) --- */
+    if (wl.hints) {
+      const h = wl.hints;
+      if (h.i < h.list.length && wl.dist > h.list[h.i].at) {
+        floatText(wl, wl.W * 0.5, wl.H * 0.62, h.list[h.i].t, '#bfe3ff', 15);
+        h.i++;
+        if (h.i >= h.list.length) { wl.hints = null; LS.set('rr_tut_seen', true); }
+      }
+    }
+
+    updateParticles(wl, dt, wl.speed);
+    updateHUD(wl);
+  }
+
+  /* ============================================================
+     جریان اصلی بازی: شروع / پایان / مکث / منو
+     ============================================================ */
+  let G = createWorld();       /* جهان بازی اصلی */
+  let D = createWorld();       /* جهان دموی لندینگ (Attract Mode) */
+  let selectedMode = 'endless';
+
+  function endGame(wl, reason) {
+    if (wl.state === 'GAMEOVER') return;
+    wl.state = 'GAMEOVER';
+    Snd.engineStop();
+    Snd.musicStop();
+    bossBar.classList.remove('show');
+    introOverlay.classList.remove('show');
+
+    finalScoreEl.textContent = faNum(wl.score);
+    try {
+      localStorage.setItem('arcade_top_river-raid',
+        Math.max(parseInt(localStorage.getItem('arcade_top_river-raid')||'0',10), wl.score)
+      );
+    } catch(e) {}
+    goReasonEl.textContent = reason || 'هواپیما نابود شد!';
+    const modeLabel = { endless: 'حالت بی‌پایان', time: 'حمله زمانی', survival: 'حالت بقا', daily: 'چالش روزانه' }[wl.mode] || '';
+    goModeEl.textContent = wl.mode === 'daily'
+      ? modeLabel + ' — ' + new Date().toLocaleDateString('fa-IR')
+      : modeLabel;
+
+    goNewRecord.classList.toggle('show', qualifies(wl.mode, wl.score));
+    pendingRecord = qualifies(wl.mode, wl.score) ? { mode: wl.mode, score: wl.score } : null;
+    renderGoList();
+    gameOverEl.classList.add('show');
+
+    if (pendingRecord) {
+      nameInput.value = LS.get('rr_last_name', '');
+      nameModal.classList.add('show');
+      setTimeout(() => nameInput.focus(), 120);
+    }
+  }
+  let pendingRecord = null;
+
+  function renderGoList() {
+    goListEl.innerHTML = scoresHTML(G.mode, 5, null);
+  }
+
+  function resetWorld(wl, mode) {
+    resize();   /* باگ ۵-۱: اول ابعاد معتبر شود */
+
+    wl.mode = mode || 'endless';
+    wl.state = 'LEVEL_INTRO';
+    wl.t = 0;
+    wl.dist = 0; wl.speed = 140; wl.score = 0; wl.level = 1; wl.levelDist = 0;
+    wl.fuel = 100;
+    wl.lives = wl.mode === 'survival' ? 1 : 3;
+    wl.bombs = 3;
+    wl.deaths = 0; wl.dmgThisLevel = 0;
+    wl.combo = 0; wl.comboTimer = 0;
+    wl.timeLeft = wl.mode === 'time' ? 90 : 0;
+    wl.spawnAcc = 0; wl.spawnGap = 320;
+    wl.depotAcc = 0; wl.depotGap = 820;
+    wl.bridgeAcc = 0; wl.bridgeGap = 2400;
+    wl.powerAcc = 0; wl.powerGap = 1250;
+    wl.bubbleAcc = 0;
+    wl.shakeT = 0; wl.shakeMag = 0; wl.flash = 0; wl.slowmo = 0;
+    wl.endTimer = 0; wl.endReason = ''; wl.outTimer = 0; wl.alarmAcc = 0;
+    wl.dynMul = 1;
+    wl.weapon = 'gun'; wl.fireCd = 0;
+    wl.boss.active = false;
+
+    /* seed برای چالش روزانه (بخش ۵-۱۰) */
+    if (wl.mode === 'daily') { wl.seed = dailySeed(); gameRNG = mulberry32(wl.seed); }
+    else { wl.seed = 0; gameRNG = Math.random; }
+
+    clearPool(wl.bullets); clearPool(wl.ebullets); clearPool(wl.pbombs);
+    clearPool(wl.enemies); clearPool(wl.depots); clearPool(wl.bridges);
+    clearPool(wl.powers); clearPool(wl.particles); clearPool(wl.floats);
+    clearPool(wl.bubbles); clearPool(wl.rain);
+
+    const p = wl.player;
+    p.x = wl.W * 0.5;
+    p.y = wl.H - 130;
+    p.dead = false; p.invuln = 1.6; p.respawn = 0;
+    p.shield = p.triple = p.homing = p.magnet = 0;
+
+    if (palOf(1).rain) seedRain(wl);
+
+    /* نکات آموزشی فقط اولین بار روی هر دستگاه */
+    if (!LS.get('rr_tut_seen', false)) {
+      wl.hints = { i: 0, list: [
+        { at: 80,   t: 'با D-pad یا کشیدن انگشت حرکت کن' },
+        { at: 480,  t: 'دکمهٔ آتش را نگه دار تا شلیک کنی' },
+        { at: 1000, t: 'مخزن‌های سوخت را از دست نده!' },
+        { at: 1600, t: 'با دکمهٔ بمب، سلاح را عوض کن' }
+      ] };
+    } else wl.hints = null;
+
+    input.up = input.down = input.left = input.right = false;
+    input.kFire = input.bFire = input.gpFire = false;
+    drag.active = false;
+
+    hudCache.score = hudCache.level = hudCache.lives = hudCache.bombs = hudCache.time = hudCache.fuel = undefined;
+    hudCache.bossHp = hudCache.bossShown = hudCache.weapon = undefined;
+    timeItem.hidden = wl.mode !== 'time';   /* تایمر فقط در حمله زمانی */
+
+    Snd.engineStart();
+    Snd.musicStart(palOf(1).root);
+    updateHUD(wl);
+    showIntro(wl);
+  }
+
+  function startRun(mode) {
+    gameOverEl.classList.remove('show');
+    pauseOverlay.classList.remove('show');
+    nameModal.classList.remove('show');
+    gameWrap.hidden = false;
+    /* یک فریم صبر تا layout محاسبه شود */
+    requestAnimationFrame(() => {
+      resize();
+      resetWorld(G, mode);
+      gameWrap.dataset.controls = settings.controls;
+    });
+  }
+
+  function closeGame() {
+    G.state = 'MENU';
+    gameWrap.hidden = true;
+    gameOverEl.classList.remove('show');
+    pauseOverlay.classList.remove('show');
+    introOverlay.classList.remove('show');
+    bossBar.classList.remove('show');
+    nameModal.classList.remove('show');
+    Snd.engineStop();
+    Snd.musicStop();
+    drag.active = false;
+  }
+
+  /* --- مکث (بخش ۴-۱) --- */
+  function pauseGame() {
+    if (G.state !== 'PLAYING' && G.state !== 'BOSS') return;
+    G.prevState = G.state;
+    G.state = 'PAUSED';
+    pauseOverlay.classList.add('show');
+    Snd.engineStop();
+    Snd.musicStop();
+  }
+  function resumeGame() {
+    if (G.state !== 'PAUSED') return;
+    G.state = G.prevState;
+    pauseOverlay.classList.remove('show');
+    Snd.engineStart();
+    Snd.musicStart(palOf(G.level).root);
+  }
+  function togglePause() {
+    if (gameWrap.hidden) return;
+    if (G.state === 'PAUSED') resumeGame();
+    else pauseGame();
+  }
+
+  /* ============================================================
+     به‌روزرسانی دموی لندینگ (Attract Mode — بخش ۱-۸)
+     ============================================================ */
+  function updateDemo(dt) {
+    D.t += dt;
+    D.dist += 150 * dt;
+    /* چرخهٔ آرام پالت‌ها برای نمایش گرافیک */
+    const newLevel = 1 + Math.floor(D.t / 24) % 4;
+    if (newLevel !== D.level) {
+      D.level = newLevel;
+      if (palOf(D.level).rain) seedRain(D);
+    }
+
+    const p = D.player;
+    p.y = D.H * 0.76 + Math.sin(D.t * 1.6) * 16;
+    const e = riverAt(D, D.dist - p.y);
+    const tx = e.center + Math.sin(D.t * 0.85) * e.half * 0.52;
+    p.x = lerp(p.x, tx, Math.min(1, dt * 2.4));
+    p.dead = false; p.invuln = 0;
+    /* تایمرهای پاورآپ در دمو هم کاهش می‌یابند */
+    if (p.shield > 0) p.shield -= dt;
+    if (p.triple > 0) p.triple -= dt;
+    if (p.homing > 0) p.homing -= dt;
+    if (p.magnet > 0) p.magnet -= dt;
+    if (D.slowmo > 0) D.slowmo -= dt;
+
+    D.fireCd -= dt;
+    if (D.fireCd <= 0) { D.weapon = 'gun'; fireWeapon(D); }
+
+    D.speed = 150;
+    updateSpawners(D, dt);
+    updateEntities(D, dt, dt);
+    updateParticles(D, dt, D.speed);
+  }
+
+  /* ============================================================
+     رندر — شکل موجودیت‌ها (مرکز مختصات ۰٬۰ فرض می‌شود تا
+     بتوان برای انعکاس روی آب، مقیاس منفی داد)
+     ============================================================ */
+  function shapePlayer(c, wl) {
+    /* شعلهٔ موتور */
+    c.beginPath();
+    c.moveTo(-4, 15);
+    c.lineTo(0, 21 + Math.random() * 8);
+    c.lineTo(4, 15);
+    c.closePath();
+    c.fillStyle = '#ff9a3c';
+    c.fill();
+    /* بدنه */
+    c.beginPath();
+    c.moveTo(0, -18);
+    c.lineTo(5, -4); c.lineTo(16, 6); c.lineTo(16, 10); c.lineTo(5, 8);
+    c.lineTo(4, 15); c.lineTo(-4, 15); c.lineTo(-5, 8);
+    c.lineTo(-16, 10); c.lineTo(-16, 6); c.lineTo(-5, -4);
+    c.closePath();
+    c.fillStyle = '#eef3f8';
+    c.fill();
+    c.strokeStyle = '#9fb0c4';
+    c.lineWidth = 1.2;
+    c.stroke();
+    /* کابین */
+    c.beginPath();
+    c.ellipse(0, -5, 3.8, 7, 0, 0, TAU);
+    c.fillStyle = '#2e6ea8';
+    c.fill();
+    /* تزئین بال‌ها */
+    c.fillStyle = '#f5c518';
+    c.fillRect(-15, 5, 4, 3);
+    c.fillRect(11, 5, 4, 3);
+    /* هالهٔ سپر (بخش ۲-۱) */
+    if (wl.player.shield > 0) {
+      const pul = 1 + Math.sin(wl.t * 7) * 0.08;
+      c.beginPath();
+      c.arc(0, 0, 26 * pul, 0, TAU);
+      c.strokeStyle = 'rgba(53, 198, 244, .85)';
+      c.lineWidth = 2;
+      c.stroke();
+      c.fillStyle = 'rgba(53, 198, 244, .10)';
+      c.fill();
+    }
+  }
+
+  function shapeEnemy(c, e) {
+    switch (e.type) {
+      case 'balloon':
+        c.beginPath();
+        c.ellipse(0, -5, 11, 13, 0, 0, TAU);
+        c.fillStyle = '#c0554f'; c.fill();
+        c.strokeStyle = '#8a3b37'; c.lineWidth = 1.4; c.stroke();
+        c.beginPath();
+        c.ellipse(-3.5, -9, 3.2, 4.2, -0.5, 0, TAU);
+        c.fillStyle = 'rgba(255,255,255,.35)'; c.fill();
+        c.fillStyle = '#6b4a2a';
+        c.fillRect(-5, 8, 10, 8);
+        break;
+
+      case 'ship':
+        c.beginPath();
+        c.moveTo(-26, 5); c.lineTo(26, 5); c.lineTo(17, -6); c.lineTo(-17, -6);
+        c.closePath();
+        c.fillStyle = '#79828d'; c.fill();
+        c.strokeStyle = '#3e4650'; c.lineWidth = 1.4; c.stroke();
+        c.fillStyle = '#a9b3be'; c.fillRect(-17, -1, 34, 2);
+        c.fillStyle = '#cdd7e1'; c.fillRect(-8, -15, 16, 9);
+        c.fillStyle = '#9aa5b1'; c.fillRect(-1, -24, 2, 9);
+        if (e.hp > 1) { c.fillStyle = '#8ee0a0'; c.fillRect(-24, -9, 5, 3); }
+        break;
+
+      case 'heli': {
+        c.fillStyle = '#a7b2be'; c.fillRect(9, -2, 12, 4);
+        c.beginPath();
+        c.ellipse(0, 0, 12, 8, 0, 0, TAU);
+        c.fillStyle = '#c3cdd8'; c.fill();
+        c.strokeStyle = '#6f7a86'; c.lineWidth = 1.3; c.stroke();
+        c.beginPath();
+        c.ellipse(-4, -1, 4, 4.6, 0, 0, TAU);
+        c.fillStyle = '#2e6ea8'; c.fill();
+        c.fillStyle = '#8e99a6'; c.fillRect(-1, -13, 2, 7);
+        /* روتور چرخان */
+        const rw = Math.abs(Math.cos(e.t * 22)) * 19;
+        c.strokeStyle = '#dfe8f0'; c.lineWidth = 2.2;
+        c.beginPath(); c.moveTo(-rw, -14); c.lineTo(rw, -14); c.stroke();
+        c.fillStyle = '#7b8590'; c.fillRect(-14, 7, 28, 2);
+        break;
+      }
+
+      case 'jet':
+      case 'kami': {
+        const body = e.type === 'kami' ? '#e0703c' : '#d95757';
+        const line = e.type === 'kami' ? '#8a4326' : '#8a2f2f';
+        c.beginPath();
+        c.moveTo(0, 16); c.lineTo(6, 2); c.lineTo(17, -6); c.lineTo(17, -11);
+        c.lineTo(5, -8); c.lineTo(0, -16); c.lineTo(-5, -8); c.lineTo(-17, -11);
+        c.lineTo(-17, -6); c.lineTo(-6, 2);
+        c.closePath();
+        c.fillStyle = body; c.fill();
+        c.strokeStyle = line; c.lineWidth = 1.3; c.stroke();
+        c.beginPath();
+        c.ellipse(0, -2, 3.4, 5.6, 0, 0, TAU);
+        c.fillStyle = '#ffd7d7'; c.fill();
+        break;
+      }
+
+      case 'sub': {
+        /* زیردریایی: بسته به وضعیت، پررنگ یا محو */
+        const code = e.stCode || 0;
+        c.globalAlpha *= code === 2 ? 1 : code === 1 ? 0.55 : 0.22;
+        c.beginPath();
+        c.ellipse(0, 0, 23, 8, 0, 0, TAU);
+        c.fillStyle = '#39424e'; c.fill();
+        c.strokeStyle = '#232a33'; c.lineWidth = 1.4; c.stroke();
+        c.fillStyle = '#4d5866'; c.fillRect(-5, -13, 9, 7);      /* برجک */
+        c.fillStyle = '#7c8797'; c.fillRect(-2, -17, 2.4, 5);    /* پریسکوپ */
+        if (code === 2) {
+          c.fillStyle = 'rgba(255,255,255,.5)';
+          c.beginPath(); c.ellipse(10, -2, 3, 1.6, 0, 0, TAU); c.fill();
+        }
+        break;
+      }
+
+      case 'mine': {
+        const pul = 1 + Math.sin(e.t * 3) * 0.06;
+        c.beginPath();
+        c.arc(0, 0, 9 * pul, 0, TAU);
+        c.fillStyle = '#2c3138'; c.fill();
+        c.strokeStyle = '#565f6b'; c.lineWidth = 1.6; c.stroke();
+        /* خارها */
+        c.strokeStyle = '#3a414b'; c.lineWidth = 2.4;
+        for (let k = 0; k < 8; k++) {
+          const a = k / 8 * TAU + e.t * 0.6;
+          c.beginPath();
+          c.moveTo(Math.cos(a) * 8, Math.sin(a) * 8);
+          c.lineTo(Math.cos(a) * 13, Math.sin(a) * 13);
+          c.stroke();
+        }
+        c.beginPath();
+        c.arc(0, 0, 3, 0, TAU);
+        c.fillStyle = Math.floor(e.t * 3) % 2 ? '#ff5a4a' : '#7a241c';
+        c.fill();
+        break;
+      }
+
+      case 'turret': {
+        /* برجک ضدهوایی ساحلی */
+        c.beginPath();
+        c.arc(0, 0, 12, 0, TAU);
+        c.fillStyle = '#4c545e'; c.fill();
+        c.strokeStyle = '#2b3138'; c.lineWidth = 1.6; c.stroke();
+        c.fillStyle = '#6d7681';
+        c.beginPath(); c.arc(0, 0, 6.5, 0, TAU); c.fill();
+        /* لوله به سمت بازیکن */
+        const ang = e.ang || Math.PI / 2;
+        c.strokeStyle = '#31373e'; c.lineWidth = 4; c.lineCap = 'round';
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.lineTo(Math.cos(ang) * 15, Math.sin(ang) * 15);
+        c.stroke();
+        c.lineCap = 'butt';
+        break;
+      }
+
+      case 'bomber': {
+        c.beginPath();
+        c.moveTo(0, -15); c.lineTo(6, -6); c.lineTo(28, 0); c.lineTo(28, 4);
+        c.lineTo(6, 4); c.lineTo(4, 13); c.lineTo(-4, 13); c.lineTo(-6, 4);
+        c.lineTo(-28, 4); c.lineTo(-28, 0); c.lineTo(-6, -6);
+        c.closePath();
+        c.fillStyle = '#8b9384'; c.fill();
+        c.strokeStyle = '#4d5446'; c.lineWidth = 1.4; c.stroke();
+        c.beginPath();
+        c.ellipse(0, -6, 4.4, 7, 0, 0, TAU);
+        c.fillStyle = '#c9d4c2'; c.fill();
+        c.fillStyle = '#5c6354';
+        c.fillRect(-16, 4, 8, 4); c.fillRect(8, 4, 8, 4);   /* محفظه بمب */
+        if (e.hp < e.maxHp) { c.fillStyle = '#ff8a5c'; c.fillRect(-2, 6, 4, 4); }
+        break;
+      }
+    }
+    /* فلش سفید هنگام اصابت */
+    if (e.hitT > 0) {
+      c.globalAlpha *= 0.7;
+      c.fillStyle = '#fff';
+      c.beginPath();
+      c.ellipse(0, 0, e.w * 0.5, e.h * 0.5, 0, 0, TAU);
+      c.fill();
+    }
+  }
+
+  function shapeDepot(c, d) {
+    const pulse = 1 + Math.sin(d.t * 4) * 0.05;
+    c.save();
+    c.scale(pulse, pulse);
+    c.fillStyle = 'rgba(120, 240, 160, .16)';
+    c.beginPath(); c.arc(0, 0, 24, 0, TAU); c.fill();
+    c.fillStyle = '#dde4ec'; c.fillRect(-10, -13, 20, 24);
+    c.fillStyle = '#b8c2ce'; c.fillRect(-10, -13, 20, 4);
+    c.fillStyle = '#b03434'; c.fillRect(-10, -13, 20, 6);
+    c.fillStyle = '#18222f';
+    c.font = 'bold 13px Tahoma, sans-serif';
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('F', 0, 3);
+    c.strokeStyle = 'rgba(20, 30, 40, .55)';
+    c.lineWidth = 1.4;
+    c.strokeRect(-10, -13, 20, 24);
+    c.restore();
+  }
+
+  /* آیکون پاورآپ‌ها — هر کدام شکل و رنگ متمایز (بخش ۲-۱) */
+  function shapePower(c, u) {
+    const bob = Math.sin(u.t * 3.2) * 3;
+    c.save();
+    c.translate(0, bob);
+    const col = POWER_COLORS[u.type];
+    c.shadowColor = col;
+    c.shadowBlur = 12;
+    c.fillStyle = 'rgba(10,14,22,.88)';
+    c.strokeStyle = col;
+    c.lineWidth = 2;
+    roundRect(c, -12, -12, 24, 24, 7);
+    c.fill(); c.stroke();
+    c.shadowBlur = 0;
+    c.fillStyle = col;
+    c.strokeStyle = col;
+    switch (u.type) {
+      case 'shield':
+        c.beginPath();
+        c.moveTo(0, -7); c.lineTo(6, -4); c.lineTo(6, 2);
+        c.quadraticCurveTo(6, 7, 0, 9);
+        c.quadraticCurveTo(-6, 7, -6, 2);
+        c.lineTo(-6, -4);
+        c.closePath();
+        c.fill();
+        break;
+      case 'triple':
+        c.fillRect(-7, -6, 2.6, 12);
+        c.fillRect(-1.3, -8, 2.6, 14);
+        c.fillRect(4.4, -6, 2.6, 12);
+        break;
+      case 'homing':
+        c.beginPath();
+        c.moveTo(0, -8); c.lineTo(4.5, 2); c.lineTo(1.5, 2);
+        c.lineTo(3, 8); c.lineTo(0, 5.5); c.lineTo(-3, 8);
+        c.lineTo(-1.5, 2); c.lineTo(-4.5, 2);
+        c.closePath();
+        c.fill();
+        break;
+      case 'magnet':
+        c.lineWidth = 3.4;
+        c.beginPath();
+        c.arc(0, 1, 6, Math.PI, 0);
+        c.stroke();
+        c.fillRect(-7.6, 1, 3.4, 6);
+        c.fillRect(4.2, 1, 3.4, 6);
+        break;
+      case 'slow':
+        c.lineWidth = 2;
+        c.beginPath(); c.arc(0, 0, 7.4, 0, TAU); c.stroke();
+        c.beginPath();
+        c.moveTo(0, -4); c.lineTo(0, 0.6); c.lineTo(3.4, 2.6);
+        c.stroke();
+        break;
+    }
+    c.restore();
+  }
+
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function shapeBoss(c, b) {
+    const w = b.w, h = b.h;
+    /* سایهٔ نرم روی آب */
+    const sh = c.createRadialGradient(4, h * 0.5 + 10, 4, 4, h * 0.5 + 10, w * 0.55);
+    sh.addColorStop(0, 'rgba(0,0,0,.38)');
+    sh.addColorStop(1, 'rgba(0,0,0,0)');
+    c.save();
+    c.translate(4, h * 0.5 + 10);
+    c.scale(1, 0.22);
+    c.fillStyle = sh;
+    c.beginPath();
+    c.arc(0, 0, w * 0.55, 0, TAU);
+    c.fill();
+    c.restore();
+    /* بدنهٔ ناو */
+    c.beginPath();
+    c.moveTo(-w * 0.5, h * 0.18);
+    c.lineTo(-w * 0.42, -h * 0.3);
+    c.lineTo(w * 0.42, -h * 0.3);
+    c.lineTo(w * 0.5, h * 0.18);
+    c.lineTo(w * 0.36, h * 0.44);
+    c.lineTo(-w * 0.36, h * 0.44);
+    c.closePath();
+    c.fillStyle = '#6b7480'; c.fill();
+    c.strokeStyle = '#343b44'; c.lineWidth = 2; c.stroke();
+    /* عرشه */
+    c.fillStyle = '#8b949f';
+    c.fillRect(-w * 0.4, -h * 0.1, w * 0.8, h * 0.16);
+    c.fillStyle = '#525a64';
+    c.fillRect(-w * 0.4, h * 0.06, w * 0.8, 3);
+    /* ساختار فرماندهی */
+    c.fillStyle = '#aeb8c3';
+    c.fillRect(-w * 0.11, -h * 0.44, w * 0.22, h * 0.2);
+    c.fillStyle = '#7d8792';
+    c.fillRect(-w * 0.07, -h * 0.52, w * 0.14, h * 0.1);
+    /* دکل و رادار چرخان */
+    c.strokeStyle = '#939da8'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(0, -h * 0.52); c.lineTo(0, -h * 0.72); c.stroke();
+    c.save();
+    c.translate(0, -h * 0.72);
+    c.rotate(b.t * 2.4);
+    c.fillStyle = '#c6d0da';
+    c.fillRect(-9, -1.6, 18, 3.2);
+    c.restore();
+    /* لوله‌های توپ */
+    c.fillStyle = '#454d57';
+    c.fillRect(-w * 0.3, -h * 0.16, w * 0.1, 5);
+    c.fillRect(w * 0.2, -h * 0.16, w * 0.1, 5);
+    /* نقاط ضعف */
+    for (let i = 0; i < b.parts.length; i++) {
+      const pt = b.parts[i];
+      if (!pt.alive) {
+        /* حفرهٔ سوخته */
+        c.fillStyle = '#1b1f24';
+        c.beginPath(); c.arc(pt.dx, pt.dy, pt.r, 0, TAU); c.fill();
+        c.strokeStyle = 'rgba(255,120,40,.4)'; c.lineWidth = 1.6; c.stroke();
+        if (Math.random() < 0.3) {
+          c.fillStyle = 'rgba(255,140,40,' + (0.3 + Math.random() * 0.3) + ')';
+          c.beginPath(); c.arc(pt.dx + mrr(-4, 4), pt.dy + mrr(-4, 4), mrr(2, 5), 0, TAU); c.fill();
+        }
+        continue;
+      }
+      c.beginPath();
+      c.arc(pt.dx, pt.dy, pt.r, 0, TAU);
+      c.fillStyle = pt.kind === 'core' ? '#7a2f2f' : '#59626d';
+      c.fill();
+      c.strokeStyle = '#2c323a'; c.lineWidth = 2; c.stroke();
+      /* لولهٔ هدف‌گیر */
+      c.strokeStyle = '#31373e'; c.lineWidth = 4; c.lineCap = 'round';
+      c.beginPath();
+      c.moveTo(pt.dx, pt.dy);
+      c.lineTo(pt.dx + Math.cos(pt.ang) * (pt.r + 7), pt.dy + Math.sin(pt.ang) * (pt.r + 7));
+      c.stroke();
+      c.lineCap = 'butt';
+      /* چراغ هشدار نقطه ضعف */
+      const blink = Math.floor(b.t * 4) % 2 === 0;
+      c.fillStyle = blink ? '#ff5a4a' : '#5e1d16';
+      c.beginPath(); c.arc(pt.dx, pt.dy - pt.r - 5, 2.4, 0, TAU); c.fill();
+      /* نوار hp کوچک */
+      const pct = pt.hp / pt.maxHp;
+      c.fillStyle = 'rgba(0,0,0,.5)';
+      c.fillRect(pt.dx - 12, pt.dy + pt.r + 4, 24, 3);
+      c.fillStyle = pct > 0.5 ? '#8ee0a0' : pct > 0.25 ? '#f5c518' : '#ff5a4a';
+      c.fillRect(pt.dx - 12, pt.dy + pt.r + 4, 24 * pct, 3);
+    }
+  }
+
+  /* ============================================================
+     رندر زمین / رودخانه / عوارض
+     ============================================================ */
+  function buildRiverPath(wl, c) {
+    const step = 10;
+    const pts = [];
+    for (let y = -step; y <= wl.H + step; y += step) {
+      const e = riverAt(wl, wl.dist - y);
+      pts.push([y, e.left, e.right]);
+    }
+    c.beginPath();
+    c.moveTo(pts[0][1], pts[0][0]);
+    for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][1], pts[i][0]);
+    for (let i = pts.length - 1; i >= 0; i--) c.lineTo(pts[i][2], pts[i][0]);
+    c.closePath();
+  }
+
+  function drawGround(wl, c, pal, palIdx) {
+    const pat = groundPatternFor(c, palIdx);
+    if (pat) {
+      c.save();
+      c.fillStyle = pat;
+      c.translate(0, wl.dist % 96);
+      c.fillRect(0, -96, wl.W, wl.H + 192);
+      c.restore();
+    } else {
+      c.fillStyle = pal.ground[0];
+      c.fillRect(0, 0, wl.W, wl.H);
+    }
+  }
+
+  function drawRiver(wl, c, pal) {
+    const W = wl.W, H = wl.H;
+    c.save();
+    buildRiverPath(wl, c);
+    const g = c.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, pal.river[0]);
+    g.addColorStop(0.5, pal.river[1]);
+    g.addColorStop(1, pal.river[2]);
+    c.fillStyle = g;
+    c.fill();
+
+    /* موج‌ها داخل رودخانه کلیپ می‌شوند */
+    c.clip();
+
+    /* لایهٔ موج اول */
+    c.strokeStyle = 'rgba(160, 220, 255, .17)';
+    c.lineWidth = 2;
+    c.lineCap = 'round';
+    const span = H + 160;
+    for (let i = 0; i < 13; i++) {
+      const baseY = ((i * 73 + wl.dist * 0.85) % span) - 80;
+      c.beginPath();
+      for (let x = -10; x <= W + 10; x += 22) {
+        const yy = baseY + Math.sin(x * 0.045 + i * 1.3 + wl.t * 1.4) * 3.2;
+        if (x === -10) c.moveTo(x, yy); else c.lineTo(x, yy);
+      }
+      c.stroke();
+    }
+    /* لایهٔ موج دوم ظریف‌تر */
+    c.strokeStyle = 'rgba(220, 245, 255, .07)';
+    c.lineWidth = 5;
+    for (let i = 0; i < 7; i++) {
+      const baseY = ((i * 131 + wl.dist * 0.55) % span) - 80;
+      c.beginPath();
+      for (let x = -10; x <= W + 10; x += 26) {
+        const yy = baseY + Math.sin(x * 0.032 + i * 2.1 + wl.t) * 5;
+        if (x === -10) c.moveTo(x, yy); else c.lineTo(x, yy);
+      }
+      c.stroke();
+    }
+
+    /* جریان‌های موازی کنار ساحل (بخش ۱-۴) */
+    c.strokeStyle = 'rgba(210, 240, 255, .16)';
+    c.lineWidth = 1.6;
+    for (let i = 0; i < 8; i++) {
+      const y = ((i * 97 + wl.dist * 1.15) % (H + 80)) - 40;
+      const e = riverAt(wl, wl.dist - y);
+      c.beginPath();
+      c.moveTo(e.left + 5, y); c.lineTo(e.left + 5, y + 24);
+      c.moveTo(e.left + 11, y + 12); c.lineTo(e.left + 11, y + 34);
+      c.moveTo(e.right - 5, y + 6); c.lineTo(e.right - 5, y + 30);
+      c.moveTo(e.right - 11, y + 18); c.lineTo(e.right - 11, y + 40);
+      c.stroke();
+    }
+
+    /* حباب‌های ریز */
+    for (let i = 0; i < wl.bubbles.length; i++) {
+      const b = wl.bubbles[i];
+      if (!b.active) continue;
+      const k = b.t / b.life;
+      if (k >= 1) continue;
+      c.globalAlpha = (1 - k) * 0.5;
+      c.strokeStyle = 'rgba(220,245,255,.9)';
+      c.lineWidth = 1;
+      c.beginPath();
+      c.arc(b.x, b.y, b.r * (1 + k * 1.6), 0, TAU);
+      c.stroke();
+    }
+    c.globalAlpha = 1;
+
+    /* ---- انعکاس مخدوش دشمنان/پل/مخزن روی آب (بخش ۱-۴) ---- */
+    const wob = wl.t;
+    c.save();
+    c.globalAlpha = 0.13;
+    const reflect = (x, y, hh, drawFn) => {
+      c.save();
+      c.translate(x + Math.sin(wob * 3.4 + x * 0.08) * 2.6, y + hh * 0.55 + 7);
+      c.scale(1, -0.62);
+      drawFn();
+      c.restore();
+    };
+    for (let i = 0; i < wl.enemies.length; i++) {
+      const e = wl.enemies[i];
+      if (!e.active || e.y < -30 || e.y > H + 30) continue;
+      if (e.type === 'sub' || e.type === 'mine' || e.type === 'turret') continue;
+      reflect(e.x, e.y, e.h, () => shapeEnemy(c, e));
+    }
+    for (let i = 0; i < wl.depots.length; i++) {
+      const d = wl.depots[i];
+      if (!d.active || d.y < -30 || d.y > H + 30) continue;
+      reflect(d.x, d.y, 26, () => shapeDepot(c, d));
+    }
+    for (let i = 0; i < wl.bridges.length; i++) {
+      const br = wl.bridges[i];
+      if (!br.active || br.y < -40 || br.y > H + 40) continue;
+      c.save();
+      c.translate(Math.sin(wob * 2.6 + br.y * 0.05) * 2.4, br.y + 34);
+      c.scale(1, -0.5);
+      c.fillStyle = '#3a414b';
+      c.fillRect(br.left, -10, br.right - br.left, 20);
+      c.restore();
+    }
+    if (wl.boss.active) {
+      const b = wl.boss;
+      c.save();
+      c.translate(b.x + Math.sin(wob * 2) * 3, b.y + b.h * 0.62);
+      c.scale(1, -0.45);
+      c.fillStyle = '#2c343d';
+      c.beginPath();
+      c.ellipse(0, 0, b.w * 0.48, b.h * 0.4, 0, 0, TAU);
+      c.fill();
+      c.restore();
+    }
+    c.restore();
+
+    c.restore();
+
+    /* حاشیهٔ کرانه‌ها */
+    c.save();
+    buildRiverPath(wl, c);
+    c.strokeStyle = pal.bank;
+    c.lineWidth = 3;
+    c.stroke();
+    c.restore();
+  }
+
+  function drawFeatures(wl, c) {
+    const H = wl.H;
+    /* بازهٔ جهانی قابل مشاهده */
+    const wTop = wl.dist + 80, wBot = wl.dist - H - 80;
+    const i0 = Math.floor(wBot / 760), i1 = Math.floor(wTop / 760);
+
+    for (let i = i0; i <= i1; i++) {
+      /* --- جزیره میانی --- */
+      const h = hash01(i, 29.7);
+      if (h <= 0.20) {
+        const wMid = i * 760 + 380;
+        const isl = islandAt(wl, wMid);
+        if (isl) {
+          const y = wl.dist - wMid;
+          if (y > -140 && y < H + 140) {
+            const len = 150;
+            c.save();
+            c.translate(isl.cx, y);
+            /* سایه */
+            c.fillStyle = 'rgba(0,0,0,.3)';
+            c.beginPath(); c.ellipse(4, 6, isl.half + 8, len * 0.5 + 6, 0, 0, TAU); c.fill();
+            /* بدنهٔ سنگی */
+            c.fillStyle = '#5d5347';
+            c.beginPath(); c.ellipse(0, 0, isl.half + 5, len * 0.5, 0, 0, TAU); c.fill();
+            /* چمن روی جزیره */
+            const pal = palOf(wl.level);
+            c.fillStyle = pal.ground[1];
+            c.beginPath(); c.ellipse(0, 0, isl.half, len * 0.46, 0, 0, TAU); c.fill();
+            c.fillStyle = pal.ground[2];
+            c.beginPath(); c.ellipse(-isl.half * 0.2, -len * 0.1, isl.half * 0.5, len * 0.24, 0.3, 0, TAU); c.fill();
+            /* چند سنگ */
+            c.fillStyle = '#7c7263';
+            c.beginPath(); c.arc(isl.half * 0.45, len * 0.22, 5, 0, TAU); c.fill();
+            c.beginPath(); c.arc(-isl.half * 0.5, -len * 0.26, 4, 0, TAU); c.fill();
+            c.restore();
+          }
+        }
+      }
+      /* --- صخرهٔ ساحلی --- */
+      const hr = hash01(i, 55.1);
+      if (hr <= 0.34) {
+        const wMid = i * 760 + 380;
+        const rk = rocksAt(wl, wMid);
+        if (rk && rk.protrude > 4) {
+          const y = wl.dist - wMid;
+          if (y > -60 && y < H + 60) {
+            c.save();
+            c.translate(rk.cx, y);
+            c.fillStyle = 'rgba(0,0,0,.28)';
+            c.beginPath(); c.ellipse(3, 4, rk.r + 3, rk.r * 0.8 + 3, 0, 0, TAU); c.fill();
+            c.fillStyle = '#59605c';
+            c.beginPath(); c.ellipse(0, 0, rk.r + 2, rk.r * 0.8 + 2, 0, 0, TAU); c.fill();
+            c.fillStyle = '#767d77';
+            c.beginPath(); c.ellipse(-rk.r * 0.25, -rk.r * 0.2, rk.r * 0.55, rk.r * 0.4, 0, 0, TAU); c.fill();
+            /* کف سفید برخورد آب */
+            c.strokeStyle = 'rgba(230,245,255,.4)';
+            c.lineWidth = 1.6;
+            c.beginPath();
+            c.ellipse(-rk.side * 3, 0, rk.r * 0.9 + Math.sin(wl.t * 3 + i) * 2, rk.r * 0.62, 0, 0, TAU);
+            c.stroke();
+            c.restore();
+          }
+        }
+      }
+    }
+
+    /* --- آبشار --- */
+    const j0 = Math.floor(wBot / 900), j1 = Math.floor(wTop / 900);
+    for (let j = j0; j <= j1; j++) {
+      const hw = hash01(j, 91.3);
+      if (hw > 0.13) continue;
+      const wMid = j * 900 + 450;
+      const y = wl.dist - wMid;
+      if (y < -70 || y > H + 70) continue;
+      const e = riverAt(wl, wMid);
+      c.save();
+      buildRiverPath(wl, c);
+      c.clip();
+      /* نوار سفید آبشار */
+      const band = 34;
+      const grad = c.createLinearGradient(0, y - band, 0, y + band);
+      grad.addColorStop(0, 'rgba(255,255,255,0)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,.55)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = grad;
+      c.fillRect(e.left - 4, y - band, e.right - e.left + 8, band * 2);
+      /* رگه‌های عمودی آب */
+      c.strokeStyle = 'rgba(255,255,255,.5)';
+      c.lineWidth = 1.6;
+      for (let k = 0; k < 12; k++) {
+        const xx = e.left + 8 + (k / 11) * (e.right - e.left - 16);
+        const off = ((wl.dist * 2.2 + k * 53) % 40) - 20;
+        c.beginPath();
+        c.moveTo(xx, y + off - 14);
+        c.lineTo(xx + 2, y + off + 14);
+        c.stroke();
+      }
+      /* مه اسپری */
+      c.fillStyle = 'rgba(255,255,255,.14)';
+      c.beginPath();
+      c.ellipse(e.center, y + band + 8, (e.right - e.left) * 0.55, 22, 0, 0, TAU);
+      c.fill();
+      c.restore();
+    }
+  }
+
+  /* ============================================================
+     رندر پل / سپر / وضعیت‌ها
+     ============================================================ */
+  function drawBridge(c, br) {
+    const x0 = br.left, x1 = br.right, y = br.y;
+    const wd = x1 - x0;
+    c.fillStyle = 'rgba(0, 0, 0, .32)';
+    c.fillRect(x0 + 6, y + 24, wd, 8);
+    c.fillStyle = br.hp <= 1 ? '#6d5a48' : '#5f666e';
+    c.fillRect(x0, y, wd, 20);
+    c.fillStyle = '#8b939c';
+    c.fillRect(x0, y - 4, wd, 5);
+    c.fillStyle = '#3a3f46';
+    c.fillRect(x0, y + 18, wd, 3);
+    c.strokeStyle = 'rgba(28, 33, 40, .75)';
+    c.lineWidth = 1.8;
+    c.beginPath();
+    for (let x = x0 + 6; x < x1 - 20; x += 20) {
+      c.moveTo(x, y + 2); c.lineTo(x + 20, y + 17);
+      c.moveTo(x + 20, y + 2); c.lineTo(x, y + 17);
+    }
+    c.stroke();
+    c.fillStyle = '#444a51';
+    for (let x = x0 + 10; x < x1 - 8; x += 46) c.fillRect(x, y + 21, 8, 12);
+    if (br.hp < br.maxHp) {
+      c.strokeStyle = 'rgba(0, 0, 0, .65)';
+      c.lineWidth = 2;
+      c.beginPath();
+      const cx = x0 + wd * 0.5;
+      c.moveTo(cx - 20, y + 2); c.lineTo(cx - 8, y + 12);
+      c.lineTo(cx + 4, y + 6); c.lineTo(cx + 18, y + 16);
+      c.stroke();
+      /* دود از پل آسیب‌دیده */
+      c.fillStyle = 'rgba(90,90,90,.3)';
+      c.beginPath();
+      c.arc(cx - 10, y - 6 - Math.sin(wlTimeNow * 2) * 3, 6, 0, TAU);
+      c.fill();
+    }
+  }
+  let wlTimeNow = 0; /* زمان جهانی برای انیمیشن‌های رندر */
+
+  /* ============================================================
+     لایه‌های هوا: ابر/مه پارالاکس (بخش ۱-۵)، باران، شب
+     ============================================================ */
+  function drawClouds(wl, c, pal) {
+    c.save();
+    for (let i = 0; i < wl.clouds.length; i++) {
+      const cl = wl.clouds[i];
+      /* حرکت با ۳۰٪ سرعت اسکرول — پارالاکس */
+      const sx = ((cl.x * (wl.W + 260) + wl.dist * 0.04 * cl.v) % (wl.W + 260)) - 130;
+      const sy = ((cl.y * (wl.H + 320) + wl.dist * 0.3 * cl.v) % (wl.H + 320)) - 160;
+      const rx = 78 * cl.s, ry = 26 * cl.s;
+      const g = c.createRadialGradient(sx, sy, 4, sx, sy, rx);
+      g.addColorStop(0, pal.cloud);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = g;
+      c.beginPath();
+      c.ellipse(sx, sy, rx, ry, 0, 0, TAU);
+      c.fill();
+    }
+    if (pal.fog > 0) {
+      c.fillStyle = 'rgba(195,205,215,' + pal.fog + ')';
+      c.fillRect(0, 0, wl.W, wl.H);
+    }
+    c.restore();
+  }
+
+  function drawRain(wl, c) {
+    c.save();
+    c.strokeStyle = 'rgba(205,222,245,.3)';
+    c.lineWidth = 1.2;
+    c.beginPath();
+    for (let i = 0; i < wl.rain.length; i++) {
+      const d = wl.rain[i];
+      if (!d.active) continue;
+      c.moveTo(d.x, d.y);
+      c.lineTo(d.x + d.l * 0.22, d.y + d.l);
+    }
+    c.stroke();
+    c.restore();
+  }
+
+  function drawNight(wl, c, pal) {
+    if (pal.dark <= 0) return;
+    const p = wl.player;
+    if (pal.light) {
+      /* تاریکی با سوراخ نورافکن روی جت (بخش ۱-۶ مرحله ۳) */
+      c.save();
+      c.fillStyle = 'rgba(3,6,16,' + pal.dark + ')';
+      c.fillRect(0, 0, wl.W, wl.H);
+      c.globalCompositeOperation = 'destination-out';
+      const g = c.createRadialGradient(p.x, p.y - 10, 8, p.x, p.y - 10, 155);
+      g.addColorStop(0, 'rgba(0,0,0,1)');
+      g.addColorStop(0.55, 'rgba(0,0,0,.72)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = g;
+      c.beginPath();
+      c.arc(p.x, p.y - 10, 155, 0, TAU);
+      c.fill();
+      c.restore();
+      /* هالهٔ گرم نورافکن */
+      c.save();
+      c.globalCompositeOperation = 'lighter';
+      const g2 = c.createRadialGradient(p.x, p.y - 14, 4, p.x, p.y - 14, 110);
+      g2.addColorStop(0, 'rgba(255,240,190,.12)');
+      g2.addColorStop(1, 'rgba(255,240,190,0)');
+      c.fillStyle = g2;
+      c.beginPath();
+      c.arc(p.x, p.y - 14, 110, 0, TAU);
+      c.fill();
+      c.restore();
+    } else {
+      c.fillStyle = 'rgba(3,6,16,' + pal.dark + ')';
+      c.fillRect(0, 0, wl.W, wl.H);
+    }
+  }
+
+  /* ============================================================
+     رندر کل جهان — مشترک بین بازی اصلی و دمو
+     ============================================================ */
+  const offCv = document.createElement('canvas');
+  const offCx = offCv.getContext('2d');
+
+  function renderWorld(wl, c, demo) {
+    const W = wl.W, H = wl.H;
+    const palIdx = (wl.level - 1) & 3;
+    const pal = PALETTES[palIdx];
+    wlTimeNow = wl.t;
+
+    c.setTransform(wl.dpr, 0, 0, wl.dpr, 0, 0);
+    c.clearRect(0, 0, W, H);
+
+    /* --- لرزش صفحه (بخش ۱-۲) --- */
+    c.save();
+    if (wl.shakeT > 0) {
+      const k = wl.shakeMag * (wl.shakeT / wl.shakeDur);
+      c.translate((Math.random() * 2 - 1) * k, (Math.random() * 2 - 1) * k);
+    }
+
+    drawGround(wl, c, pal, palIdx);
+    drawRiver(wl, c, pal);
+    drawFeatures(wl, c);
+
+    /* پل‌ها */
+    for (let i = 0; i < wl.bridges.length; i++) {
+      const br = wl.bridges[i];
+      if (br.active && br.y > -50 && br.y < H + 50) drawBridge(c, br);
+    }
+    /* مخزن‌های سوخت */
+    for (let i = 0; i < wl.depots.length; i++) {
+      const d = wl.depots[i];
+      if (!d.active || d.y < -40 || d.y > H + 40) continue;
+      c.save(); c.translate(d.x, d.y); shapeDepot(c, d); c.restore();
+    }
+    /* پاورآپ‌ها */
+    for (let i = 0; i < wl.powers.length; i++) {
+      const u = wl.powers[i];
+      if (!u.active || u.y < -40 || u.y > H + 40) continue;
+      c.save(); c.translate(u.x, u.y); shapePower(c, u); c.restore();
+    }
+    /* دشمنان */
+    for (let i = 0; i < wl.enemies.length; i++) {
+      const e = wl.enemies[i];
+      if (!e.active || e.y < -70 || e.y > H + 70) continue;
+      c.save();
+      c.translate(e.x, e.y);
+      if (e.dying) c.rotate(e.t * 5 * e.side);
+      shapeEnemy(c, e);
+      c.restore();
+    }
+    /* باس */
+    if (wl.boss.active) {
+      c.save();
+      c.translate(wl.boss.x, wl.boss.y);
+      shapeBoss(c, wl.boss);
+      c.restore();
+    }
+    /* بمب‌های بازیکن */
+    for (let i = 0; i < wl.pbombs.length; i++) {
+      const b = wl.pbombs[i];
+      if (!b.active) continue;
+      c.save();
+      c.translate(b.x, b.y);
+      c.rotate(b.y * 0.06);
+      c.fillStyle = '#2c3138';
+      c.beginPath(); c.ellipse(0, 0, 5, 8, 0, 0, TAU); c.fill();
+      c.strokeStyle = '#565f6b'; c.lineWidth = 1.3; c.stroke();
+      c.fillStyle = '#ffb26b';
+      c.fillRect(-1.4, -11, 2.8, 4);
+      c.restore();
+    }
+    /* گلوله‌های دشمن */
+    for (let i = 0; i < wl.ebullets.length; i++) {
+      const b = wl.ebullets[i];
+      if (!b.active) continue;
+      if (b.kind === 'bomb') {
+        c.fillStyle = '#39424e';
+        c.beginPath(); c.ellipse(b.x, b.y, 4.4, 7, 0, 0, TAU); c.fill();
+        c.fillStyle = 'rgba(255,140,60,.7)';
+        c.beginPath(); c.arc(b.x, b.y - 8, 2.4, 0, TAU); c.fill();
+      } else {
+        c.fillStyle = 'rgba(255,110,90,.35)';
+        c.beginPath(); c.arc(b.x, b.y, b.r + 2.4, 0, TAU); c.fill();
+        c.fillStyle = '#ffd9a0';
+        c.beginPath(); c.arc(b.x, b.y, b.r, 0, TAU); c.fill();
+      }
+    }
+    /* گلوله‌های بازیکن */
+    for (let i = 0; i < wl.bullets.length; i++) {
+      const b = wl.bullets[i];
+      if (!b.active) continue;
+      c.save();
+      c.translate(b.x, b.y);
+      if (b.homing) c.rotate(Math.atan2(b.vy, b.vx) + Math.PI / 2);
+      c.fillStyle = '#fff4b0';
+      c.fillRect(-1.6, -6, 3.2, 12);
+      c.fillStyle = b.homing ? 'rgba(255,130,60,.4)' : 'rgba(255, 200, 60, .35)';
+      c.fillRect(-3, -8, 6, 16);
+      c.restore();
+    }
+    /* بازیکن */
+    const p = wl.player;
+    if (!p.dead && !(p.invuln > 0 && Math.floor(wl.t * 11) % 2 === 0)) {
+      c.save();
+      c.translate(p.x, p.y);
+      shapePlayer(c, wl);
+      c.restore();
+    }
+    /* ذرات */
+    for (let i = 0; i < wl.particles.length; i++) {
+      const q = wl.particles[i];
+      if (!q.active) continue;
+      c.globalAlpha = clamp(q.life / q.maxLife, 0, 1) * (q.smoke ? 0.5 : 1);
+      c.fillStyle = q.color;
+      c.beginPath();
+      c.arc(q.x, q.y, q.size, 0, TAU);
+      c.fill();
+    }
+    c.globalAlpha = 1;
+
+    c.restore(); /* پایان لرزش */
+
+    /* --- هوا و نور (بدون لرزش) --- */
+    drawNight(wl, c, pal);
+    if (pal.tint) {
+      c.fillStyle = pal.tint;
+      c.fillRect(0, 0, W, H);
+    }
+    drawClouds(wl, c, pal);
+    if (pal.rain) drawRain(wl, c);
+
+    /* --- تینت slow-mo --- */
+    if (wl.slowmo > 0) {
+      c.fillStyle = 'rgba(90,160,255,.07)';
+      c.fillRect(0, 0, W, H);
+    }
+
+    /* --- متن‌های شناور (کمبو، آموزش، امتیاز) --- */
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    for (let i = 0; i < wl.floats.length; i++) {
+      const f = wl.floats[i];
+      if (!f.active) continue;
+      const a = clamp(f.life / f.maxLife, 0, 1);
+      c.globalAlpha = a;
+      c.font = 'bold ' + f.size + 'px Vazirmatn, Tahoma, sans-serif';
+      c.fillStyle = 'rgba(0,0,0,.55)';
+      c.fillText(f.text, f.x + 1, f.y + 2);
+      c.fillStyle = f.color;
+      c.fillText(f.text, f.x, f.y);
+    }
+    c.globalAlpha = 1;
+
+    /* --- نشانگر جهت دشمنان نزدیک (بخش ۴-۶) --- */
+    if (!demo && !p.dead && (wl.state === 'PLAYING' || wl.state === 'BOSS')) {
+      let shown = 0;
+      for (let i = 0; i < wl.enemies.length && shown < 6; i++) {
+        const e = wl.enemies[i];
+        if (!e.active || e.dying) continue;
+        const dx = e.x - p.x, dy = e.y - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d > 40 && d < 240) {
+          const a = Math.atan2(dy, dx);
+          const ax = p.x + Math.cos(a) * 44, ay = p.y + Math.sin(a) * 44;
+          const al = clamp(1 - d / 240, 0.15, 0.8);
+          c.save();
+          c.globalAlpha = al;
+          c.translate(ax, ay);
+          c.rotate(a + Math.PI / 2);
+          c.fillStyle = e.type === 'kami' ? '#ff5a4a' : '#ffd54a';
+          c.beginPath();
+          c.moveTo(0, -6); c.lineTo(4.6, 4); c.lineTo(-4.6, 4);
+          c.closePath();
+          c.fill();
+          c.restore();
+          shown++;
+        }
+      }
+      /* فلش باس وقتی بالای صفحه است */
+      if (wl.boss.active && wl.boss.y < 70 && wl.boss.dying <= 0) {
+        c.save();
+        c.globalAlpha = 0.9;
+        c.translate(clamp(wl.boss.x, 20, W - 20), 84);
+        c.fillStyle = '#ff5a4a';
+        c.beginPath();
+        c.moveTo(0, -9); c.lineTo(8, 5); c.lineTo(-8, 5);
+        c.closePath();
+        c.fill();
+        c.restore();
+      }
+    }
+
+    /* --- فلش سفید مرگ بازیکن: ۸۰ms (بخش ۱-۳) --- */
+    if (wl.flash > 0) {
+      c.fillStyle = 'rgba(255,255,255,' + clamp(wl.flash / 0.08, 0, 1) * 0.85 + ')';
+      c.fillRect(0, 0, W, H);
+    }
+
+    /* --- اعوجاج رنگی خفیف CRT روی بوم (بخش ۱-۱) --- */
+    if (!demo && settings.crt) {
+      if (offCv.width !== c.canvas.width || offCv.height !== c.canvas.height) {
+        offCv.width = c.canvas.width;
+        offCv.height = c.canvas.height;
+      }
+      offCx.setTransform(1, 0, 0, 1, 0, 0);
+      offCx.clearRect(0, 0, offCv.width, offCv.height);
+      offCx.drawImage(c.canvas, 0, 0);
+      c.save();
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.globalCompositeOperation = 'lighter';
+      c.globalAlpha = 0.045;
+      const off = Math.round(1.4 * wl.dpr);
+      c.drawImage(offCv, -off, 0);
+      c.drawImage(offCv, off, 0);
+      c.restore();
+    }
+
+    /* --- واترمارک دمو --- */
+    if (demo) {
+      c.save();
+      c.globalAlpha = 0.5;
+      c.fillStyle = '#cfe0f2';
+      c.font = '11px Vazirmatn, Tahoma, sans-serif';
+      c.textAlign = 'center';
+      c.fillText('حالت نمایشی — برای بازی، «بازی کن» را بزنید', W * 0.5, H - 14);
+      c.restore();
+    }
+  }
+
+  /* ============================================================
+     Resize — با بازمحاسبهٔ نسبتی موجودیت‌ها (باگ ۵-۹)
+     ============================================================ */
+  function resize() {
+    const rect = stage.getBoundingClientRect();
+    const newW = Math.max(220, Math.round(rect.width));
+    const newH = Math.max(320, Math.round(rect.height));
+
+    /* نسبت عرض قدیم به جدید — برای جابه‌جایی نسبی موجودیت‌ها */
+    const oldW = G.W > 0 ? G.W : newW;
+    const oldH = G.H > 0 ? G.H : newH;
+    const sx = newW / oldW;
+    const sy = newH / oldH;
+
+    G.W = newW; G.H = newH;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    G.dpr = dpr;
+    canvas.width  = Math.round(newW * dpr);
+    canvas.height = Math.round(newH * dpr);
+    canvas.style.width  = newW + 'px';
+    canvas.style.height = newH + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (sx !== 1 || sy !== 1) {
+      /* بازمحاسبهٔ پوزیشن دشمن‌ها، مخزن‌ها و ... نسبت به عرض جدید */
+      const scaleArr = (arr, doX) => {
+        for (let i = 0; i < arr.length; i++) {
+          const o = arr[i];
+          if (!o.active) continue;
+          if (doX) { o.x *= sx; if ('baseX' in o) o.baseX *= sx; }
+          o.y *= sy;
+        }
+      };
+      scaleArr(G.enemies, true);
+      scaleArr(G.depots, true);
+      scaleArr(G.powers, true);
+      scaleArr(G.bullets, true);
+      scaleArr(G.ebullets, true);
+      scaleArr(G.pbombs, true);
+      scaleArr(G.particles, true);
+      scaleArr(G.floats, true);
+      scaleArr(G.bubbles, true);
+      /* پل‌ها از مختصات جهانی بازسازی می‌شوند */
+      for (let i = 0; i < G.bridges.length; i++) if (G.bridges[i].active) placeBridge(G, G.bridges[i]);
+      /* باس در مرکز رودخانه باقی می‌ماند */
+      if (G.boss.active) {
+        G.boss.x *= sx; G.boss.y *= sy;
+        G.boss.w = clamp(newW * 0.56, 170, 250);
+      }
+      /* بازیکن */
+      G.player.x *= sx;
+      G.player.y *= sy;
+      G.player.x = clamp(G.player.x, 16, newW - 16);
+      G.player.y = clamp(G.player.y, 90, newH - 60);   /* باگ ۵-۵ */
+    }
+    /* موقعیت هدف drag هم مقیاس شود */
+    drag.x *= sx; drag.y *= sy;
+  }
+
+  function sizeAttract() {
+    D.W = Math.max(240, window.innerWidth);
+    D.H = Math.max(320, window.innerHeight);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    D.dpr = dpr;
+    attractCv.width  = Math.round(D.W * dpr);
+    attractCv.height = Math.round(D.H * dpr);
+    actx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!D.player.x) D.player.x = D.W * 0.5;
+    D.player.x = clamp(D.player.x, 20, D.W - 20);
+  }
+
+  /* ============================================================
+     ورودی — وضعیت‌ها
+     ============================================================ */
+  const input = {
+    up: false, down: false, left: false, right: false, fire: false,
+    kFire: false, bFire: false, gpFire: false,
+    ax: 0, ay: 0, gx: 0, gy: 0, gpx: 0, gpy: 0
+  };
+  const drag  = { active: false, id: -1, x: 0, y: 0 };
+  const tilt  = { gamma: 0, beta: 0, beta0: null, enabled: false };
+
+  /* --- D-Pad --- */
+  dpadBtns.forEach(function (btn) {
+    const dir = btn.dataset.dir;
+    function press(ev) {
+      ev.preventDefault();
+      input[dir] = true;
+      btn.classList.add('active');
+      if (btn.setPointerCapture && ev.pointerId != null) {
+        try { btn.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+      }
+    }
+    function release(ev) {
+      if (ev && ev.preventDefault) ev.preventDefault();
+      input[dir] = false;
+      btn.classList.remove('active');
+    }
+    btn.addEventListener('pointerdown', press);
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointerleave', release);
+    btn.addEventListener('pointercancel', release);
+    btn.addEventListener('lostpointercapture', release);
+    btn.addEventListener('keydown', function (ev) { if (ev.key === ' ' || ev.key === 'Enter') press(ev); });
+    btn.addEventListener('keyup',   function (ev) { if (ev.key === ' ' || ev.key === 'Enter') release(ev); });
+    btn.addEventListener('blur', function () { release(); });
+  });
+
+  /* --- دکمه آتش --- */
+  (function () {
+    function down(ev) {
+      ev.preventDefault();
+      input.bFire = true;
+      fireBtn.classList.add('active');
+      Snd.init();
+      if ((G.state === 'PLAYING' || G.state === 'BOSS') && G.fireCd <= 0) fireWeapon(G);
+      if (fireBtn.setPointerCapture && ev.pointerId != null) {
+        try { fireBtn.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+      }
+    }
+    function up(ev) {
+      if (ev && ev.preventDefault) ev.preventDefault();
+      input.bFire = false;
+      fireBtn.classList.remove('active');
+    }
+    fireBtn.addEventListener('pointerdown', down);
+    fireBtn.addEventListener('pointerup', up);
+    fireBtn.addEventListener('pointerleave', up);
+    fireBtn.addEventListener('pointercancel', up);
+    fireBtn.addEventListener('lostpointercapture', up);
+    fireBtn.addEventListener('blur', function () { up(); });
+    fireBtn.addEventListener('keydown', function (ev) { if (ev.key === ' ' || ev.key === 'Enter') down(ev); });
+    fireBtn.addEventListener('keyup',   function (ev) { if (ev.key === ' ' || ev.key === 'Enter') up(ev); });
+  })();
+
+  /* --- دکمه تعویض سلاح (بخش ۲-۲) --- */
+  function toggleWeapon() {
+    if (G.state !== 'PLAYING' && G.state !== 'BOSS') return;
+    G.weapon = G.weapon === 'gun' ? 'bomb' : 'gun';
+    Snd.ui();
+    vibrate(14);
+    updateHUD(G);
+  }
+  bombBtn.addEventListener('pointerdown', function (ev) {
+    ev.preventDefault();
+    Snd.init();
+    toggleWeapon();
+  });
+
+  /* --- کنترل Drag روی بوم (بخش ۴-۷) --- */
+  function dragPos(ev) {
+    const rect = canvas.getBoundingClientRect();
+    drag.x = (ev.clientX - rect.left) * (G.W / rect.width);
+    drag.y = (ev.clientY - rect.top) * (G.H / rect.height);
+  }
+  canvas.addEventListener('pointerdown', function (ev) {
+    Snd.init();
+    if (settings.controls !== 'drag') return;
+    if (G.state !== 'PLAYING' && G.state !== 'BOSS') return;
+    drag.active = true;
+    drag.id = ev.pointerId;
+    dragPos(ev);
+    try { canvas.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+  });
+  canvas.addEventListener('pointermove', function (ev) {
+    if (!drag.active || ev.pointerId !== drag.id) return;
+    dragPos(ev);
+  });
+  function dragEnd(ev) {
+    if (ev && ev.pointerId != null && ev.pointerId !== drag.id) return;
+    drag.active = false;
+    drag.id = -1;
+  }
+  canvas.addEventListener('pointerup', dragEnd);
+  canvas.addEventListener('pointercancel', dragEnd);
+
+  /* --- کنترل Tilt (بخش ۴-۲) --- */
+  function onTilt(ev) {
+    tilt.gamma = ev.gamma || 0;
+    tilt.beta = ev.beta || 0;
+    if (tilt.beta0 == null) tilt.beta0 = tilt.beta;
+  }
+  function setTiltEnabled(on) {
+    if (on === tilt.enabled) return;
+    tilt.enabled = on;
+    if (on) {
+      /* در iOS نیاز به اجازهٔ صریح کاربر است */
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(function (r) {
+            if (r === 'granted') window.addEventListener('deviceorientation', onTilt);
+            else showToast('کنترل کج‌کردن', 'دسترسی به سنسور داده نشد', '📵');
+          })
+          .catch(function () { /* ignore */ });
+      } else {
+        window.addEventListener('deviceorientation', onTilt);
+      }
+      tilt.beta0 = null;
+    } else {
+      window.removeEventListener('deviceorientation', onTilt);
+      tilt.gamma = 0;
+    }
+  }
+
+  /* --- کیبورد --- */
+  window.addEventListener('keydown', function (ev) {
+    const k = ev.key;
+    if (k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' ||
+        k === 'ArrowRight' || k === ' ') {
+      if (!gameWrap.hidden) ev.preventDefault();
+    }
+    if (gameWrap.hidden) return;
+    if (G.state === 'GAMEOVER') {
+      if (k === 'Enter') { restartBtn.click(); }
+      return;
+    }
+    if (k === 'Escape' || k === 'p' || k === 'P') {
+      /* اگر مودالی باز است، Escape فقط آن را می‌بندد */
+      const anyModalOpen = document.querySelector('.modal.show');
+      if (!anyModalOpen) togglePause();
+      return;
+    }
+    if (G.state !== 'PLAYING' && G.state !== 'BOSS') return;
+    if (k === 'ArrowUp'    || k === 'w' || k === 'W') input.up = true;
+    if (k === 'ArrowDown'  || k === 's' || k === 'S') input.down = true;
+    if (k === 'ArrowLeft'  || k === 'a' || k === 'A') input.left = true;
+    if (k === 'ArrowRight' || k === 'd' || k === 'D') input.right = true;
+    if (k === ' ') {
+      input.kFire = true;
+      if (G.fireCd <= 0) fireWeapon(G);
+    }
+    if (k === 'b' || k === 'B' || k === 'q' || k === 'Q') toggleWeapon();
+  }, { passive: false });
+
+  window.addEventListener('keyup', function (ev) {
+    const k = ev.key;
+    if (k === 'ArrowUp'    || k === 'w' || k === 'W') input.up = false;
+    if (k === 'ArrowDown'  || k === 's' || k === 'S') input.down = false;
+    if (k === 'ArrowLeft'  || k === 'a' || k === 'A') input.left = false;
+    if (k === 'ArrowRight' || k === 'd' || k === 'D') input.right = false;
+    if (k === ' ') input.kFire = false;
+  });
+
+  window.addEventListener('blur', function () {
+    input.up = input.down = input.left = input.right = false;
+    input.kFire = input.bFire = input.gpFire = false;
+    dpadBtns.forEach(function (b) { b.classList.remove('active'); });
+    fireBtn.classList.remove('active');
+  });
+
+  /* توقف خودکار وقتی تب پنهان می‌شود (جلوگیری از سوختن سوخت — باگ ۵-۷) */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && (G.state === 'PLAYING' || G.state === 'BOSS')) pauseGame();
+  });
+
+  /* --- Gamepad API (بخش ۴-۸) --- */
+  let gpPrev = {}, gpConnected = false;
+  function pollGamepad() {
+    if (!navigator.getGamepads) return;
+    let gp = null;
+    try {
+      const gps = navigator.getGamepads();
+      for (let i = 0; i < gps.length; i++) {
+        if (gps[i] && gps[i].connected) { gp = gps[i]; break; }
+      }
+    } catch (e) { return; }
+    if (!gp) {
+      gpConnected = false;
+      input.gx = input.gy = input.gpx = input.gpy = 0;
+      input.gpFire = false;
+      return;
+    }
+    if (!gpConnected) {
+      gpConnected = true;
+      if (!gameWrap.hidden) showToast('دسته بازی', 'آنالوگ چپ = حرکت، A = شلیک', '🎮');
+    }
+    /* آنالوگ چپ = حرکت */
+    const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+    input.gx = Math.abs(ax) > 0.22 ? ax : 0;
+    input.gy = Math.abs(ay) > 0.22 ? ay : 0;
+    /* دکمه‌های جهتِ دسته — جدا از کیبورد/لمس تا گیر نکنند */
+    const b = gp.buttons;
+    input.gpx = (b[15] && b[15].pressed ? 1 : 0) - (b[14] && b[14].pressed ? 1 : 0);
+    input.gpy = (b[13] && b[13].pressed ? 1 : 0) - (b[12] && b[12].pressed ? 1 : 0);
+    /* دکمه A (و تریگر راست) = شلیک */
+    input.gpFire = !!((b[0] && b[0].pressed) || (b[7] && b[7].pressed > 0.3));
+    /* لبه‌ها: B = تعویض سلاح، Start = مکث */
+    const bNow = (b[1] && b[1].pressed) ? 1 : 0;
+    if (bNow && !gpPrev.b1) toggleWeapon();
+    gpPrev.b1 = bNow;
+    const sNow = (b[9] && b[9].pressed) ? 1 : 0;
+    if (sNow && !gpPrev.b9) togglePause();
+    gpPrev.b9 = sNow;
+  }
+
+  /* ترکیب منابع ورودی آنالوگ (gamepad + tilt) */
+  function mergeInput() {
+    input.fire = input.kFire || input.bFire || input.gpFire;
+    let ax = input.gx, ay = input.gy;
+    if (tilt.enabled && settings.controls === 'tilt') {
+      const g = clamp(tilt.gamma / 26, -1, 1);
+      const bt = tilt.beta0 == null ? 0 : clamp((tilt.beta - tilt.beta0) / 22, -1, 1);
+      if (Math.abs(g) > 0.12) ax = clamp(ax + g, -1, 1);
+      if (Math.abs(bt) > 0.14) ay = clamp(ay + bt, -1, 1);
+    }
+    input.ax = ax; input.ay = ay;
+  }
+
+  /* ============================================================
+     حلقهٔ اصلی — هم دمو، هم بازی
+     ============================================================ */
+  let lastTs = 0;
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    if (!lastTs) lastTs = ts;
+    let dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+    /* باگ ۵-۷: dt همیشه clamp می‌شود تا با جابه‌جایی تب،
+       سوخت/زمان به‌صورت جهشی کم نشود */
+    if (!(dt > 0)) dt = 0;
+    if (dt > 0.05) dt = 0.05;
+
+    pollGamepad();
+    mergeInput();
+
+    if (!gameWrap.hidden) {
+      G.t += dt;
+      const s = G.state;
+      if (s === 'PLAYING' || s === 'BOSS' || s === 'LEVEL_INTRO' ||
+          s === 'OUT_OF_FUEL' || s === 'GAMEOVER') {
+        update(G, dt);
+        G.shakeT = Math.max(0, G.shakeT - dt);
+        G.flash = Math.max(0, G.flash - dt);
+      }
+      renderWorld(G, ctx, false);
+      updateHUD(G);
+    } else if (!document.hidden) {
+      updateDemo(dt);
+      renderWorld(D, actx, true);
+    }
+  }
+
+  /* ============================================================
+     سیم‌کشی UI
+     ============================================================ */
+  /* --- حالت‌ها --- */
+  const modeChips = Array.prototype.slice.call(document.querySelectorAll('.mode-chip'));
+  modeChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      modeChips.forEach(x => x.classList.remove('sel'));
+      chip.classList.add('sel');
+      selectedMode = chip.dataset.mode;
+      Snd.init();
+      Snd.ui();
+    });
+  });
+
+  /* --- باز/بسته کردن مودال‌ها --- */
+  function openModal(m) {
+    m.classList.add('show');
+    Snd.init(); Snd.ui();
+    if (m === scoresModal) renderScoreTab(scoresModal.querySelector('.on')?.dataset.tab || 'endless');
+    if (m === achvModal) renderAchvList();
+  }
+  function closeModal(m) { m.classList.remove('show'); Snd.ui(); }
+  document.getElementById('openScores').addEventListener('click', () => openModal(scoresModal));
+  document.getElementById('openSettings').addEventListener('click', () => openModal(settingsModal));
+  document.getElementById('openAchv').addEventListener('click', () => openModal(achvModal));
+  document.querySelectorAll('[data-close]').forEach(el => {
+    el.addEventListener('click', () => {
+      const m = document.getElementById(el.dataset.close);
+      if (m) closeModal(m);
+    });
+  });
+
+  /* تب‌های رکوردها */
+  let curScoreTab = 'endless';
+  function renderScoreTab(mode) {
+    curScoreTab = mode;
+    scoreTabs.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === mode));
+    scoreListEl.innerHTML = scoresHTML(mode, 10, null);
+  }
+  scoreTabs.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (b && b.dataset.tab) { renderScoreTab(b.dataset.tab); Snd.ui(); }
+  });
+
+  /* --- تنظیمات: سگمنت‌ها --- */
+  document.querySelectorAll('.seg[data-set]').forEach(seg => {
+    seg.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      const key = seg.dataset.set;
+      let v = b.dataset.v;
+      if (v === '1') v = true;
+      if (v === '0') v = false;
+      settings[key] = v;
+      saveSettings();
+      applySettings();
+      Snd.init(); Snd.ui();
+    });
+  });
+
+  function applySettings() {
+    /* وضعیت دکمه‌های سگمنتی */
+    document.querySelectorAll('.seg[data-set]').forEach(seg => {
+      const key = seg.dataset.set;
+      seg.querySelectorAll('button').forEach(b => {
+        let v = b.dataset.v;
+        if (v === '1') v = true;
+        if (v === '0') v = false;
+        b.classList.toggle('on', String(settings[key]) === String(v));
+      });
+    });
+    /* صدا */
+    muteBtn.classList.toggle('muted', !settings.sound);
+    Snd.setMuted(!settings.sound);
+    /* CRT */
+    gameWrap.classList.toggle('crt', !!settings.crt);
+    /* نوع کنترل */
+    gameWrap.dataset.controls = settings.controls;
+    setTiltEnabled(settings.controls === 'tilt');
+  }
+
+  /* --- دکمهٔ صدای هدر --- */
+  muteBtn.addEventListener('click', () => {
+    settings.sound = !settings.sound;
+    saveSettings();
+    applySettings();
+    Snd.init();
+    if (settings.sound) Snd.ui();
+  });
+  window.addEventListener('keydown', function (ev) {
+    /* هنگام تایپ در فیلد نام، کلیدها تفسیر نشوند */
+    if (ev.target && ev.target.tagName === 'INPUT') return;
+    if ((ev.key === 'm' || ev.key === 'M') && !ev.repeat) { muteBtn.click(); return; }
+    /* Escape مودال باز را می‌بندد */
+    if (ev.key === 'Escape') {
+      const open = [settingsModal, scoresModal, achvModal].filter(m => m.classList.contains('show'));
+      if (open.length) { closeModal(open[open.length - 1]); ev.stopPropagation(); }
+    }
+  });
+
+  /* --- دکمه‌های جریان بازی --- */
+  playBtn.addEventListener('click', () => {
+    Snd.init();
+    startRun(selectedMode);
+  });
+  closeBtn.addEventListener('click', () => { Snd.ui(); closeGame(); });
+  restartBtn.addEventListener('click', () => {
+    gameOverEl.classList.remove('show');
+    startRun(G.mode);
+  });
+  menuBtn.addEventListener('click', closeGame);
+  pauseBtn.addEventListener('click', () => { Snd.ui(); togglePause(); });
+  document.getElementById('resumeBtn').addEventListener('click', () => { Snd.ui(); resumeGame(); });
+  document.getElementById('prestartBtn').addEventListener('click', () => {
+    Snd.ui();
+    pauseOverlay.classList.remove('show');
+    gameOverEl.classList.remove('show');
+    startRun(G.mode);
+  });
+  document.getElementById('psettingsBtn').addEventListener('click', () => openModal(settingsModal));
+  document.getElementById('pquitBtn').addEventListener('click', () => { Snd.ui(); closeGame(); });
+
+  /* --- ثبت نام رکورد (بخش ۳-۱) --- */
+  nameSave.addEventListener('click', saveRecord);
+  nameSkip.addEventListener('click', () => {
+    pendingRecord = null;
+    nameModal.classList.remove('show');
+    renderGoList();
+  });
+  nameInput.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') saveRecord();
+    ev.stopPropagation();
+  });
+  function saveRecord() {
+    if (!pendingRecord) { nameModal.classList.remove('show'); return; }
+    const name = (nameInput.value || '').trim().slice(0, 14) || 'بازیکن';
+    LS.set('rr_last_name', name);
+    addScore(pendingRecord.mode, name, pendingRecord.score);
+    pendingRecord = null;
+    nameModal.classList.remove('show');
+    renderGoList();
+    Snd.ui();
+  }
+
+  /* جلوگیری از منوی راست‌کلیک/زوم داخل بازی */
+  gameWrap.addEventListener('contextmenu', e => e.preventDefault());
+  gameWrap.addEventListener('gesturestart', e => e.preventDefault());
+
+  /* resize / orientation — با تأخیر کوتاه برای ثبات layout */
+  let resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    sizeAttract();
+    if (gameWrap.hidden) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 80);
+  });
+  window.addEventListener('orientationchange', function () {
+    setTimeout(function () {
+      sizeAttract();
+      if (!gameWrap.hidden) resize();
+    }, 220);
+  });
+
+  /* ============================================================
+     PWA — manifest و service worker به‌صورت inline (بخش ۳-۴)
+     ============================================================ */
+  (function setupPWA() {
+    /* ساخت آیکون با canvas تا هیچ فایل خارجی لازم نباشد */
+    try {
+      const ic = document.createElement('canvas');
+      ic.width = ic.height = 192;
+      const g = ic.getContext('2d');
+      const bg = g.createRadialGradient(96, 70, 20, 96, 96, 130);
+      bg.addColorStop(0, '#16324f');
+      bg.addColorStop(1, '#050a12');
+      g.fillStyle = bg;
+      g.fillRect(0, 0, 192, 192);
+      /* جت ساده */
+      g.save();
+      g.translate(96, 104);
+      g.scale(3.1, 3.1);
+      g.beginPath();
+      g.moveTo(0, -18);
+      g.lineTo(5, -4); g.lineTo(16, 6); g.lineTo(16, 10); g.lineTo(5, 8);
+      g.lineTo(4, 15); g.lineTo(-4, 15); g.lineTo(-5, 8);
+      g.lineTo(-16, 10); g.lineTo(-16, 6); g.lineTo(-5, -4);
+      g.closePath();
+      g.fillStyle = '#eef3f8';
+      g.fill();
+      g.beginPath();
+      g.ellipse(0, -5, 3.6, 6.6, 0, 0, TAU);
+      g.fillStyle = '#2e6ea8';
+      g.fill();
+      g.restore();
+      const iconURL = ic.toDataURL('image/png');
+
+      const manifest = {
+        name: 'حمله رودخانه‌ای — River Raid',
+        short_name: 'RiverRaid',
+        description: 'بازی کلاسیک حمله رودخانه‌ای، بازسازی‌شده در مرورگر',
+        lang: 'fa',
+        dir: 'rtl',
+        start_url: location.href.split('#')[0],
+        scope: './',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#0d0f12',
+        theme_color: '#000000',
+        icons: [
+          { src: iconURL, sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: iconURL, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+        ]
+      };
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+      document.head.appendChild(link);
+
+      const apple = document.createElement('link');
+      apple.rel = 'apple-touch-icon';
+      apple.href = iconURL;
+      document.head.appendChild(apple);
+    } catch (e) { /* ساخت آیکون ناموفق — بی‌خطر رد می‌شویم */ }
+
+    /* service worker به‌صورت inline با cache-first برای آفلاین */
+    try {
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        const swCode = [
+          "const CACHE='rr-v1';",
+          "self.addEventListener('install',()=>self.skipWaiting());",
+          "self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));",
+          "self.addEventListener('fetch',e=>{",
+          "  if(e.request.method!=='GET')return;",
+          "  e.respondWith(",
+          "    caches.open(CACHE).then(c=>c.match(e.request).then(hit=>",
+          "      hit||fetch(e.request).then(res=>{",
+          "        try{c.put(e.request,res.clone());}catch(_){}",
+          "        return res;",
+          "      }).catch(()=>hit)",
+          "    ))",
+          "  );",
+          "});"
+        ].join('\n');
+        const tryRegister = url => navigator.serviceWorker.register(url).catch(() => false);
+        const blobURL = URL.createObjectURL(new Blob([swCode], { type: 'text/javascript' }));
+        tryRegister(blobURL).then(ok => {
+          if (!ok) {
+            /* اگر مرورگر blob را نپذیرفت، با data URL تلاش می‌کنیم */
+            tryRegister('data:text/javascript;charset=utf-8,' + encodeURIComponent(swCode)).catch(() => {});
+          }
+        }).catch(() => {});
+      }
+    } catch (e) { /* PWA اختیاری است */ }
+  })();
+
+  /* ============================================================
+     BOOT
+     ============================================================ */
+  /* اولین تعامل کاربر = آزادسازی AudioContext (سیاست مرورگرها) */
+  window.addEventListener('pointerdown', function once() {
+    Snd.init();
+    window.removeEventListener('pointerdown', once);
+  });
+
+  sizeAttract();
+  D.state = 'DEMO';
+  D.mode = 'endless';
+  D.level = 1;
+  D.fuel = 100;
+  D.lives = 3;
+  D.player.x = D.W * 0.5;
+  D.player.y = D.H * 0.76;
+
+  applySettings();
+  renderScoreTab('endless');
+  renderAchvList();
+  requestAnimationFrame(frame);
+
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4eb7451497523fb',t:'MTc5MjcwMzA2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
