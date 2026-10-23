@@ -82,6 +82,8 @@ header {
   background: var(--panel-hover);
   transform: translateY(-1px);
 }
+.header-btn.spinning svg { animation: spin .8s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .hero {
   padding: 56px 20px 40px;
   max-width: 1200px; margin: 0 auto;
@@ -183,7 +185,7 @@ header {
   overflow: hidden; background: var(--panel);
   border: 1px solid var(--border); cursor: pointer;
   display: flex; flex-direction: column;
-  transition: transform .22s, border-color .22s, box-shadow .22s;
+  transition: transform .22s, border-color .22s, box-shadow .22s, opacity .3s;
 }
 .card:hover:not(.soon) {
   transform: translateY(-4px);
@@ -232,6 +234,12 @@ header {
 .card.soon { cursor: default; }
 .card.soon .card-cover { filter: grayscale(.65) brightness(.65); }
 .card.soon .card-title { color: var(--text-dim); }
+.card.checking { opacity: .55; }
+.card.new-found { animation: newPulse 1.5s ease-out; }
+@keyframes newPulse {
+  0% { box-shadow: 0 0 0 0 rgba(245,197,24,.8); }
+  100% { box-shadow: 0 0 0 20px rgba(245,197,24,0); }
+}
 footer {
   padding: 22px 20px; border-top: 1px solid var(--border);
   text-align: center; color: var(--text-dim);
@@ -240,8 +248,28 @@ footer {
 }
 footer a { color: var(--gold); text-decoration: none; font-weight: 700; }
 footer a:hover { text-decoration: underline; }
+/* ---- Toast ---- */
+.hub-toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translate(-50%, 100px);
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #1a1f2e, #0f1420);
+  border: 1px solid rgba(245,197,24,.5);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.6), 0 0 20px rgba(245,197,24,.2);
+  z-index: 1000;
+  opacity: 0;
+  transition: transform .35s cubic-bezier(.2, .9, .3, 1.2), opacity .3s;
+  max-width: min(420px, 90vw);
+}
+.hub-toast.show { transform: translate(-50%, 0); opacity: 1; }
+.hub-toast .ico { font-size: 18px; flex: 0 0 auto; }
 @media (max-width: 600px) {
-  header { padding: 12px 14px; }
+  header { padding: 12px 14px; gap: 8px; }
   .logo-text { font-size: 13px; letter-spacing: .18em; }
   .hero { padding: 36px 14px 28px; }
   .hero-stats { gap: 20px; padding: 14px 20px; }
@@ -269,6 +297,12 @@ footer a:hover { text-decoration: underline; }
     <span class="logo-text">ARCADE</span>
   </a>
   <div class="header-spacer"></div>
+  <button class="header-btn" id="refreshBtn" title="بررسی بازی‌های جدید" aria-label="بررسی بازی‌های جدید">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 4v6h-6M1 20v-6h6"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    </svg>
+  </button>
   <a class="header-btn" href="https://aligraph-art.cv/" target="_blank" rel="noopener noreferrer" title="طراح و توسعه‌دهنده">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 3a9 9 0 1 0 0 18c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6h1.3A5.3 5.3 0 0 0 21 10.3C21 6.2 16.9 3 12 3z"/>
@@ -324,7 +358,9 @@ footer a:hover { text-decoration: underline; }
 <script>
 (function(){
 'use strict';
+
 const faNum = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
 const LS = {
   get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -333,15 +369,20 @@ const getTop = id => { try { return parseInt(localStorage.getItem('arcade_top_'+
 const getPlays = () => { try { return parseInt(localStorage.getItem('arcade_plays')||'0',10)||0; } catch(e){ return 0; } };
 const getLast = () => LS.get('arcade_last',[]);
 
+/* ============================================================
+   آرایهٔ بازی‌ها
+   available: true  = از قبل می‌دونیم فایل هست (fallback)
+   available: false = اگه فایل پیدا شد، خودکار true می‌شه
+   ============================================================ */
 const GAMES = [
-  { id:'river-raid', title:'حمله رودخانه‌ای', sub:'RIVER RAID', year:1982, genre:'شوتر عمودی', genreTag:'shooter', file:'river-raid.html', available:true, cover:'river' },
-  { id:'space-invaders', title:'مهاجمان فضایی', sub:'SPACE INVADERS', year:1978, genre:'شوتر', genreTag:'shooter', file:'space-invaders.html', available:false, cover:'invaders' },
-  { id:'breakout', title:'دیوارشکن', sub:'BREAKOUT', year:1976, genre:'کلاسیک', genreTag:'classic', file:'breakout.html', available:false, cover:'breakout' },
-  { id:'snake', title:'مار', sub:'SNAKE', year:1997, genre:'کلاسیک', genreTag:'classic', file:'snake.html', available:false, cover:'snake' },
-  { id:'asteroids', title:'سیارک‌ها', sub:'ASTEROIDS', year:1979, genre:'شوتر', genreTag:'shooter', file:'asteroids.html', available:false, cover:'asteroids' },
-  { id:'pong', title:'پینگ‌پنگ', sub:'PONG', year:1972, genre:'کلاسیک', genreTag:'classic', file:'pong.html', available:false, cover:'pong' },
-  { id:'tetris', title:'تتریس', sub:'TETRIS', year:1984, genre:'پازل', genreTag:'puzzle', file:'tetris.html', available:false, cover:'tetris' },
-  { id:'pacman', title:'پک‌من', sub:'PAC-MAN', year:1980, genre:'کلاسیک', genreTag:'classic', file:'pacman.html', available:false, cover:'pacman' }
+  { id:'river-raid',     title:'حمله رودخانه‌ای', sub:'RIVER RAID',     year:1982, genre:'شوتر عمودی', genreTag:'shooter', file:'river-raid.html',     available:true,  cover:'river' },
+  { id:'space-invaders', title:'تهاجم فضایی',     sub:'SPACE INVADERS', year:1978, genre:'شوتر',       genreTag:'shooter', file:'space-invaders.html', available:true,  cover:'invaders' },
+  { id:'breakout',       title:'دیوارشکن',        sub:'BREAKOUT',       year:1976, genre:'کلاسیک',     genreTag:'classic', file:'breakout.html',       available:false, cover:'breakout' },
+  { id:'snake',          title:'مار',             sub:'SNAKE',          year:1997, genre:'کلاسیک',     genreTag:'classic', file:'snake.html',          available:false, cover:'snake' },
+  { id:'asteroids',      title:'سیارک‌ها',        sub:'ASTEROIDS',      year:1979, genre:'شوتر',       genreTag:'shooter', file:'asteroids.html',      available:false, cover:'asteroids' },
+  { id:'pong',           title:'پینگ‌پنگ',        sub:'PONG',           year:1972, genre:'کلاسیک',     genreTag:'classic', file:'pong.html',           available:false, cover:'pong' },
+  { id:'tetris',         title:'تتریس',           sub:'TETRIS',         year:1984, genre:'پازل',       genreTag:'puzzle',  file:'tetris.html',         available:false, cover:'tetris' },
+  { id:'pacman',         title:'پک‌من',           sub:'PAC-MAN',        year:1980, genre:'کلاسیک',     genreTag:'classic', file:'pacman.html',         available:false, cover:'pacman' }
 ];
 
 /* ---- کاورها (SVG inline) ---- */
@@ -362,11 +403,116 @@ const COVERS = {
   pacman: () => `<svg viewBox="0 0 220 280" preserveAspectRatio="xMidYMid slice"><rect width="220" height="280" fill="#000"/><g stroke="#1e3a8a" stroke-width="3" fill="none"><path d="M10,60 L60,60 L60,110"/><path d="M210,60 L160,60 L160,110"/><path d="M10,220 L60,220 L60,170"/><path d="M210,220 L160,220 L160,170"/></g><g fill="#f5c518"><circle cx="80" cy="90" r="3"/><circle cx="100" cy="90" r="3"/><circle cx="120" cy="90" r="3"/><circle cx="140" cy="90" r="3"/><circle cx="30" cy="140" r="3"/><circle cx="50" cy="140" r="3"/><circle cx="80" cy="140" r="3"/><circle cx="140" cy="140" r="3"/><circle cx="170" cy="140" r="3"/><circle cx="190" cy="140" r="3"/><circle cx="80" cy="190" r="3"/><circle cx="110" cy="190" r="3"/><circle cx="140" cy="190" r="3"/></g><circle cx="110" cy="140" r="22" fill="#f5c518"/><path d="M110,140 L130,128 L130,152 Z" fill="#000"/><g transform="translate(160,190)"><path d="M-16,-14 L-16,10 Q-16,20 -6,20 L-6,10 L-2,10 L-2,20 Q8,20 8,10 L8,-14 Q8,-22 0,-22 Q-8,-22 -8,-14 Z" fill="#ff5a4a"/><circle cx="-8" cy="-8" r="3" fill="#fff"/><circle cx="4" cy="-8" r="3" fill="#fff"/></g><g transform="translate(60,190)"><path d="M-14,-14 L-14,10 Q-14,20 -6,20 L-6,10 L-2,10 L-2,20 Q6,20 6,10 L6,-14 Q6,-22 0,-22 Q-6,-22 -6,-14 Z" fill="#60a5fa"/><circle cx="-6" cy="-8" r="2.5" fill="#fff"/><circle cx="4" cy="-8" r="2.5" fill="#fff"/></g></svg>`
 };
 
-/* ---- Render ---- */
+/* ============================================================
+   تشخیص خودکار وجود فایل‌های بازی
+   ============================================================ */
+let filesChecked = false;
+let checkPromise = null;
+const newFoundGames = new Set(); // بازی‌هایی که تازه پیدا شدن (برای انیمیشن)
+
+async function checkOneFile(game) {
+  const url = game.file + (game.file.includes('?') ? '&' : '?') + '_t=' + Date.now();
+  try {
+    const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+    if (res.status === 404) return false;
+    if (res.ok) return true;
+    // 403, 500, 405 و بقیه: نامشخص — پرچم دستی حفظ بشه
+    return null;
+  } catch (e) {
+    // خطای شبکه یا CORS — نامشخص
+    return null;
+  }
+}
+
+async function checkGameFiles(opts) {
+  opts = opts || {};
+  const silent = !!opts.silent;
+
+  // روی file:// امکان fetch نیست — از پرچم دستی استفاده کن
+  if (location.protocol === 'file:') {
+    filesChecked = true;
+    return;
+  }
+
+  if (checkPromise && !opts.force) return checkPromise;
+
+  const changed = [];
+
+  const run = (async () => {
+    if (!silent) {
+      document.querySelectorAll('.card').forEach(c => c.classList.add('checking'));
+    }
+
+    await Promise.all(GAMES.map(async (g) => {
+      const prev = g.available;
+      const exists = await checkOneFile(g);
+      if (exists === true) {
+        g.available = true;
+      } else if (exists === false) {
+        g.available = false;
+      }
+      // exists === null: پرچم دستی حفظ بشه
+      if (!prev && g.available) {
+        changed.push(g);
+        newFoundGames.add(g.id);
+      }
+    }));
+
+    filesChecked = true;
+
+    // Re-render
+    const activeFilter = (document.querySelector('.filter-chip.on') || {}).dataset?.filter || 'all';
+    renderAll(activeFilter);
+
+    // Toast برای بازی‌های جدید
+    if (changed.length > 0 && !silent) {
+      if (changed.length === 1) {
+        showToast(`بازی جدید پیدا شد: ${changed[0].title}`, '✨');
+      } else {
+        showToast(`${changed.length} بازی جدید پیدا شد!`, '🎮');
+      }
+      // پاک کردن انیمیشن جدید بعد از مدتی
+      setTimeout(() => {
+        changed.forEach(g => newFoundGames.delete(g.id));
+      }, 3000);
+    }
+
+    // پاک کردن حالت loading
+    document.querySelectorAll('.card.checking').forEach(c => c.classList.remove('checking'));
+
+    // پاک کردن انیمیشن new-found بعد از مدتی
+    setTimeout(() => {
+      document.querySelectorAll('.card.new-found').forEach(c => c.classList.remove('new-found'));
+    }, 2000);
+  })();
+
+  checkPromise = run;
+  try { await run; } finally { checkPromise = null; }
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+function showToast(text, icon) {
+  const el = document.createElement('div');
+  el.className = 'hub-toast';
+  el.innerHTML = `<span class="ico">${icon || '✨'}</span><span>${text}</span>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 400);
+  }, 3500);
+}
+
+/* ============================================================
+   ساخت کارت
+   ============================================================ */
 function cardHTML(g){
   const best = getTop(g.id);
   const dis = !g.available;
-  return `<div class="card ${dis?'soon':''}" data-id="${g.id}">
+  const isNew = newFoundGames.has(g.id);
+  return `<div class="card ${dis?'soon':''} ${isNew?'new-found':''}" data-id="${g.id}">
     <div class="card-cover">
       ${COVERS[g.cover]?COVERS[g.cover]():''}
       ${dis?'<span class="soon-badge">به زودی</span>':''}
@@ -383,7 +529,8 @@ function cardHTML(g){
   </div>`;
 }
 
-function renderGrid(filter='all'){
+function renderGrid(filter){
+  filter = filter || 'all';
   const grid = document.getElementById('grid');
   const gs = filter==='all' ? GAMES : GAMES.filter(g => g.genreTag===filter);
   grid.innerHTML = gs.map(cardHTML).join('');
@@ -419,6 +566,20 @@ function renderRecent(){
   });
 }
 
+function updateStats(){
+  document.getElementById('statGames').textContent = faNum(GAMES.filter(g=>g.available).length);
+  document.getElementById('statPlays').textContent = faNum(getPlays());
+  let best = 0;
+  GAMES.forEach(g => { const t = getTop(g.id); if (t>best) best=t; });
+  document.getElementById('statBest').textContent = faNum(best);
+}
+
+function renderAll(filter) {
+  updateStats();
+  renderRecent();
+  renderGrid(filter);
+}
+
 function launch(g){
   if (!g.available) return;
   const last = getLast().filter(x => x!==g.id);
@@ -428,14 +589,9 @@ function launch(g){
   location.href = g.file;
 }
 
-function updateStats(){
-  document.getElementById('statGames').textContent = faNum(GAMES.filter(g=>g.available).length);
-  document.getElementById('statPlays').textContent = faNum(getPlays());
-  let best = 0;
-  GAMES.forEach(g => { const t = getTop(g.id); if (t>best) best=t; });
-  document.getElementById('statBest').textContent = faNum(best);
-}
-
+/* ============================================================
+   فیلترها
+   ============================================================ */
 document.getElementById('filters').addEventListener('click', e => {
   const b = e.target.closest('.filter-chip');
   if (!b) return;
@@ -443,11 +599,30 @@ document.getElementById('filters').addEventListener('click', e => {
   renderGrid(b.dataset.filter);
 });
 
-updateStats();
-renderRecent();
-renderGrid('all');
+/* ============================================================
+   دکمهٔ چک دستی
+   ============================================================ */
+document.getElementById('refreshBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  await checkGameFiles({ force: true });
+  btn.classList.remove('spinning');
+});
 
-/* ---- PWA install ---- */
+/* ============================================================
+   چک خودکار هنگام برگشت به تب (با throttle)
+   ============================================================ */
+let lastAutoCheck = 0;
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && filesChecked && Date.now() - lastAutoCheck > 45000) {
+    lastAutoCheck = Date.now();
+    checkGameFiles({ silent: true });
+  }
+});
+
+/* ============================================================
+   PWA install
+   ============================================================ */
 let deferred = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault(); deferred = e;
@@ -460,6 +635,15 @@ document.getElementById('installBtn').addEventListener('click', async () => {
   if (r.outcome==='accepted') document.getElementById('installBtn').hidden = true;
   deferred = null;
 });
+
+/* ============================================================
+   شروع
+   ============================================================ */
+// ۱) رندر اولیه با پرچم‌های دستی (بدون تأخیر، کاربر فوراً محتوا رو می‌بینه)
+renderAll('all');
+
+// ۲) چک خودکار فایل‌ها در پس‌زمینه
+checkGameFiles({ silent: false });
 
 })();
 </script>
