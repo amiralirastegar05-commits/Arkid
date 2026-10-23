@@ -1,0 +1,3927 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="بازی تهاجم فضایی (Space Invaders) — بازسازی رترو با فیلتر CRT، سپرها، بشقاب پرنده و حالت‌های متنوع. طراحی: AliGraph">
+<!-- PWA: متا تگ‌های نصب روی موبایل -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Space Invaders">
+<!-- فونت وزیرمتن از CDN (تنها وابستگی خارجی مجاز) با fallback محلی -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<title>تهاجم فضایی | Space Invaders</title>
+<style>
+/* ============================================================
+   RESET & BASE — قالب مشترک آرکید
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+/* صفت hidden باید همیشه بر display کلاس‌ها غلبه کند */
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; padding: 0; }
+:root {
+  /* رنگ اصلی این بازی: سبز نئونی کلاسیک */
+  --acc: #46f08a;
+  --acc-ink: #04180b;
+  --acc-soft: rgba(70, 240, 138, .16);
+}
+body {
+  font-family: Vazirmatn, Tahoma, "Segoe UI", system-ui, sans-serif;
+  background: #050607;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* بافت نویز ظریف روی پس‌زمینه */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+
+/* ============================================================
+   ATTRACT MODE — بوم دموی خودکار پشت لندینگ
+   ============================================================ */
+#attractCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+#attractScrim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 100% at 50% 0%, rgba(0,0,0,.22), rgba(0,0,0,.68) 85%),
+    linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.12) 40%, rgba(0,0,0,.55));
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+header {
+  position: relative;
+  z-index: 5;
+  flex: 0 0 56px;
+  height: 56px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;   /* RTL => اولین آیتم سمت راست */
+  gap: 10px;
+  padding: 0 14px;
+  box-shadow: 0 3px 18px rgba(0, 0, 0, .75);
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  color: #c6c6c6;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: background .18s ease, transform .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background: #262626;
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(255, 255, 255, .12);
+  outline: none;
+}
+.icon-btn:active { transform: scale(.96); }
+.icon-btn svg { display: block; }
+
+/* دکمه بی‌صدا: دو آیکون که با کلاس muted جابه‌جا می‌شوند */
+#muteBtn .ico-off { display: none; }
+#muteBtn.muted { color: #ff7b6b; }
+#muteBtn.muted .ico-off { display: block; }
+#muteBtn.muted .ico-on  { display: none; }
+
+.atari-badge {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 32% 28%, #2a2a2a, #101010 70%);
+  border: 1px solid #2e2e2e;
+  color: #e8e8e8;
+  font-weight: 900;
+  font-size: 8px;
+  letter-spacing: .14em;
+  user-select: none;
+  cursor: default;
+}
+.header-spacer { flex: 1 1 auto; }
+.header-tag {
+  font-size: 10px;
+  color: #6d7684;
+  letter-spacing: .18em;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   LANDING
+   ============================================================ */
+main {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px 14px 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(94vw, 720px);
+}
+
+.glass-card {
+  width: min(88%, 820px);
+  height: clamp(230px, 30vh, 340px);
+  display: flex;
+  flex-direction: row;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, .065);
+  border: 1px solid rgba(255, 255, 255, .22);
+  box-shadow:
+    0 32px 70px rgba(0, 0, 0, .68),
+    0 2px 0 rgba(255, 255, 255, .06) inset,
+    0 0 60px rgba(0, 0, 0, .35);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+/* --- نیمه تصویری (در RTL سمت راست) --- */
+.art-half {
+  position: relative;
+  flex: 1 1 50%;
+  min-width: 0;
+  overflow: hidden;
+  background: #030405;
+}
+.art-half svg { display: block; width: 100%; height: 100%; }
+/* دو ترکیب‌بندی: عمودی برای کارت دسکتاپ، افقی برای نوار باریک موبایل */
+.art-half .art-wide { display: none; }
+
+/* --- نیمه اطلاعات --- */
+.info-half {
+  flex: 1 1 50%;
+  min-width: 0;
+  background: linear-gradient(155deg, rgba(8,26,16,.92) 0%, rgba(6,20,13,.92) 55%, rgba(4,12,8,.94) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 18px;
+  text-align: center;
+  position: relative;
+}
+.info-half::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(90, 230, 150, .10), transparent 60%);
+}
+
+.game-title {
+  margin: 0;
+  font-weight: 300;
+  font-size: clamp(20px, 3.1vw, 38px);
+  line-height: 1.25;
+  color: #fff;
+  letter-spacing: .5px;
+  text-shadow: 0 2px 18px rgba(110, 255, 170, .22);
+}
+.game-sub {
+  margin: 0;
+  font-size: clamp(9px, 1vw, 12px);
+  font-weight: 500;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: #9fc8ae;
+  padding-inline-start: .42em;
+}
+
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 6px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 999px;
+  background: var(--acc);
+  color: var(--acc-ink);
+  font-family: inherit;
+  font-size: clamp(14px, 1.5vw, 17px);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 26px rgba(70, 240, 138, .3), 0 1px 0 rgba(255, 255, 255, .5) inset;
+  transition: transform .16s ease, box-shadow .22s ease, background .22s ease;
+}
+.play-btn:hover {
+  background: #6ff7a4;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(70, 240, 138, .45), 0 1px 0 rgba(255, 255, 255, .6) inset;
+}
+.play-btn:active { transform: translateY(1px) scale(.975); }
+.play-btn svg { display: block; }
+
+/* --- لینک طراح زیر کارت --- */
+.credit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #8b96a6;
+  text-decoration: none;
+  letter-spacing: .02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.credit-link:hover, .credit-link:focus-visible {
+  color: var(--acc);
+  border-color: rgba(70, 240, 138, .35);
+  background: rgba(70, 240, 138, .07);
+  outline: none;
+}
+.credit-link svg { display: block; }
+
+/* --- انتخاب حالت بازی --- */
+.mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.mode-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 118px;
+  padding: 9px 14px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #cfd8e3;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.mode-chip b { font-size: 13.5px; font-weight: 700; }
+.mode-chip small { font-size: 10px; color: #8b96a6; }
+.mode-chip:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.32); }
+.mode-chip.sel {
+  border-color: rgba(70, 240, 138, .8);
+  background: rgba(70, 240, 138, .13);
+  box-shadow: 0 6px 20px rgba(70, 240, 138, .16);
+}
+.mode-chip.sel b { color: var(--acc); }
+.mode-chip.sel small { color: #8fd8ac; }
+
+/* --- دکمه‌های منوی فرعی --- */
+.menu-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #c3cdd9;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .15s ease, color .18s ease, border-color .18s ease;
+}
+.menu-btn:hover { color: #fff; border-color: rgba(255,255,255,.34); transform: translateY(-1px); }
+.menu-btn svg { display: block; }
+
+/* ============================================================
+   GAME OVERLAY
+   ============================================================ */
+#gameWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+#gameWrap[hidden] { display: none; }
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  touch-action: none;
+}
+
+/* --- فیلتر CRT: اسکن‌لاین + وینیت --- */
+#crtOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  pointer-events: none;
+  display: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.24) 0 1px, rgba(0,0,0,0) 1px 3px),
+    radial-gradient(125% 115% at 50% 50%, rgba(0,0,0,0) 58%, rgba(0,0,0,.42) 88%, rgba(0,0,0,.66) 100%);
+  animation: crtFlicker 5s steps(60) infinite;
+}
+#gameWrap.crt #crtOverlay { display: block; }
+@keyframes crtFlicker {
+  0%, 100% { opacity: .96; }
+  50% { opacity: 1; }
+}
+
+/* --- بازخورد آسیب: حاشیه قرمز --- */
+#stage.hurt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 27;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 70px rgba(255, 35, 35, .7),
+    inset 0 0 16px rgba(255, 0, 0, .55);
+  animation: hurtFade .45s ease-out forwards;
+}
+@keyframes hurtFade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* --- HUD با آیکون SVG --- */
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 60px;
+  pointer-events: none;
+  font-size: 13px;
+  color: #d3dde8;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .9);
+  z-index: 4;
+}
+.hud-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.hud-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.hud-item svg { display: block; opacity: .9; }
+.hud-item b { color: var(--acc); font-weight: 700; font-size: 14px; }
+#timeItem b { color: #7fd0ff; }
+#bestItem b { color: #ffd54a; }
+
+/* نوارهای سلامت سپرها */
+.shield-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.shield-row svg { display: block; opacity: .85; }
+.shield-pips {
+  display: flex;
+  gap: 6px;
+}
+.shield-pips i {
+  width: 44px;
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.12);
+  overflow: hidden;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(70,240,138,.25) inset;
+}
+.shield-pips i b {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #2fbf6b, #7bf7b0);
+  border-radius: 4px;
+  transition: width .18s ease;
+}
+.shield-pips i.dead b { background: #3a3f46; }
+
+/* --- دکمه‌های بالا: بستن و مکث --- */
+#closeBtn, #pauseBtn {
+  position: absolute;
+  top: 10px;
+  z-index: 6;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(20, 20, 20, .78);
+  color: #e6e6e6;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  padding: 0;
+  transition: background .16s ease, transform .16s ease;
+}
+#closeBtn { right: 12px; font-size: 20px; line-height: 1; }
+#pauseBtn { left: 12px; }
+#closeBtn:hover, #pauseBtn:hover { background: rgba(60, 60, 60, .95); transform: scale(1.06); }
+#closeBtn:active, #pauseBtn:active { transform: scale(.94); }
+#closeBtn svg, #pauseBtn svg { display: block; pointer-events: none; }
+
+/* --- کنترل لمسی: دکمه‌های جهت بزرگ + آتش (بخش کنترل) --- */
+.move-btn {
+  position: absolute;
+  bottom: 18px;
+  z-index: 5;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .2);
+  background: radial-gradient(circle at 36% 30%, rgba(255,255,255,.14), rgba(255,255,255,.05) 70%);
+  color: #dfe7ef;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  padding: 0;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  transition: transform .1s ease, background .12s ease;
+}
+.move-btn:active, .move-btn.active {
+  transform: scale(.93);
+  background: radial-gradient(circle at 36% 30%, rgba(70,240,138,.4), rgba(70,240,138,.14) 72%);
+  color: #eafff2;
+}
+.move-btn svg { display: block; pointer-events: none; }
+#btnLeft  { left: 16px; }
+#btnRight { right: 16px; }
+#gameWrap[data-controls="drag"] .move-btn,
+#gameWrap[data-controls="tilt"] .move-btn { display: none; }
+
+/* --- دکمه آتش (وسط/راست پایین) --- */
+#fireBtn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 26px;
+  z-index: 5;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .26);
+  background: radial-gradient(circle at 34% 28%, #7bf7b0, #149a4e 74%);
+  color: #04180b;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  touch-action: none;
+  padding: 0;
+  box-shadow: 0 0 26px rgba(70, 240, 138, .45), 0 4px 14px rgba(0, 0, 0, .6);
+  transition: transform .1s ease, box-shadow .2s ease;
+}
+#fireBtn.active {
+  transform: translateX(-50%) scale(.93);
+  box-shadow: 0 0 42px rgba(70, 240, 240, .8);
+}
+#fireBtn svg { display: block; pointer-events: none; }
+
+/* روی دستگاه‌های بدون لمس، خوشه لمسی پنهان می‌ماند (کلاس با JS ست می‌شود) */
+html.no-touch .move-btn, html.no-touch #fireBtn { display: none; }
+
+/* --- اورلی انتقال موج --- */
+#introOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 24;
+  display: none;
+  place-items: center;
+  pointer-events: none;
+  background: radial-gradient(90% 70% at 50% 50%, rgba(0,0,0,.6), rgba(0,0,0,.25) 70%, transparent);
+}
+#introOverlay.show { display: grid; }
+.intro-card { text-align: center; opacity: 0; }
+#introOverlay.show .intro-card { animation: introAnim 2.4s ease forwards; }
+@keyframes introAnim {
+  0%   { opacity: 0; transform: scale(.9); }
+  14%  { opacity: 1; transform: scale(1); }
+  72%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+#introBig {
+  margin: 0;
+  font-size: clamp(26px, 6vw, 42px);
+  font-weight: 800;
+  color: var(--acc);
+  text-shadow: 0 3px 24px rgba(70, 240, 138, .45), 0 1px 3px rgba(0,0,0,.9);
+  letter-spacing: .5px;
+}
+#introName {
+  margin: 8px 0 0;
+  font-size: clamp(13px, 2.6vw, 17px);
+  color: #dbe6f2;
+  text-shadow: 0 1px 8px rgba(0,0,0,.9);
+  letter-spacing: .04em;
+}
+
+/* --- منوی مکث --- */
+#pauseOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  padding: 20px;
+}
+#pauseOverlay.show { display: flex; }
+.pm-card {
+  width: min(320px, 88vw);
+  background: linear-gradient(160deg, #101a14, #0a100c);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 20px;
+  padding: 24px 22px;
+  text-align: center;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, .8);
+  animation: pop .25s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pm-card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--acc);
+}
+.pm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+  color: #e4ebf3;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease, transform .14s ease, color .16s ease;
+}
+.pm-btn:hover { background: rgba(255,255,255,.14); transform: translateY(-1px); }
+.pm-btn:active { transform: translateY(1px) scale(.98); }
+.pm-btn.primary {
+  background: var(--acc);
+  color: var(--acc-ink);
+  border-color: transparent;
+  box-shadow: 0 8px 24px rgba(70, 240, 138, .3);
+}
+.pm-btn.primary:hover { background: #6ff7a4; }
+.pm-btn.danger:hover { background: rgba(255, 70, 60, .22); color: #ffb3ab; }
+
+/* --- Game Over --- */
+#gameOver {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 20px;
+}
+#gameOver.show { display: flex; }
+
+.go-card {
+  width: min(350px, 90vw);
+  max-height: 92%;
+  overflow: auto;
+  background: linear-gradient(160deg, #101a14, #0a100c);
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 20px;
+  padding: 24px 22px 22px;
+  text-align: center;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, .8);
+  animation: pop .28s ease-out;
+}
+@keyframes pop {
+  from { transform: scale(.9); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+.go-card h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff5a5a;
+  letter-spacing: .5px;
+}
+#goReason { margin: 0 0 6px; font-size: 13px; color: #98a6b8; }
+#goMode   { margin: 0 0 12px; font-size: 11px; color: #6f7d8f; letter-spacing: .05em; }
+.go-score { margin: 0 0 12px; font-size: 15px; color: #cfd8e3; }
+.go-score b {
+  color: var(--acc);
+  font-size: 28px;
+  display: block;
+  margin-top: 4px;
+}
+#goNewRecord {
+  display: none;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #69f0ae;
+  letter-spacing: .04em;
+  animation: pulseGlow 1.2s ease infinite alternate;
+}
+#goNewRecord.show { display: block; }
+@keyframes pulseGlow {
+  from { text-shadow: 0 0 4px rgba(105, 240, 174, .3); }
+  to   { text-shadow: 0 0 16px rgba(105, 240, 174, .8); }
+}
+.go-list-title {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  color: #7b8899;
+  letter-spacing: .12em;
+}
+#goList, #scoreList, #achvList { margin: 0 0 14px; }
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px dashed rgba(255, 255, 255, .07);
+  font-size: 13px;
+  color: #b9c7d6;
+}
+.score-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score-row b { color: var(--acc); font-weight: 700; flex: 0 0 auto; }
+.score-row.new { color: #69f0ae; }
+.score-row.new b { color: #69f0ae; }
+.empty-note { font-size: 12px; color: #6f7d8f; padding: 8px 0; }
+.go-btns { display: flex; flex-direction: column; gap: 9px; }
+#restartBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 999px;
+  background: var(--acc);
+  color: var(--acc-ink);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(70, 240, 138, .3);
+  transition: transform .15s ease, background .2s ease;
+}
+#restartBtn:hover { background: #6ff7a4; transform: translateY(-1px); }
+#restartBtn:active { transform: translateY(1px) scale(.97); }
+#menuBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  color: #d7e0ea;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+#menuBtn:hover { background: rgba(255,255,255,.13); }
+
+/* ============================================================
+   MODALS — تنظیمات / رکوردها / دستاوردها / نام
+   ============================================================ */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.modal.show { display: flex; }
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.modal-card {
+  position: relative;
+  width: min(430px, 94vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: linear-gradient(160deg, #101a14, #0a100c);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 20px;
+  padding: 22px 20px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .85);
+  animation: pop .25s ease-out;
+}
+.modal-card h3 {
+  margin: 0 0 14px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--acc);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+  color: #cfd8e3;
+  font-size: 15px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background .15s ease;
+}
+.modal-close:hover { background: rgba(255,255,255,.16); }
+
+/* ردیف تنظیمات */
+.set-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px dashed rgba(255, 255, 255, .08);
+}
+.set-row:last-of-type { border-bottom: none; }
+.set-label { font-size: 13.5px; color: #d5dee8; font-weight: 600; }
+.set-label small { display: block; font-size: 10.5px; color: #7b8899; font-weight: 400; margin-top: 2px; }
+.seg {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 3px;
+  border-radius: 12px;
+  flex: 0 0 auto;
+}
+.seg button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #aab6c6;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+  white-space: nowrap;
+}
+.seg button:hover { color: #fff; }
+.seg button.on { background: var(--acc); color: var(--acc-ink); }
+
+/* تب‌های رکوردها */
+#scoreTabs { margin-bottom: 12px; justify-content: center; }
+
+/* دستاوردها */
+.achv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px dashed rgba(255, 255, 255, .08);
+}
+.achv:last-child { border-bottom: none; }
+.achv-ico {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #8b96a6;
+}
+.achv.done .achv-ico {
+  background: rgba(70, 240, 138, .15);
+  border-color: rgba(70, 240, 138, .55);
+  color: var(--acc);
+}
+.achv-txt b { display: block; font-size: 13.5px; color: #e2e9f1; }
+.achv-txt small { font-size: 11px; color: #7b8899; }
+.achv.locked { opacity: .5; }
+
+/* مودال نام */
+.name-note { margin: 0 0 12px; font-size: 13px; color: #b9c7d6; }
+#nameInput {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.07);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  text-align: center;
+  outline: none;
+  margin-bottom: 14px;
+}
+#nameInput:focus { border-color: rgba(70,240,138,.7); box-shadow: 0 0 0 3px rgba(70,240,138,.15); }
+.name-btns { display: flex; gap: 9px; justify-content: center; }
+.name-btns .pm-btn { flex: 1 1 auto; }
+
+/* ============================================================
+   TOAST — دستاوردها و پیام‌ها
+   ============================================================ */
+#toasts {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+  width: min(340px, 92vw);
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: rgba(12, 20, 15, .94);
+  border: 1px solid rgba(70, 240, 138, .55);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .6), 0 0 22px rgba(70, 240, 138, .12);
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  color: #e8eef5;
+  animation: toastIn .3s ease;
+  transition: opacity .3s ease, transform .3s ease;
+}
+.toast.out { opacity: 0; transform: translateY(10px); }
+.toast .t-ico {
+  width: 30px; height: 30px; flex: 0 0 30px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  background: rgba(70, 240, 138, .15);
+  color: var(--acc);
+}
+.toast b { color: var(--acc); display: block; font-size: 12.5px; }
+.toast small { color: #9aa7b8; font-size: 11px; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 640px) {
+  header { flex: 0 0 48px; height: 48px; padding: 0 10px; gap: 7px; }
+  .icon-btn, .atari-badge { width: 34px; height: 34px; flex-basis: 34px; font-size: 7px; }
+  .header-tag { display: none; }
+
+  main { padding: 12px 10px 22px; }
+  .landing { gap: 11px; }
+
+  .glass-card {
+    width: 94vw;
+    height: auto;
+    flex-direction: column;
+    border-radius: 18px;
+  }
+  .art-half { flex: 0 0 190px; height: 190px; }
+  .art-half .art-tall { display: none; }
+  .art-half .art-wide { display: block; }
+  .info-half { padding: 16px 12px 20px; gap: 8px; }
+
+  .game-title { font-size: 24px; }
+  .game-sub   { font-size: 10px; letter-spacing: .34em; }
+  .play-btn   { padding: 11px 26px; font-size: 15px; }
+
+  .mode-chip { min-width: 104px; padding: 8px 10px 7px; }
+  .mode-chip b { font-size: 12.5px; }
+  .mode-chip small { font-size: 9px; }
+
+  .move-btn { width: 80px; height: 80px; bottom: 14px; }
+  #btnLeft { left: 12px; }
+  #btnRight { right: 12px; }
+  #fireBtn { width: 74px; height: 74px; bottom: 22px; }
+
+  #hud { font-size: 12px; padding: 10px 52px; gap: 5px; }
+  .hud-row { gap: 10px; }
+  .hud-item b { font-size: 13px; }
+  .shield-pips i { width: 34px; }
+  #closeBtn, #pauseBtn { width: 36px; height: 36px; top: 8px; }
+  #closeBtn { right: 10px; }
+  #pauseBtn { left: 10px; }
+}
+
+/* اسکرولبار ظریف برای مودال‌ها */
+.modal-card::-webkit-scrollbar, .go-card::-webkit-scrollbar { width: 6px; }
+.modal-card::-webkit-scrollbar-thumb, .go-card::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.16); border-radius: 3px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- بوم دموی خودکار (Attract Mode) پشت لندینگ -->
+<canvas id="attractCanvas" aria-hidden="true"></canvas>
+<div id="attractScrim" aria-hidden="true"></div>
+
+<!-- ==========================================================
+     HEADER
+     ========================================================== -->
+<header>
+  <!-- پشتیبانی (لینک ایتا) -->
+  <a class="icon-btn"
+     href="https://eitaa.com/Drplus_support"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="پشتیبانی"
+     title="پشتیبانی">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 14v-2a8 8 0 0 1 16 0v2"/>
+      <path d="M20 15a2 2 0 0 1 2 2h-1v-5h1a2 2 0 0 1 2 2v1z"/>
+      <path d="M4 15a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2v1z"/>
+      <path d="M9 20h5a2 2 0 0 0 2-2"/>
+    </svg>
+  </a>
+
+  <!-- لینک طراح و توسعه‌دهنده -->
+  <a class="icon-btn" id="designerBtn"
+     href="https://aligraph-art.cv/"
+     target="_blank"
+     rel="noopener noreferrer"
+     aria-label="طراح و توسعه‌دهنده"
+     title="طراح و توسعه‌دهنده">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.7"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3a9 9 0 1 0 0 18c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6h1.3A5.3 5.3 0 0 0 21 10.3C21 6.2 16.9 3 12 3z"/>
+      <circle cx="7.2" cy="12" r="1.1" fill="currentColor" stroke="none"/>
+      <circle cx="9.8" cy="7.6" r="1.1" fill="currentColor" stroke="none"/>
+      <circle cx="14.4" cy="7.2" r="1.1" fill="currentColor" stroke="none"/>
+      <circle cx="17.4" cy="11" r="1.1" fill="currentColor" stroke="none"/>
+    </svg>
+  </a>
+
+  <!-- قطع/وصل صدا -->
+  <button class="icon-btn" id="muteBtn" type="button"
+          aria-label="قطع و وصل صدا" title="صدا">
+    <svg class="ico-on" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6.5 9H3v6h3.5L11 19z"/>
+      <path d="M15.5 9a4.5 4.5 0 0 1 0 6"/>
+      <path d="M18 6.5a8 8 0 0 1 0 11"/>
+    </svg>
+    <svg class="ico-off" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 5 6.5 9H3v6h3.5L11 19z"/>
+      <path d="m16 9.5 5 5M21 9.5l-5 5"/>
+    </svg>
+  </button>
+
+  <!-- آیکون اتاری (تزئینی) -->
+  <div class="atari-badge" aria-hidden="true">ATARI</div>
+
+  <div class="header-spacer"></div>
+  <span class="header-tag">SPACE INVADERS · REMASTERED</span>
+
+  <!-- بازگشت به آرکید -->
+  <a class="icon-btn" href="./index.html" aria-label="بازگشت به آرکید" title="بازگشت به آرکید">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 10.5 12 3l9 7.5"/>
+      <path d="M5 9.8V20h14V9.8"/>
+      <path d="M10 20v-5.5h4V20"/>
+    </svg>
+  </a>
+</header>
+
+<!-- ==========================================================
+     LANDING
+     ========================================================== -->
+<main>
+  <div class="landing">
+
+    <section class="glass-card" aria-label="تهاجم فضایی">
+
+      <!-- نیمه تصویری (در RTL سمت راست) — هنر پیکسلی با مستطیل‌های run-length -->
+      <div class="art-half">
+        <svg class="art-tall" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"
+             xmlns="http://www.w3.org/2000/svg" role="img"
+             aria-label="صحنه‌ای از بازی تهاجم فضایی">
+          <defs>
+            <!-- اسپیرالی (squid) 8x8 -->
+            <g id="px-squid" shape-rendering="crispEdges">
+              <rect x="3" y="0" width="2" height="1"/><rect x="2" y="1" width="4" height="1"/>
+              <rect x="1" y="2" width="6" height="1"/>
+              <rect x="0" y="3" width="2" height="1"/><rect x="3" y="3" width="2" height="1"/><rect x="6" y="3" width="2" height="1"/>
+              <rect x="0" y="4" width="8" height="1"/>
+              <rect x="2" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/>
+              <rect x="1" y="6" width="1" height="1"/><rect x="3" y="6" width="2" height="1"/><rect x="6" y="6" width="1" height="1"/>
+              <rect x="1" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/>
+            </g>
+            <!-- اختاپوسی (crab) 11x8 -->
+            <g id="px-crab" shape-rendering="crispEdges">
+              <rect x="2" y="0" width="1" height="1"/><rect x="8" y="0" width="1" height="1"/>
+              <rect x="3" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/>
+              <rect x="2" y="2" width="7" height="1"/>
+              <rect x="1" y="3" width="2" height="1"/><rect x="4" y="3" width="3" height="1"/><rect x="8" y="3" width="2" height="1"/>
+              <rect x="0" y="4" width="11" height="1"/>
+              <rect x="0" y="5" width="1" height="1"/><rect x="2" y="5" width="7" height="1"/><rect x="10" y="5" width="1" height="1"/>
+              <rect x="0" y="6" width="1" height="1"/><rect x="2" y="6" width="1" height="1"/><rect x="8" y="6" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/>
+              <rect x="3" y="7" width="2" height="1"/><rect x="6" y="7" width="2" height="1"/>
+            </g>
+            <!-- قارچی (octopus) 12x8 -->
+            <g id="px-octo" shape-rendering="crispEdges">
+              <rect x="4" y="0" width="4" height="1"/>
+              <rect x="1" y="1" width="10" height="1"/>
+              <rect x="0" y="2" width="12" height="1"/>
+              <rect x="0" y="3" width="3" height="1"/><rect x="5" y="3" width="2" height="1"/><rect x="9" y="3" width="3" height="1"/>
+              <rect x="0" y="4" width="12" height="1"/>
+              <rect x="2" y="5" width="3" height="1"/><rect x="7" y="5" width="3" height="1"/>
+              <rect x="1" y="6" width="2" height="1"/><rect x="5" y="6" width="2" height="1"/><rect x="9" y="6" width="2" height="1"/>
+              <rect x="2" y="7" width="2" height="1"/><rect x="8" y="7" width="2" height="1"/>
+            </g>
+            <!-- سفینه بازیکن 13x8 -->
+            <g id="px-ship" shape-rendering="crispEdges">
+              <rect x="6" y="0" width="1" height="1"/>
+              <rect x="5" y="1" width="3" height="2"/>
+              <rect x="1" y="3" width="11" height="1"/>
+              <rect x="0" y="4" width="13" height="4"/>
+            </g>
+            <!-- بشقاب پرنده 16x7 -->
+            <g id="px-ufo" shape-rendering="crispEdges">
+              <rect x="5" y="0" width="6" height="1"/>
+              <rect x="3" y="1" width="10" height="1"/>
+              <rect x="2" y="2" width="12" height="1"/>
+              <rect x="1" y="3" width="2" height="1"/><rect x="4" y="3" width="2" height="1"/><rect x="7" y="3" width="2" height="1"/><rect x="10" y="3" width="2" height="1"/><rect x="13" y="3" width="2" height="1"/>
+              <rect x="0" y="4" width="16" height="1"/>
+              <rect x="2" y="5" width="3" height="1"/><rect x="7" y="5" width="2" height="1"/><rect x="11" y="5" width="3" height="1"/>
+              <rect x="3" y="6" width="1" height="1"/><rect x="12" y="6" width="1" height="1"/>
+            </g>
+            <!-- سپر کلاسیک 22x16 -->
+            <g id="px-shield" shape-rendering="crispEdges">
+              <rect x="4" y="0" width="14" height="1"/>
+              <rect x="3" y="1" width="16" height="1"/>
+              <rect x="2" y="2" width="18" height="1"/>
+              <rect x="1" y="3" width="20" height="1"/>
+              <rect x="0" y="4" width="22" height="7"/>
+              <rect x="0" y="11" width="9" height="1"/><rect x="13" y="11" width="9" height="1"/>
+              <rect x="0" y="12" width="8" height="1"/><rect x="14" y="12" width="8" height="1"/>
+              <rect x="0" y="13" width="7" height="3"/><rect x="15" y="13" width="7" height="3"/>
+            </g>
+            <radialGradient id="si-glowG" cx="50%" cy="42%" r="75%">
+              <stop offset="0%" stop-color="#123a22"/>
+              <stop offset="60%" stop-color="#07130c"/>
+              <stop offset="100%" stop-color="#020604"/>
+            </radialGradient>
+          </defs>
+
+          <!-- آسمان سیاه و ستاره‌ها -->
+          <rect width="400" height="300" fill="#020403"/>
+          <rect width="400" height="300" fill="url(#si-glowG)" opacity=".9"/>
+          <g fill="#dfe9ff">
+            <rect x="18"  y="14" width="1.6" height="1.6" opacity=".8"/>
+            <rect x="96"  y="38" width="1.2" height="1.2" opacity=".5"/>
+            <rect x="164" y="12" width="1.4" height="1.4" opacity=".7"/>
+            <rect x="243" y="44" width="1.2" height="1.2" opacity=".45"/>
+            <rect x="311" y="18" width="1.6" height="1.6" opacity=".8"/>
+            <rect x="372" y="52" width="1.2" height="1.2" opacity=".5"/>
+            <rect x="58"  y="96" width="1.2" height="1.2" opacity=".4"/>
+            <rect x="197" y="84" width="1.4" height="1.4" opacity=".55"/>
+            <rect x="287" y="108" width="1.2" height="1.2" opacity=".4"/>
+            <rect x="344" y="140" width="1.4" height="1.4" opacity=".5"/>
+            <rect x="31"  y="166" width="1.2" height="1.2" opacity=".4"/>
+            <rect x="128" y="128" width="1.2" height="1.2" opacity=".45"/>
+            <rect x="380" y="212" width="1.4" height="1.4" opacity=".5"/>
+            <rect x="12"  y="236" width="1.2" height="1.2" opacity=".4"/>
+          </g>
+
+          <!-- بشقاب پرنده -->
+          <g transform="translate(298 20) scale(1.7)" fill="#ff5d7a" opacity=".95">
+            <use href="#px-ufo"/>
+          </g>
+
+          <!-- ردیف اسپیرالی‌ها (زرد) -->
+          <g fill="#f5d742">
+            <g transform="translate(40 60) scale(2.4)"><use href="#px-squid"/></g>
+            <g transform="translate(92 60) scale(2.4)"><use href="#px-squid"/></g>
+            <g transform="translate(144 60) scale(2.4)"><use href="#px-squid"/></g>
+            <g transform="translate(196 60) scale(2.4)"><use href="#px-squid"/></g>
+            <g transform="translate(248 60) scale(2.4)"><use href="#px-squid"/></g>
+          </g>
+
+          <!-- ردیف اختاپوسی‌ها (سفید) -->
+          <g fill="#e8f1ff">
+            <g transform="translate(36 108) scale(2.2)"><use href="#px-crab"/></g>
+            <g transform="translate(90 108) scale(2.2)"><use href="#px-crab"/></g>
+            <g transform="translate(144 108) scale(2.2)"><use href="#px-crab"/></g>
+            <g transform="translate(198 108) scale(2.2)"><use href="#px-crab"/></g>
+            <g transform="translate(252 108) scale(2.2)"><use href="#px-crab"/></g>
+            <g transform="translate(306 108) scale(2.2)"><use href="#px-crab"/></g>
+          </g>
+
+          <!-- ردیف قارچی‌ها (سبز) -->
+          <g fill="#5ef29a">
+            <g transform="translate(34 152) scale(2.2)"><use href="#px-octo"/></g>
+            <g transform="translate(88 152) scale(2.2)"><use href="#px-octo"/></g>
+            <g transform="translate(142 152) scale(2.2)"><use href="#px-octo"/></g>
+            <g transform="translate(196 152) scale(2.2)"><use href="#px-octo"/></g>
+            <g transform="translate(250 152) scale(2.2)"><use href="#px-octo"/></g>
+            <g transform="translate(304 152) scale(2.2)"><use href="#px-octo"/></g>
+          </g>
+
+          <!-- گلوله بازیکن -->
+          <rect x="199" y="196" width="2.6" height="16" fill="#eafff2" opacity=".9"/>
+          <rect x="198.4" y="196" width="3.8" height="16" fill="#7bf7b0" opacity=".35"/>
+
+          <!-- سپرها -->
+          <g fill="#39d97a">
+            <g transform="translate(30 208) scale(1.35)"><use href="#px-shield"/></g>
+            <g transform="translate(120 208) scale(1.35)"><use href="#px-shield"/></g>
+            <g transform="translate(210 208) scale(1.35)"><use href="#px-shield"/></g>
+            <g transform="translate(300 208) scale(1.35)"><use href="#px-shield"/></g>
+          </g>
+
+          <!-- سفینه بازیکن (سبز روشن با خط سفید) -->
+          <g transform="translate(174 252) scale(2.6)">
+            <use href="#px-ship" fill="#63e89b"/>
+            <rect x="6" y="0" width="1" height="4" fill="#ffffff"/>
+          </g>
+
+          <!-- نوار زمین -->
+          <rect x="0" y="288" width="400" height="12" fill="#16301f"/>
+          <rect x="0" y="288" width="400" height="1.5" fill="#39d97a" opacity=".7"/>
+        </svg>
+
+        <!-- ترکیب افقی مخصوص نوار باریک موبایل (همان defs بالا) -->
+        <svg class="art-wide" viewBox="0 0 820 200" preserveAspectRatio="xMidYMid slice"
+             xmlns="http://www.w3.org/2000/svg" role="img"
+             aria-label="صحنه‌ای از بازی تهاجم فضایی">
+          <rect width="820" height="200" fill="#020403"/>
+          <g fill="#dfe9ff">
+            <rect x="60" y="12" width="1.4" height="1.4" opacity=".7"/>
+            <rect x="240" y="30" width="1.2" height="1.2" opacity=".5"/>
+            <rect x="430" y="10" width="1.4" height="1.4" opacity=".6"/>
+            <rect x="640" y="34" width="1.2" height="1.2" opacity=".5"/>
+            <rect x="770" y="16" width="1.4" height="1.4" opacity=".7"/>
+            <rect x="150" y="96" width="1.2" height="1.2" opacity=".4"/>
+            <rect x="520" y="132" width="1.2" height="1.2" opacity=".4"/>
+            <rect x="700" y="100" width="1.2" height="1.2" opacity=".4"/>
+          </g>
+          <g transform="translate(640 6) scale(1.5)" fill="#ff5d7a" opacity=".95"><use href="#px-ufo"/></g>
+          <g fill="#f5d742">
+            <g transform="translate(30 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(104 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(178 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(252 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(326 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(400 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(474 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(548 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(622 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(696 16) scale(2.2)"><use href="#px-squid"/></g>
+            <g transform="translate(770 16) scale(2.2)"><use href="#px-squid"/></g>
+          </g>
+          <g fill="#e8f1ff">
+            <g transform="translate(26 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(102 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(178 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(254 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(330 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(406 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(482 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(558 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(634 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(710 62) scale(2)"><use href="#px-crab"/></g>
+            <g transform="translate(786 62) scale(2)"><use href="#px-crab"/></g>
+          </g>
+          <g fill="#5ef29a">
+            <g transform="translate(22 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(98 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(174 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(250 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(326 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(402 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(478 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(554 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(630 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(706 106) scale(2)"><use href="#px-octo"/></g>
+            <g transform="translate(782 106) scale(2)"><use href="#px-octo"/></g>
+          </g>
+          <rect x="408" y="128" width="2.6" height="14" fill="#eafff2" opacity=".9"/>
+          <g fill="#39d97a">
+            <g transform="translate(90 146) scale(1.1)"><use href="#px-shield"/></g>
+            <g transform="translate(290 146) scale(1.1)"><use href="#px-shield"/></g>
+            <g transform="translate(490 146) scale(1.1)"><use href="#px-shield"/></g>
+            <g transform="translate(690 146) scale(1.1)"><use href="#px-shield"/></g>
+          </g>
+          <g transform="translate(394 152) scale(2)">
+            <use href="#px-ship" fill="#63e89b"/>
+            <rect x="6" y="0" width="1" height="4" fill="#ffffff"/>
+          </g>
+          <rect x="0" y="192" width="820" height="8" fill="#16301f"/>
+          <rect x="0" y="192" width="820" height="1.5" fill="#39d97a" opacity=".7"/>
+        </svg>
+      </div>
+
+      <!-- نیمه اطلاعات -->
+      <div class="info-half">
+        <h1 class="game-title">تهاجم فضایی</h1>
+        <p class="game-sub">Space Invaders</p>
+        <button class="play-btn" id="playBtn" type="button">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8 5.2v13.6c0 .9 1 1.5 1.8 1L20 12.9a1.2 1.2 0 0 0 0-1.8L9.8 4.2c-.8-.5-1.8.1-1.8 1z"/>
+          </svg>
+          <span>بازی کن</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- لینک طراح پایین کارت -->
+    <a class="credit-link" href="https://aligraph-art.cv/"
+       target="_blank" rel="noopener noreferrer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+        <path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>
+      </svg>
+      <span>طراحی و توسعه: AliGraph</span>
+    </a>
+
+    <!-- انتخاب حالت بازی -->
+    <nav class="mode-row" aria-label="حالت بازی">
+      <button class="mode-chip sel" data-mode="endless" type="button">
+        <b>بی‌پایان</b><small>موج‌های فزاینده</small>
+      </button>
+      <button class="mode-chip" data-mode="time" type="button">
+        <b>حمله زمانی</b><small>۹۰ ثانیه</small>
+      </button>
+    </nav>
+
+    <!-- منوی فرعی -->
+    <div class="menu-row">
+      <button class="menu-btn" id="openScores" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 21h8M12 17v4M17 4h3v3a5 5 0 0 1-5 5M7 4H4v3a5 5 0 0 0 5 5"/>
+          <path d="M7 4h10v5a5 5 0 0 1-10 0z"/>
+        </svg>
+        <span>رکوردها</span>
+      </button>
+      <button class="menu-btn" id="openSettings" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.09a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/>
+        </svg>
+        <span>تنظیمات</span>
+      </button>
+      <button class="menu-btn" id="openAchv" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="9" r="6"/><path d="M8.2 14.4 7 22l5-2.5L17 22l-1.2-7.6"/>
+        </svg>
+        <span>دستاوردها</span>
+      </button>
+      <a class="menu-btn" href="./index.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-5.5h4V20"/>
+        </svg>
+        <span>بازگشت به آرکید</span>
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<!-- ==========================================================
+     GAME OVERLAY
+     ========================================================== -->
+<div id="gameWrap" hidden>
+  <div id="stage">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- فیلتر CRT -->
+    <div id="crtOverlay" aria-hidden="true"></div>
+
+    <!-- HUD با آیکون‌های SVG -->
+    <div id="hud">
+      <div class="hud-row">
+        <span class="hud-item" title="امتیاز">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#f5c518" aria-hidden="true">
+            <path d="m12 2.6 2.7 5.9 6.4.8-4.7 4.4 1.2 6.3L12 17l-5.6 3 1.2-6.3L2.9 9.3l6.4-.8z"/>
+          </svg>
+          <b id="scoreVal">0</b>
+        </span>
+        <span class="hud-item" title="موج">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8fd2ff" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 21V4m0 .5h11l-2.2 3.8L16 12H5"/>
+          </svg>
+          <b id="waveVal">1</b>
+        </span>
+        <span class="hud-item" title="جان">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff8a80" aria-hidden="true">
+            <path d="M12 2.5 14 9l6 3.4v2.1l-6-1.6-.5 4.6 2 1.5v1.4L12 19l-3.5 1.4V19l2-1.5-.5-4.6-6 1.6v-2.1L10 9z"/>
+          </svg>
+          <b id="livesVal">3</b>
+        </span>
+        <span class="hud-item" id="timeItem" title="زمان" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7fd0ff" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+          </svg>
+          <b id="timeVal">90</b>
+        </span>
+        <span class="hud-item" id="bestItem" title="بهترین رکورد">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffd54a" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 21h8M12 17v4M17 4h3v3a5 5 0 0 1-5 5M7 4H4v3a5 5 0 0 0 5 5"/>
+            <path d="M7 4h10v5a5 5 0 0 1-10 0z"/>
+          </svg>
+          <b id="bestVal">0</b>
+        </span>
+      </div>
+      <!-- سلامت چهار سپر -->
+      <div class="shield-row" title="سلامت سپرها">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5ef29a" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3 5 6v5c0 4.4 2.9 8.2 7 10 4.1-1.8 7-5.6 7-10V6z"/>
+        </svg>
+        <div class="shield-pips" id="shieldPips">
+          <i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i>
+        </div>
+      </div>
+    </div>
+
+    <button id="pauseBtn" type="button" aria-label="مکث" title="مکث (P)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+        <path d="M9 5v14M15 5v14"/>
+      </svg>
+    </button>
+    <button id="closeBtn" type="button" aria-label="بستن بازی">✕</button>
+
+    <!-- دکمه‌های جهت لمسی: ◀ چپ / ▶ راست -->
+    <button class="move-btn" id="btnLeft" type="button" aria-label="چپ">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M14.8 4.6a1.1 1.1 0 0 1 0 1.6L9.2 12l5.6 5.8a1.1 1.1 0 1 1-1.6 1.6l-6.4-6.6a1.1 1.1 0 0 1 0-1.6l6.4-6.6a1.1 1.1 0 0 1 1.6 0z"/>
+      </svg>
+    </button>
+    <button class="move-btn" id="btnRight" type="button" aria-label="راست">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M9.2 4.6a1.1 1.1 0 0 0 0 1.6l5.6 5.8-5.6 5.8a1.1 1.1 0 1 0 1.6 1.6l6.4-6.6a1.1 1.1 0 0 0 0-1.6L7.2 4.6a1.1 1.1 0 0 0-1.6 0z" transform="translate(1 0)"/>
+      </svg>
+    </button>
+
+    <!-- آتش (وسط پایین) -->
+    <button id="fireBtn" type="button" aria-label="شلیک">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.9"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/>
+        <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>
+        <path d="M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>
+      </svg>
+    </button>
+
+    <!-- انتقال بین موج‌ها -->
+    <div id="introOverlay" aria-hidden="true">
+      <div class="intro-card">
+        <h2 id="introBig">موج ۱</h2>
+        <p id="introName">آماده باش!</p>
+      </div>
+    </div>
+
+    <!-- منوی مکث -->
+    <div id="pauseOverlay">
+      <div class="pm-card">
+        <h2>مکث</h2>
+        <button class="pm-btn primary" id="resumeBtn" type="button">ادامه بازی</button>
+        <button class="pm-btn" id="prestartBtn" type="button">شروع دوباره</button>
+        <button class="pm-btn" id="psettingsBtn" type="button">تنظیمات</button>
+        <button class="pm-btn danger" id="pquitBtn" type="button">خروج به منو</button>
+      </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameOver">
+      <div class="go-card">
+        <h2>بازی تمام شد!</h2>
+        <p id="goReason">سفینه نابود شد!</p>
+        <p id="goMode"></p>
+        <p class="go-score">امتیاز نهایی <b id="finalScore">0</b></p>
+        <p id="goNewRecord">🏆 رکورد جدید!</p>
+        <p class="go-list-title">بهترین‌ها</p>
+        <div id="goList"></div>
+        <div class="go-btns">
+          <button id="restartBtn" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/>
+            </svg>
+            دوباره بازی کن
+          </button>
+          <button id="menuBtn" type="button">بازگشت به منو</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================
+     MODALS
+     ========================================================== -->
+<!-- تنظیمات -->
+<div class="modal" id="settingsModal">
+  <div class="modal-backdrop" data-close="settingsModal"></div>
+  <div class="modal-card" role="dialog" aria-label="تنظیمات">
+    <button class="modal-close" type="button" data-close="settingsModal" aria-label="بستن">✕</button>
+    <h3>⚙️ تنظیمات</h3>
+
+    <div class="set-row">
+      <span class="set-label">صدا<small>موسیقی و افکت‌ها</small></span>
+      <div class="seg" data-set="sound">
+        <button type="button" data-v="1">روشن</button>
+        <button type="button" data-v="0">خاموش</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">لرزش<small>ویبره هنگام انفجار</small></span>
+      <div class="seg" data-set="vibration">
+        <button type="button" data-v="off">خاموش</button>
+        <button type="button" data-v="low">کم</button>
+        <button type="button" data-v="high">زیاد</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">فیلتر CRT<small>اسکن‌لاین و وینیت (حالت رترو)</small></span>
+      <div class="seg" data-set="crt">
+        <button type="button" data-v="1">روشن</button>
+        <button type="button" data-v="0">خاموش</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">سختی<small>سرعت و نرخ شلیک مهاجم‌ها</small></span>
+      <div class="seg" data-set="difficulty">
+        <button type="button" data-v="easy">آسان</button>
+        <button type="button" data-v="normal">عادی</button>
+        <button type="button" data-v="hard">سخت</button>
+      </div>
+    </div>
+
+    <div class="set-row">
+      <span class="set-label">نوع کنترل<small>کیبورد و دسته همیشه فعال‌اند</small></span>
+      <div class="seg" data-set="controls">
+        <button type="button" data-v="dpad">دکمه‌ها</button>
+        <button type="button" data-v="drag">کشیدن</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- رکوردها -->
+<div class="modal" id="scoresModal">
+  <div class="modal-backdrop" data-close="scoresModal"></div>
+  <div class="modal-card" role="dialog" aria-label="رکوردها">
+    <button class="modal-close" type="button" data-close="scoresModal" aria-label="بستن">✕</button>
+    <h3>🏆 رکوردها</h3>
+    <div class="seg" id="scoreTabs">
+      <button type="button" data-tab="endless" class="on">بی‌پایان</button>
+      <button type="button" data-tab="time">زمانی</button>
+    </div>
+    <div id="scoreList"></div>
+  </div>
+</div>
+
+<!-- دستاوردها -->
+<div class="modal" id="achvModal">
+  <div class="modal-backdrop" data-close="achvModal"></div>
+  <div class="modal-card" role="dialog" aria-label="دستاوردها">
+    <button class="modal-close" type="button" data-close="achvModal" aria-label="بستن">✕</button>
+    <h3>🎖️ دستاوردها</h3>
+    <div id="achvList"></div>
+  </div>
+</div>
+
+<!-- ثبت نام رکورد -->
+<div class="modal" id="nameModal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-card" role="dialog" aria-label="رکورد جدید" style="width:min(360px,92vw)">
+    <h3>🏆 رکورد جدید!</h3>
+    <p class="name-note">اسمت رو وارد کن تا در جدول رکوردها ثبت بشه:</p>
+    <input id="nameInput" type="text" maxlength="14" placeholder="مثلاً: Ali" autocomplete="off">
+    <div class="name-btns">
+      <button class="pm-btn primary" id="nameSave" type="button">ثبت</button>
+      <button class="pm-btn" id="nameSkip" type="button">بعداً</button>
+    </div>
+  </div>
+</div>
+
+<!-- توست‌ها -->
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     ۰) کمکی‌های پایه
+     ============================================================ */
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const lerp  = (a, b, t) => a + (b - a) * t;
+  const TAU   = Math.PI * 2;
+  const rr    = (a, b) => a + Math.random() * (b - a);
+  const ri    = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
+  const pick  = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  /* خواندن/نوشتن امن localStorage (ممکن است در برخی مرورگرها خطا بدهد) */
+  function loadLS(key, def) {
+    try {
+      const s = localStorage.getItem(key);
+      if (!s) return def;
+      const v = JSON.parse(s);
+      return (v && typeof v === 'object') ? v : def;
+    } catch (e) { return def; }
+  }
+  function saveLS(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* حریم خصوصی/پر بودن */ }
+  }
+
+  /* ============================================================
+     ۱) ارجاعات DOM
+     ============================================================ */
+  const $ = id => document.getElementById(id);
+  const attractCv  = $('attractCanvas');
+  const gameWrap   = $('gameWrap');
+  const stage      = $('stage');
+  const cv         = $('gameCanvas');
+  const ctx        = cv.getContext('2d');
+  const scoreVal   = $('scoreVal');
+  const waveVal    = $('waveVal');
+  const livesVal   = $('livesVal');
+  const bestVal    = $('bestVal');
+  const timeItem   = $('timeItem');
+  const timeVal    = $('timeVal');
+  const shieldPips = $('shieldPips');
+  const introOv    = $('introOverlay');
+  const introBig   = $('introBig');
+  const introName  = $('introName');
+  const pauseOv    = $('pauseOverlay');
+  const gameOverEl = $('gameOver');
+  const goReason   = $('goReason');
+  const goMode     = $('goMode');
+  const finalScore = $('finalScore');
+  const goNewRecord= $('goNewRecord');
+  const goList     = $('goList');
+  const muteBtn    = $('muteBtn');
+
+  /* ============================================================
+     ۲) تنظیمات، رکوردها و دستاوردها (localStorage)
+     ============================================================ */
+  const SET_KEY   = 'si_settings_v1';
+  const SCORE_KEY = 'si_scores_v1';
+  const ACHV_KEY  = 'si_achv_v1';
+  /* کلید هاب آرکید — قالب اجباری: arcade_top_[ID] */
+  const HUB_KEY   = 'arcade_top_space-invaders';
+
+  /* CRT به‌صورت پیش‌فرض روشن است (حالت کاملاً رترو) */
+  const settings = Object.assign(
+    { sound: 1, vibration: 'low', crt: 1, difficulty: 'normal', controls: 'dpad' },
+    loadLS(SET_KEY, {})
+  );
+  const saveSettings = () => saveLS(SET_KEY, settings);
+
+  /* ضریب سختی: سرعت و نرخ شلیک مهاجم‌ها */
+  const DIFF = {
+    easy:   { enemyRate: 1.35, speedMul: 0.8,  ufoRate: 1.3,  startLives: 4 },
+    normal: { enemyRate: 1.0,  speedMul: 1.0,  ufoRate: 1.0,  startLives: 3 },
+    hard:   { enemyRate: 0.72, speedMul: 1.25, ufoRate: 0.8,  startLives: 2 }
+  };
+  const diff = () => DIFF[settings.difficulty] || DIFF.normal;
+
+  /* جدول رکوردها: دو حالت، هرکدام حداکثر ۱۰ ردیف نام‌دار */
+  let scores = loadLS(SCORE_KEY, { endless: [], time: [] });
+  if (!Array.isArray(scores.endless)) scores.endless = [];
+  if (!Array.isArray(scores.time))    scores.time    = [];
+  const saveScores = () => saveLS(SCORE_KEY, scores);
+
+  /* بهترین امتیاز هر حالت (برای HUD و کلید هاب) */
+  function bestOf(mode) {
+    const list = scores[mode] || [];
+    return list.length ? list[0].score : 0;
+  }
+  /* نوشتن رکورد در هاب آرکید (قالب ثابت) */
+  function pushHubKey(mode) {
+    try { localStorage.setItem(HUB_KEY, String(bestOf(mode))); } catch (e) { /* بی‌صدا */ }
+  }
+
+  /* تعریف دستاوردها — نام‌های دقیق طبق صورت پروژه */
+  const ACHV_DEF = [
+    { id: 'wave5',      name: 'موج‌شکن',      desc: 'پاک‌سازی ۵ موج کامل',
+      icon: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4m0 .5h11l-2.2 3.8L16 12H5"/></svg>' },
+    { id: 'ufo3',       name: 'شکارچی UFO',   desc: 'نابود کردن ۳ بشقاب پرنده',
+      icon: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="13" rx="9" ry="3.4"/><path d="M8.5 10.5a3.5 3.5 0 0 1 7 0"/><path d="M7 17.5 5.8 20M12 18v2.4M17 17.5 18.2 20"/></svg>' },
+    { id: 'shieldHoly', name: 'سپر مقدس',     desc: 'پایان یک موج با یک سپر کاملاً سالم',
+      icon: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 2.9 8.2 7 10 4.1-1.8 7-5.6 7-10V6z"/><path d="m9 11.5 2.2 2.2L15.5 9"/></svg>' },
+    { id: 'flawless',   name: 'بی‌نقص',       desc: 'پایان یک موج بدون خوردن حتی یک گلوله',
+      icon: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2.6 2.7 5.9 6.4.8-4.7 4.4 1.2 6.3L12 17l-5.6 3 1.2-6.3L2.9 9.3l6.4-.8z"/></svg>' },
+    { id: 'score10k',   name: 'ده‌هزارتی',    desc: 'کسب ۱۰٬۰۰۰ امتیاز در یک دست',
+      icon: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M17 4h3v3a5 5 0 0 1-5 5M7 4H4v3a5 5 0 0 0 5 5"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/></svg>' }
+  ];
+  let achv = loadLS(ACHV_KEY, {});
+  const saveAchv = () => saveLS(ACHV_KEY, achv);
+
+  /* ============================================================
+     ۳) اسپرایت‌های پیکسلی — بیت‌مپ کلاسیک، پیش‌رندر با درخشش
+     ============================================================ */
+  /* هر کاراکتر: X = رنگ بدنه، W = سفید، . = خالی */
+  const BITS = {
+    /* اسپیرالی 8×8 — ردیف بالا — ۳۰ امتیاز */
+    squidA: [
+      '...XX...',
+      '..XXXX..',
+      '.XXXXXX.',
+      'XX.XX.XX',
+      'XXXXXXXX',
+      '..X..X..',
+      '.X.XX.X.',
+      '.X....X.'
+    ],
+    squidB: [
+      '...XX...',
+      '..XXXX..',
+      '.XXXXXX.',
+      'XX.XX.XX',
+      'XXXXXXXX',
+      '.X.XX.X.',
+      'X.X..X.X',
+      '.X....X.'
+    ],
+    /* اختاپوسی 11×8 — ردیف وسط — ۲۰ امتیاز */
+    crabA: [
+      '..X.....X..',
+      '...X...X...',
+      '..XXXXXXX..',
+      '.XX.XXX.XX.',
+      'XXXXXXXXXXX',
+      'X.XXXXXXX.X',
+      'X.X.....X.X',
+      '...XX.XX...'
+    ],
+    crabB: [
+      '..X.....X..',
+      'X..X...X..X',
+      'X.XXXXXXX.X',
+      'XXX.XXX.XXX',
+      'XXXXXXXXXXX',
+      '.XXXXXXXXX.',
+      '..X.....X..',
+      '.X.......X.'
+    ],
+    /* قارچی 12×8 — ردیف پایین — ۱۰ امتیاز */
+    octoA: [
+      '....XXXX....',
+      '.XXXXXXXXXX.',
+      'XXXXXXXXXXXX',
+      'XXX..XX..XXX',
+      'XXXXXXXXXXXX',
+      '..XXX..XXX..',
+      '.XX..XX..XX.',
+      '..XX....XX..'
+    ],
+    octoB: [
+      '....XXXX....',
+      '.XXXXXXXXXX.',
+      'XXXXXXXXXXXX',
+      'XXX..XX..XXX',
+      'XXXXXXXXXXXX',
+      '...XX..XX...',
+      '..XX.XX.XX..',
+      '.XX......XX.'
+    ],
+    /* سفینه بازیکن 13×8 — سبز روشن با خط سفید */
+    ship: [
+      '......W......',
+      '.....XXX.....',
+      '.....XXX.....',
+      '.XXXXXWXXXXX.',
+      'XXXXXXXXXXXXX',
+      'XXXXXXXXXXXXX',
+      'XXXXXXXXXXXXX',
+      'XXXXXXXXXXXXX'
+    ],
+    /* بشقاب پرنده 16×7 */
+    ufo: [
+      '.....XXXXXX.....',
+      '...XXXXXXXXXX...',
+      '..XXXXXXXXXXXX..',
+      '.XX.XX.XX.XX.XX.',
+      'XXXXXXXXXXXXXXXX',
+      '..XXX..XX..XXX..',
+      '...X........X...'
+    ],
+    /* انفجار پیکسلی مهاجم 13×8 */
+    boom: [
+      '..X..X.X..X..',
+      '...X.....X...',
+      'X..X.X.X.X..X',
+      '....X...X....',
+      'X..X.....X..X',
+      '...X.X.X.X...',
+      '..X..X.X..X..',
+      'X....X.X....X'
+    ],
+    /* گلوله مهاجم زیگزاگ 3×7 — دو فریم */
+    ebulA: [
+      '.X.',
+      'XX.',
+      '.X.',
+      '.XX',
+      '.X.',
+      'XX.',
+      '.X.'
+    ],
+    ebulB: [
+      '.X.',
+      '.XX',
+      '.X.',
+      'XX.',
+      '.X.',
+      '.XX',
+      '.X.'
+    ],
+    /* پاورآپ شلیک سه‌گانه 9×7 */
+    powTriple: [
+      '.X..X..X.',
+      '.X..X..X.',
+      '.X..X..X.',
+      'XXXXXXXXX',
+      'XXXXXXXXX',
+      '..XXXXX..',
+      '...XXX...'
+    ],
+    /* پاورآپ تعمیر سپر 8×8 */
+    powRepair: [
+      '.XXXXXX.',
+      'XXXXXXXX',
+      'XXXXXXXX',
+      'XXXXXXXX',
+      '.XXXXXX.',
+      '..XXXX..',
+      '...XX...'
+    ]
+  };
+
+  /* رنگ هر اسپرایت */
+  const SPR_COLOR = {
+    squidA: '#f5d742', squidB: '#f5d742',
+    crabA: '#e8f1ff',  crabB: '#e8f1ff',
+    octoA: '#5ef29a',  octoB: '#5ef29a',
+    ship: '#63e89b',
+    ufo: '#ff5d7a',
+    boom: '#ffd27a',
+    ebulA: '#cfd8ff',  ebulB: '#cfd8ff',
+    powTriple: '#7fd0ff',
+    powRepair: '#69f0ae'
+  };
+
+  /* کش اسپرایت‌ها: SPR[name] = { cv, pad, w, h } (w/h منطقی بر حسب پیکسل بوم) */
+  const SPR = {};
+  let sprScale = 0;   /* ۰ = هنوز ساخته نشده تا اولین layout حتماً اسپرایت‌ها را بسازد */
+
+  /* ساخت کامل یک اسپرایت: base پیکسلی + نسخه مقیاس‌شده با glow */
+  function makeSprite(name, rows, color, scale) {
+    const w = rows[0].length, h = rows.length;
+    /* بوم ۱×۱ پیکسلی */
+    const base = document.createElement('canvas');
+    base.width = w; base.height = h;
+    const bx = base.getContext('2d');
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const c = rows[y][x];
+        if (c !== '.') {
+          bx.fillStyle = (c === 'W') ? '#ffffff' : color;
+          bx.fillRect(x, y, 1, 1);
+        }
+      }
+    }
+    /* بوم نهایی با حاشیه برای هاله */
+    const pad = Math.ceil(scale * 1.6);
+    const out = document.createElement('canvas');
+    out.width  = w * scale + pad * 2;
+    out.height = h * scale + pad * 2;
+    const ox = out.getContext('2d');
+    ox.imageSmoothingEnabled = false;
+    /* پاس هاله (سایه رنگی پشت پیکسل‌ها) */
+    ox.save();
+    ox.shadowColor = color;
+    ox.shadowBlur = scale * 2.4;
+    ox.globalAlpha = 0.8;
+    ox.drawImage(base, pad, pad, w * scale, h * scale);
+    ox.restore();
+    /* پاس شارپ روی هاله */
+    ox.drawImage(base, pad, pad, w * scale, h * scale);
+    return { cv: out, pad, w: w * scale, h: h * scale, bw: w, bh: h };
+  }
+
+  /* ساخت همه اسپرایت‌ها برای مقیاس فعلی (هنگام تغییر اندازه) */
+  function buildSprites(scale) {
+    sprScale = scale;
+    for (const name in BITS) {
+      SPR[name] = makeSprite(name, BITS[name], SPR_COLOR[name], scale);
+    }
+  }
+
+  /* رسم اسپرایت مرکز-مبنا با پیکسل‌های شارپ */
+  function drawSpr(c, name, cxp, cyp) {
+    const s = SPR[name];
+    if (!s) return;
+    c.imageSmoothingEnabled = false;
+    c.drawImage(s.cv,
+      Math.round(cxp - s.w / 2) - s.pad,
+      Math.round(cyp - s.h / 2) - s.pad);
+  }
+
+  /* ============================================================
+     ۴) موتور صدا — Web Audio رویه‌ای (بدون فایل خارجی)
+     ============================================================ */
+  const Snd = (function () {
+    let ctxA = null, master = null, noiseBuf = null;
+    let ufoNodes = null;
+
+    /* ساخت/ازسرگیری AudioContext — فقط پس از تعامل کاربر */
+    function init() {
+      if (ctxA) {
+        if (ctxA.state === 'suspended') ctxA.resume().catch(() => {});
+        return;
+      }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      try {
+        ctxA = new AC();
+        master = ctxA.createGain();
+        master.gain.value = settings.sound ? 0.55 : 0;
+        master.connect(ctxA.destination);
+        /* بافر نویز سفید برای انفجارها */
+        const len = Math.floor(ctxA.sampleRate * 0.8);
+        noiseBuf = ctxA.createBuffer(1, len, ctxA.sampleRate);
+        const d = noiseBuf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      } catch (e) { ctxA = null; }
+    }
+
+    function ok() {
+      if (!ctxA || !settings.sound) return false;
+      if (ctxA.state === 'suspended') ctxA.resume().catch(() => {});
+      return true;
+    }
+
+    /* نوسانگر ساده با لغزش فرکانس اختیاری */
+    function tone(f0, dur, type, vol, f1, delay) {
+      if (!ok()) return;
+      const t0 = ctxA.currentTime + (delay || 0);
+      const o = ctxA.createOscillator();
+      const g = ctxA.createGain();
+      o.type = type || 'square';
+      o.frequency.setValueAtTime(Math.max(1, f0), t0);
+      if (f1) o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.2, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(master);
+      o.start(t0); o.stop(t0 + dur + 0.03);
+    }
+
+    /* نویز فیلترشده — برای انفجار و برخورد */
+    function noise(dur, vol, f0, f1, delay) {
+      if (!ok() || !noiseBuf) return;
+      const t0 = ctxA.currentTime + (delay || 0);
+      const s = ctxA.createBufferSource();
+      s.buffer = noiseBuf; s.loop = true;
+      const flt = ctxA.createBiquadFilter();
+      flt.type = 'lowpass';
+      flt.frequency.setValueAtTime(f0 || 2000, t0);
+      if (f1) flt.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t0 + dur);
+      const g = ctxA.createGain();
+      g.gain.setValueAtTime(vol || 0.2, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      s.connect(flt); flt.connect(g); g.connect(master);
+      s.start(t0); s.stop(t0 + dur + 0.03);
+    }
+
+    return {
+      init,
+      /* قطع/وصل کلی صدا از هدر */
+      setMuted(m) { if (master) master.gain.value = m ? 0 : 0.55; },
+
+      /* «پیو» شلیک بازیکن */
+      shoot() { tone(920, 0.10, 'square', 0.14, 240); },
+
+      /* «پوف» انفجار مهاجم */
+      invaderDie() { noise(0.16, 0.20, 1600, 180); tone(220, 0.12, 'square', 0.10, 70); },
+
+      /* انفجار بزرگ سفینه بازیکن */
+      playerDie() {
+        noise(0.75, 0.42, 1000, 40);
+        tone(150, 0.65, 'sawtooth', 0.22, 28);
+        tone(90, 0.8, 'triangle', 0.18, 20, 0.05);
+      },
+
+      /* برخورد با سپر */
+      shieldHit() { noise(0.05, 0.07, 700, 240); },
+
+      /* چهار نت پایین‌رونده کلاسیک — همگام با حرکت مهاجم‌ها */
+      march(i) {
+        const f = [150, 135, 120, 105][i & 3];
+        tone(f, 0.10, 'square', 0.24, f * 0.72);
+        tone(f * 2, 0.07, 'square', 0.045, f * 1.44);
+      },
+
+      /* وزوز پیوسته بشقاب پرنده — LFO روی فرکانس */
+      ufoStart() {
+        if (!ok() || ufoNodes) return;
+        const t0 = ctxA.currentTime;
+        const o = ctxA.createOscillator();
+        o.type = 'square'; o.frequency.value = 430;
+        const lfo = ctxA.createOscillator();
+        lfo.type = 'sine'; lfo.frequency.value = 13;
+        const lg = ctxA.createGain(); lg.gain.value = 90;
+        lfo.connect(lg); lg.connect(o.frequency);
+        const g = ctxA.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.linearRampToValueAtTime(0.09, t0 + 0.15);
+        o.connect(g); g.connect(master);
+        o.start(t0); lfo.start(t0);
+        ufoNodes = { o, lfo, g };
+      },
+      ufoStop() {
+        if (!ufoNodes) return;
+        const t0 = ctxA.currentTime;
+        try {
+          ufoNodes.g.gain.cancelScheduledValues(t0);
+          ufoNodes.g.gain.setValueAtTime(Math.max(0.0001, ufoNodes.g.gain.value), t0);
+          ufoNodes.g.gain.linearRampToValueAtTime(0.0001, t0 + 0.12);
+          ufoNodes.o.stop(t0 + 0.16);
+          ufoNodes.lfo.stop(t0 + 0.16);
+        } catch (e) { /* بی‌صدا */ }
+        ufoNodes = null;
+      },
+      ufoDie() {
+        [880, 660, 520, 400].forEach((f, i) => tone(f, 0.09, 'square', 0.16, f * 0.9, i * 0.07));
+        noise(0.3, 0.2, 2400, 300);
+      },
+
+      /* آرپژ صعودی پاورآپ */
+      power() { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.09, 'square', 0.14, null, i * 0.06)); },
+
+      /* کلیک رابط کاربری */
+      ui() { tone(660, 0.05, 'square', 0.09); },
+
+      /* فانفار پایان موج */
+      waveClear() { [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, 0.13, 'square', 0.15, null, i * 0.1)); },
+
+      /* ملودی نزولی پایان بازی */
+      over() { [330, 262, 208, 165, 131].forEach((f, i) => tone(f, 0.22, 'sawtooth', 0.14, f * 0.9, i * 0.16)); },
+
+      /* تیک هشدار ثانیه‌های آخر حمله زمانی */
+      tick() { tone(1200, 0.03, 'square', 0.06); }
+    };
+  })();
+
+  /* ویبره بر اساس تنظیمات (low = الگوی کوتاه‌شده) — در دموی جذب خاموش */
+  function buzz(pattern) {
+    try {
+      if (typeof G !== 'undefined' && G.demo) return;
+      if (settings.vibration === 'off' || !navigator.vibrate) return;
+      let p = pattern;
+      if (settings.vibration === 'low') {
+        p = (typeof p === 'number') ? Math.min(p, 30) : p.map(v => Math.min(v, 30));
+      }
+      navigator.vibrate(p);
+    } catch (e) { /* برخی مرورگرها پشتیبانی نمی‌کنند */ }
+  }
+
+  /* ============================================================
+     ۵) ثابت‌های بازی و وضعیت جهانی
+     ============================================================ */
+  const ROWS = 5, COLS = 11, TOTAL = ROWS * COLS;   /* ۵۵ مهاجم */
+  const DROP = 24;                                   /* پایین‌آمدن در برخورد به لبه */
+  const EDGE = 10;                                   /* حاشیه امن چپ/راست */
+  const SH_W = 22, SH_H = 16, SH_CELL = 3;           /* سپر: شبکه ۲۲×۱۶، هر خانه ۳ پیکسل */
+  const SH_TOTAL = 112;                              /* تعداد خانه‌های پر سپر (شمارش دقیق در init) */
+  const INVASION_GAP = 8;                            /* خط تهاجم: کمی بالای سفینه */
+
+  /* نوع مهاجم هر ردیف (بالا→پایین) و امتیازها */
+  const ROW_TYPE  = ['squid', 'crab', 'crab', 'octo', 'octo'];
+  const TYPE_PTS  = { squid: 30, crab: 20, octo: 10 };
+  const UFO_PTS   = [50, 100, 150, 300];
+
+  /* ارقام فارسی برای متن‌های طعم‌دار */
+  const FA_DIGITS = '۰۱۲۳۴۵۶۷۸۹';
+  const toFa = n => String(n).replace(/\d/g, d => FA_DIGITS[+d]);
+
+  /* دستگاه لمسی؟ (ترکیب media query و قابلیت‌های مرورگر — برای بالا نگه‌داشتن
+     خط سفینه از روی دکمه‌های لمسی و پنهان‌کردن خوشه روی دسکتاپ) */
+  const IS_COARSE = !!((window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ||
+    (navigator.maxTouchPoints || 0) > 0 || ('ontouchstart' in window));
+
+  /* وضعیت جهانی بازی */
+  const G = {
+    state: 'DEMO',        /* MENU | INTRO | PLAYING | PAUSED | GAMEOVER | DEMO */
+    demo: true,
+    mode: 'endless',
+    W: 0, H: 0, S: 3,
+    score: 0, wave: 1, lives: 3,
+    timeLeft: 90, tickSec: -1,
+    invulnT: 0, respawnT: 0, tripleT: 0,
+    fireCd: 0, animFrame: 0,
+    ufoKillsRun: 0,
+    damagedThisWave: false,
+    introT: 0,
+    shakeT: 0, shakeMag: 0, flashT: 0,
+    hurtFlash: 0,
+    /* ورودی‌ها */
+    input: { left: false, right: false, fire: false, dragX: null },
+    /* آب‌وهوای صحنه */
+    playerY: 0, groundY: 0, invasionY: 0, shieldY: 0,
+    colGap: 42, rowGap: 32, stepX: 8,
+    marchInterval: 0.45
+  };
+
+  /* سفینه بازیکن */
+  const player = { x: 0, hidden: false };
+
+  /* شبکه مهاجم‌ها — حرکت گروهی کلاسیک */
+  const grid = {
+    x: 0, y: 0, dir: 1, pendingDrop: false,
+    marchT: 0, noteIdx: 0, alive: TOTAL, cleared: false
+  };
+  /* آرایه ثابت ۵۵ مهاجم (بازیابی حوضچه‌ای) */
+  const invaders = [];
+  for (let i = 0; i < TOTAL; i++) {
+    invaders.push({ alive: false, type: 'octo', r: 0, c: 0, x: 0, y: 0, chompT: 0 });
+  }
+
+  /* بشقاب پرنده */
+  const ufo = { active: false, x: 0, y: 64, dir: 1, timer: 20, score: 100 };
+
+  /* حوضچه گلوله بازیکن (حداکثر ۶ شیء، سقف شلیک همزمان ۱ یا ۳) */
+  const pBullets = [];
+  for (let i = 0; i < 6; i++) pBullets.push({ active: false, x: 0, y: 0, vy: 0 });
+
+  /* حوضچه گلوله مهاجم‌ها */
+  const eBullets = [];
+  for (let i = 0; i < 64; i++) eBullets.push({ active: false, x: 0, y: 0, vy: 0, zig: false, t: 0, frame: 0 });
+  let eFireT = 1.2;
+
+  /* حوضچه ذرات */
+  const parts = [];
+  for (let i = 0; i < 240; i++) parts.push({ active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, size: 2, color: '#fff', grav: 0 });
+
+  /* حوضچه انفجارهای پیکسلی (اسپرایت boom) */
+  const booms = [];
+  for (let i = 0; i < 14; i++) booms.push({ active: false, x: 0, y: 0, t: 0, dur: 0.32, scale: 1 });
+
+  /* متن‌های امتیاز شناور */
+  const floatTxt = [];
+  for (let i = 0; i < 12; i++) floatTxt.push({ active: false, x: 0, y: 0, txt: '', t: 0, color: '#fff' });
+
+  /* پاورآپ‌ها */
+  const powerups = [];
+  for (let i = 0; i < 3; i++) powerups.push({ active: false, x: 0, y: 0, vy: 70, kind: 'triple', t: 0 });
+
+  /* چهار سپر — هرکدام شبکه تخریب‌پذیر + بوم ۱:۱ برای رسم شارپ */
+  const shields = [];
+  let shTotalCells = SH_TOTAL;
+
+  /* ستاره‌های پس‌زمینه (سه لایه پارالاکس) */
+  const stars = [];
+
+  /* ============================================================
+     ۶) صدا با دروازه دمو — در حالت جذب، بازی بی‌صداست
+     ============================================================ */
+  function gs(name, a, b, c, d) {
+    if (G.demo) return;
+    Snd[name](a, b, c, d);
+  }
+
+  /* ============================================================
+     ۷) ذرات، انفجار و متن شناور
+     ============================================================ */
+  function spawnParticles(x, y, n, color, spd, size, grav) {
+    let made = 0;
+    for (let i = 0; i < parts.length && made < n; i++) {
+      const p = parts[i];
+      if (p.active) continue;
+      const a = rr(0, TAU), s = rr(spd * 0.25, spd);
+      p.active = true;
+      p.x = x; p.y = y;
+      p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
+      p.max = p.life = rr(0.3, 0.85);
+      p.size = rr(size * 0.6, size * 1.3);
+      p.color = color;
+      p.grav = grav || 0;
+      made++;
+    }
+  }
+
+  function spawnBoom(x, y, scale, dur) {
+    for (let i = 0; i < booms.length; i++) {
+      const b = booms[i];
+      if (b.active) continue;
+      b.active = true; b.x = x; b.y = y;
+      b.t = 0; b.dur = dur || 0.32; b.scale = scale || 1;
+      return;
+    }
+  }
+
+  function spawnFloatTxt(x, y, txt, color) {
+    for (let i = 0; i < floatTxt.length; i++) {
+      const f = floatTxt[i];
+      if (f.active) continue;
+      f.active = true; f.x = x; f.y = y; f.txt = txt; f.color = color || '#fff'; f.t = 0;
+      return;
+    }
+  }
+
+  function doShake(mag, dur) {
+    G.shakeMag = Math.max(G.shakeMag, mag);
+    G.shakeT = Math.max(G.shakeT, dur);
+  }
+
+  /* ============================================================
+     ۸) چیدمان و تغییر اندازه
+     ============================================================ */
+  function layout() {
+    const W = G.W, H = G.H;
+    /* مقیاس پیکسل‌ها: در عرض‌های کمتر از ۴۸۰ formation با مقیاس ۳ جا نمی‌شود */
+    G.S = W < 480 ? 2 : 3;
+    if (sprScale !== G.S) buildSprites(G.S);
+    G.colGap = 12 * G.S + 6;
+    G.rowGap = 8 * G.S + 8;
+    G.stepX = G.S >= 3 ? 8 : 6;
+    G.groundY = H - 26;
+    /* در دستگاه‌های لمسی، خط سفینه بالای خوشه دکمه‌های ◀ ▶ و آتش می‌نشیند */
+    G.playerY = H - (IS_COARSE ? 150 : 58);
+    G.invasionY = G.playerY - INVASION_GAP;
+    G.shieldY = G.playerY - 92;
+    player.x = clamp(player.x, 30, W - 30);
+  }
+
+  function resizeGame() {
+    const r = stage.getBoundingClientRect();
+    const W = Math.max(240, Math.round(r.width));
+    const H = Math.max(320, Math.round(r.height));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    G.W = W; G.H = H;
+    layout();
+    makeStars();
+    /* بازسازی بوم سپرها و پخش مجدد آنها در عرض تازه */
+    for (let i = 0; i < shields.length; i++) {
+      const s = shields[i];
+      s.cv.width = SH_W; s.cv.height = SH_H;
+      s.cx = s.cv.getContext('2d');
+      s.x = W * (i + 1) / 5;
+      s.y = G.shieldY;
+      redrawShield(s);
+    }
+  }
+
+  function sizeAttract() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = Math.max(240, window.innerWidth);
+    const H = Math.max(320, window.innerHeight);
+    attractCv.width = Math.round(W * dpr);
+    attractCv.height = Math.round(H * dpr);
+    actx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    G.W = W; G.H = H;
+    layout();
+    makeStars();
+    for (let i = 0; i < shields.length; i++) {
+      const s = shields[i];
+      s.cv.width = SH_W; s.cv.height = SH_H;
+      s.cx = s.cv.getContext('2d');
+      s.x = W * (i + 1) / 5;
+      s.y = G.shieldY;
+      redrawShield(s);
+    }
+  }
+
+  function makeStars() {
+    stars.length = 0;
+    const n = Math.round(G.W * G.H / 5200);
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: rr(0, G.W),
+        y: rr(0, G.H),
+        r: rr(0.4, 1.5),
+        layer: i % 3,               /* ۰ دور، ۲ نزدیک */
+        tw: rr(0, TAU),             /* فاز سوسو */
+        tws: rr(0.6, 2.2)
+      });
+    }
+  }
+
+  /* ============================================================
+     ۹) سپرها — شبکه تخریب پیکسل‌به‌پیکسل
+     ============================================================ */
+  const SHIELD_ROWS = [
+    '....##############....',
+    '...################...',
+    '..##################..',
+    '.####################.',
+    '######################',
+    '######################',
+    '######################',
+    '######################',
+    '######################',
+    '######################',
+    '######################',
+    '#########....#########',
+    '########......########',
+    '#######........#######',
+    '#######........#######',
+    '#######........#######'
+  ];
+
+  function initShields() {
+    shields.length = 0;
+    for (let i = 0; i < 4; i++) {
+      const g = new Uint8Array(SH_W * SH_H);
+      let total = 0;
+      for (let y = 0; y < SH_H; y++) {
+        for (let x = 0; x < SH_W; x++) {
+          if (SHIELD_ROWS[y][x] === '#') { g[y * SH_W + x] = 1; total++; }
+        }
+      }
+      const cvS = document.createElement('canvas');
+      cvS.width = SH_W; cvS.height = SH_H;
+      const s = {
+        grid: g, total,
+        x: G.W * (i + 1) / 5,
+        y: G.shieldY,
+        cv: cvS, cx: cvS.getContext('2d'),
+        chompT: 0
+      };
+      shields.push(s);
+      redrawShield(s);
+    }
+    shTotalCells = shields[0] ? shields[0].total : 1;
+  }
+
+  /* بازنقاشی کامل بوم ۲۲×۱۶ از شبکه */
+  function redrawShield(s) {
+    const c = s.cx;
+    c.clearRect(0, 0, SH_W, SH_H);
+    c.fillStyle = '#39d97a';
+    for (let y = 0; y < SH_H; y++) {
+      let x = 0;
+      while (x < SH_W) {
+        if (s.grid[y * SH_W + x]) {
+          let w = 1;
+          while (x + w < SH_W && s.grid[y * SH_W + (x + w)]) w++;
+          c.fillRect(x, y, w, 1);
+          x += w;
+        } else x++;
+      }
+    }
+  }
+
+  function shieldHp(s) {
+    let n = 0;
+    for (let i = 0; i < s.grid.length; i++) n += s.grid[i];
+    return n / s.total;
+  }
+
+  /* تخریب شعاعی با لبه دندانه‌ای — hx,hy مختصات منطقی روی سپر */
+  function damageShield(s, hx, hy, radius) {
+    const left = s.x - (SH_W * SH_CELL) / 2;
+    const top = s.y - (SH_H * SH_CELL) / 2;
+    const cxc = (hx - left) / SH_CELL;
+    const cyc = (hy - top) / SH_CELL;
+    let hitAny = false;
+    const r2 = radius * radius;
+    for (let y = Math.floor(cyc - radius - 1); y <= Math.ceil(cyc + radius + 1); y++) {
+      if (y < 0 || y >= SH_H) continue;
+      for (let x = Math.floor(cxc - radius - 1); x <= Math.ceil(cxc + radius + 1); x++) {
+        if (x < 0 || x >= SH_W) continue;
+        const dx = x + 0.5 - cxc, dy = y + 0.5 - cyc;
+        /* شعاع با نویز → لبه دندانه‌ای کلاسیک */
+        const jr = radius * rr(0.72, 1.12);
+        if (dx * dx + dy * dy <= jr * jr) {
+          if (s.grid[y * SH_W + x]) { s.grid[y * SH_W + x] = 0; hitAny = true; }
+        }
+      }
+    }
+    if (hitAny) redrawShield(s);
+    return hitAny;
+  }
+
+  /* برخورد نقطه با سپرها — برای نوک گلوله‌ها */
+  function pointInShield(px, py) {
+    for (const s of shields) {
+      const hw = (SH_W * SH_CELL) / 2, hh = (SH_H * SH_CELL) / 2;
+      if (px >= s.x - hw && px <= s.x + hw && py >= s.y - hh && py <= s.y + hh) {
+        const gx = Math.floor((px - (s.x - hw)) / SH_CELL);
+        const gy = Math.floor((py - (s.y - hh)) / SH_CELL);
+        if (gx >= 0 && gx < SH_W && gy >= 0 && gy < SH_H) return s.grid[gy * SH_W + gx] ? s : null;
+      }
+    }
+    return null;
+  }
+
+  /* ============================================================
+     ۱۰) ساخت موج — چیدمان ۵۵ مهاجم
+     ============================================================ */
+  function invHalfW(type) {
+    return (type === 'squid' ? 4 : type === 'crab' ? 5.5 : 6) * G.S;
+  }
+  function invHalfH(type) { return 4 * G.S; }
+
+  function buildWave() {
+    grid.dir = 1;
+    grid.pendingDrop = false;
+    grid.marchT = 0;
+    grid.alive = TOTAL;
+    grid.cleared = false;
+    /* هر موج کمی پایین‌تر شروع می‌شود (حداکثر ۶ پله) */
+    grid.y = 90 + Math.min(G.wave - 1, 6) * 14;
+    grid.x = (G.W - (COLS - 1) * G.colGap) / 2;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const inv = invaders[r * COLS + c];
+        inv.alive = true;
+        inv.type = ROW_TYPE[r];
+        inv.r = r; inv.c = c;
+        inv.chompT = 0;
+        inv.x = grid.x + c * G.colGap;
+        inv.y = grid.y + r * G.rowGap;
+      }
+    }
+    /* سرعت پایه: با کم‌شدن مهاجم‌ها و موج‌های بالاتر، تندتر می‌شود */
+    recalcMarch();
+    eFireT = Math.max(0.8, 1.6 - G.wave * 0.06);
+  }
+
+  function waveMul() { return Math.min(1 + (G.wave - 1) * 0.12, 2.2); }
+
+  function invSpeed() {
+    /* v بر حسب پیکسل بر ثانیه — فاصله هر گام stepX است */
+    return 18 * (1 + ((TOTAL - grid.alive) / TOTAL) * 3.2) * waveMul() * diff().speedMul;
+  }
+
+  function recalcMarch() {
+    G.marchInterval = clamp(G.stepX / invSpeed(), 0.045, 1.2);
+  }
+
+  /* کرانه‌های زنده formation برای تشخیص لبه */
+  function formationBounds() {
+    let minX = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const inv of invaders) {
+      if (!inv.alive) continue;
+      const hw = invHalfW(inv.type);
+      if (inv.x - hw < minX) minX = inv.x - hw;
+      if (inv.x + hw > maxX) maxX = inv.x + hw;
+      const hb = inv.y + invHalfH(inv.type);
+      if (hb > maxY) maxY = hb;
+    }
+    return { minX, maxX, maxY };
+  }
+
+  /* ============================================================
+     ۱۱) شروع دست / موج بعدی
+     ============================================================ */
+  const WAVE_HINTS = [
+    'آماده باش!',
+    'مهاجم‌ها سریع‌تر شدند!',
+    'مراقب بشقاب پرنده باش!',
+    'سپرها را دریاب!',
+    'زیگزاگ‌ها نزدیک می‌شوند!',
+    'صف‌ها فشرده‌تر می‌شوند!'
+  ];
+
+  function startRun(mode) {
+    G.mode = mode || G.mode;
+    G.demo = false;
+    G.score = 0;
+    G.wave = 1;
+    G.lives = diff().startLives;
+    G.timeLeft = 90;
+    G.tickSec = -1;
+    G.invulnT = 0; G.respawnT = 0; G.tripleT = 0;
+    G.fireCd = 0;
+    G.ufoKillsRun = 0;
+    G.damagedThisWave = false;
+    G.shakeT = 0; G.flashT = 0;
+    player.hidden = false;
+    player.x = G.W / 2;
+    clearField();
+    initShields();
+    buildWave();
+    ufo.timer = rr(16, 26) * diff().ufoRate;
+    timeItem.hidden = (G.mode !== 'time');
+    bestVal.textContent = String(bestOf(G.mode));
+    G.state = 'INTRO';
+    G.introT = 2.4;
+    introBig.textContent = 'موج ' + toFa(1);
+    introName.textContent = WAVE_HINTS[0];
+    introOv.classList.add('show');
+    hudDirty = true;
+  }
+
+  function clearField() {
+    for (const b of pBullets) b.active = false;
+    for (const b of eBullets) b.active = false;
+    for (const p of parts) p.active = false;
+    for (const b of booms) b.active = false;
+    for (const f of floatTxt) f.active = false;
+    for (const p of powerups) p.active = false;
+    if (ufo.active) { ufo.active = false; gs('ufoStop'); Snd.ufoStop(); }
+  }
+
+  function nextWave() {
+    G.wave++;
+    G.damagedThisWave = false;
+    clearField();
+    initShields();          /* سپرها هر موج بازسازی می‌شوند */
+    buildWave();
+    ufo.timer = rr(16, 26) * diff().ufoRate;
+    G.state = 'INTRO';
+    G.introT = 2.4;
+    introBig.textContent = 'موج ' + toFa(G.wave);
+    introName.textContent = WAVE_HINTS[G.wave % WAVE_HINTS.length];
+    introOv.classList.add('show');
+    hudDirty = true;
+  }
+
+  /* پاک‌سازی موج — پاداش و دستاوردها */
+  function waveCleared() {
+    const bonus = 300 + G.wave * 100;
+    addScore(bonus);
+    spawnFloatTxt(G.W / 2, G.H / 2 - 40, '+' + bonus, '#69f0ae');
+    gs('waveClear');
+    /* دستاورد: موج‌شکن — ۵ موج کامل */
+    if (G.wave >= 5) unlockAchv('wave5');
+    /* دستاورد: سپر مقدس — یک سپر کاملاً سالم در پایان موج */
+    if (shields.some(s => shieldHp(s) === 1)) unlockAchv('shieldHoly');
+    /* دستاورد: بی‌نقص — پایان موج بدون خوردن حتی یک گلوله */
+    if (!G.damagedThisWave) unlockAchv('flawless');
+    grid.cleared = true;
+    nextWave();
+  }
+
+  /* ============================================================
+     ۱۲) امتیاز، رکورد و دستاوردها
+     ============================================================ */
+  let hudDirty = true;
+
+  function addScore(n) {
+    G.score += n;
+    hudDirty = true;
+    if (G.score >= 10000 && !G.demo) unlockAchv('score10k');
+  }
+
+  function unlockAchv(id) {
+    if (G.demo || achv[id]) return;
+    achv[id] = 1;
+    saveAchv();
+    const def = ACHV_DEF.find(a => a.id === id);
+    if (def) {
+      showToast(def.name, def.desc, def.icon);
+      Snd.power();
+    }
+  }
+
+  /* ============================================================
+     ۱۳) شلیک‌ها
+     ============================================================ */
+  function pBulletCount() {
+    let n = 0;
+    for (const b of pBullets) if (b.active) n++;
+    return n;
+  }
+  function pBulletCap() { return G.tripleT > 0 ? 3 : 1; }
+
+  function tryFire() {
+    if (G.state !== 'PLAYING' && G.state !== 'DEMO') return;
+    if (player.hidden || G.fireCd > 0) return;
+    if (pBulletCount() >= pBulletCap()) return;
+    const S = G.S;
+    const shot = (dx) => {
+      for (const b of pBullets) {
+        if (b.active) continue;
+        b.active = true;
+        b.x = player.x + dx;
+        b.y = G.playerY - 5 * S;
+        b.vy = -540;
+        return true;
+      }
+      return false;
+    };
+    if (G.tripleT > 0) { shot(-10 * S / 3); shot(0); shot(10 * S / 3); }
+    else shot(0);
+    G.fireCd = 0.28;
+    gs('shoot');
+  }
+
+  function eBulletCount() {
+    let n = 0;
+    for (const b of eBullets) if (b.active) n++;
+    return n;
+  }
+  function eBulletCap() {
+    let cap = clamp(2 + G.wave, 3, 7);
+    if (settings.difficulty === 'hard') cap += 1;
+    if (settings.difficulty === 'easy') cap -= 1;
+    return cap;
+  }
+
+  /* شلیک از پایین‌ترین مهاجم هر ستون زنده */
+  function enemyFire() {
+    if (eBulletCount() >= eBulletCap()) return;
+    const cols = [];
+    for (let c = 0; c < COLS; c++) {
+      let lowest = null;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        const inv = invaders[r * COLS + c];
+        if (inv.alive) { lowest = inv; break; }
+      }
+      if (lowest) cols.push(lowest);
+    }
+    if (!cols.length) return;
+    const inv = pick(cols);
+    for (const b of eBullets) {
+      if (b.active) continue;
+      b.active = true;
+      b.x = inv.x + rr(-2, 2);
+      b.y = inv.y + invHalfH(inv.type);
+      b.vy = clamp(190 + G.wave * 10 + rr(-20, 30), 120, 420) * (settings.difficulty === 'hard' ? 1.18 : 1);
+      b.zig = Math.random() < 0.5;
+      b.t = 0; b.frame = 0;
+      return;
+    }
+  }
+
+  /* ============================================================
+     ۱۴) برخورد گلوله بازیکن با مهاجم / بشقاب
+     ============================================================ */
+  function killInvader(inv) {
+    inv.alive = false;
+    grid.alive--;
+    recalcMarch();
+    const pts = TYPE_PTS[inv.type];
+    addScore(pts);
+    spawnFloatTxt(inv.x, inv.y - 6 * G.S, '+' + pts,
+      inv.type === 'squid' ? '#f5d742' : inv.type === 'crab' ? '#e8f1ff' : '#5ef29a');
+    spawnBoom(inv.x, inv.y, 1, 0.3);
+    spawnParticles(inv.x, inv.y, 12, SPR_COLOR[inv.type + 'A'], 130, 2.4, 90);
+    gs('invaderDie');
+    buzz(18);
+    /* شانس پاورآپ: ۶٪ — فقط یک پاورآپ همزمان روی صحنه */
+    if (!G.demo && Math.random() < 0.06 && !powerups.some(p => p.active)) {
+      for (const p of powerups) {
+        if (p.active) continue;
+        p.active = true;
+        p.x = inv.x; p.y = inv.y;
+        p.vy = 72; p.t = 0;
+        p.kind = pick(['triple', 'repair']);
+        break;
+      }
+    }
+    if (grid.alive <= 0 && !grid.cleared) waveCleared();
+  }
+
+  function killUfo() {
+    ufo.active = false;
+    Snd.ufoStop();
+    const pts = ufo.score;
+    addScore(pts);
+    spawnFloatTxt(ufo.x, ufo.y - 12, '+' + pts, '#ff5d7a');
+    spawnBoom(ufo.x, ufo.y, 1.6, 0.45);
+    spawnParticles(ufo.x, ufo.y, 26, '#ff5d7a', 190, 2.6, 60);
+    spawnParticles(ufo.x, ufo.y, 10, '#ffd27a', 140, 2, 60);
+    gs('ufoDie');
+    buzz([24, 30, 40]);
+    doShake(3, 0.18);
+    G.ufoKillsRun++;
+    /* دستاورد شکارچی UFO — مجموع ۳ بشقاب در تمام دست‌ها */
+    achv.ufoProg = (achv.ufoProg || 0) + 1;
+    saveAchv();
+    if (achv.ufoProg >= 3) unlockAchv('ufo3');
+  }
+
+  /* ============================================================
+     ۱۵) آسیب به بازیکن
+     ============================================================ */
+  function hurtPlayer(reason) {
+    if (player.hidden || G.invulnT > 0) return;
+    /* در حالت دمو، مرگ یعنی شروع بی‌صدا از نو */
+    if (G.demo) { resetDemo(); return; }
+    G.damagedThisWave = true;
+    G.lives--;
+    hudDirty = true;
+    spawnBoom(player.x, G.playerY, 1.8, 0.5);
+    spawnParticles(player.x, G.playerY, 40, '#63e89b', 230, 3, 140);
+    spawnParticles(player.x, G.playerY, 18, '#ffffff', 170, 2, 140);
+    gs('playerDie');
+    buzz([70, 50, 140]);
+    doShake(9, 0.45);
+    G.flashT = 0.12;
+    /* بازخورد آسیب قرمز روی استیج */
+    stage.classList.remove('hurt');
+    void stage.offsetWidth;   /* ری‌استارت انیمیشن */
+    stage.classList.add('hurt');
+    if (G.lives <= 0) {
+      player.hidden = true;
+      endGame(reason || 'سفینه نابود شد!');
+    } else {
+      player.hidden = true;
+      G.respawnT = 1.6;
+    }
+  }
+
+  /* ============================================================
+     ۱۶) پایان بازی — ثبت رکورد و جدول
+     ============================================================ */
+  let pendingEntry = null;
+
+  function endGame(reason) {
+    if (G.state === 'GAMEOVER') return;
+    G.state = 'GAMEOVER';
+    Snd.ufoStop();
+    gs('over');
+    goReason.textContent = reason;
+    goMode.textContent = G.mode === 'time' ? 'حالت: حمله زمانی ۹۰ ثانیه' : 'حالت: بی‌پایان';
+    finalScore.textContent = String(G.score);
+
+    /* کلید هاب آرکید — قالب اجباری */
+    pushHubKey(G.mode);
+
+    /* آیا رکورد جدید است؟ (مقایسه با بهترین قبلی) */
+    const prevBest = bestOf(G.mode);
+    const list = scores[G.mode] || [];
+    const qualifies = G.score > 0 && (list.length < 10 || G.score > list[list.length - 1].score);
+    const isRecord = G.score > prevBest && G.score > 0;
+    goNewRecord.classList.toggle('show', isRecord);
+
+    if (qualifies) {
+      /* مودال نام باز می‌شود؛ پس از ثبت، جدول تازه می‌شود */
+      pendingEntry = { mode: G.mode, score: G.score, wave: G.wave, ts: Date.now() };
+      renderGoList(G.mode, null);
+      gameOverEl.classList.add('show');
+      openNameModal();
+    } else {
+      renderGoList(G.mode, null);
+      gameOverEl.classList.add('show');
+    }
+    bestVal.textContent = String(bestOf(G.mode));
+    pushHubKey(G.mode);
+  }
+
+  /* ثبت ورودی با نام در جدول ۱۰ تایی */
+  function commitScore(name) {
+    if (!pendingEntry) return;
+    const e = pendingEntry;
+    pendingEntry = null;
+    const list = scores[e.mode] || (scores[e.mode] = []);
+    list.push({ name: name || 'بازیکن', score: e.score, wave: e.wave, ts: e.ts });
+    list.sort((a, b) => b.score - a.score);
+    if (list.length > 10) list.length = 10;
+    saveScores();
+    pushHubKey(e.mode);
+    bestVal.textContent = String(bestOf(e.mode));
+    renderGoList(e.mode, e.score);
+    if ($('scoresModal').classList.contains('show')) renderScoreTab(scoreTab);
+  }
+
+  /* فهرست ۵ رکورد برتر داخل کارت پایان بازی */
+  function renderGoList(mode, highlightScore) {
+    const list = (scores[mode] || []).slice(0, 5);
+    if (!list.length) {
+      goList.innerHTML = '<p class="empty-note">هنوز رکوردی ثبت نشده — اولین نفر باش!</p>';
+      return;
+    }
+    goList.innerHTML = '';
+    list.forEach((e, i) => {
+      const row = document.createElement('div');
+      row.className = 'score-row' + (highlightScore != null && e.score === highlightScore ? ' new' : '');
+      row.innerHTML = '<span>' + (i + 1) + '. ' + escapeHtml(e.name) +
+        (e.wave ? ' — موج ' + toFa(e.wave) : '') + '</span><b>' + e.score + '</b>';
+      goList.appendChild(row);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, ch => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+    ));
+  }
+
+  /* ============================================================
+     ۱۷) گام حرکت مهاجم‌ها (March) — قلب کلاسیک بازی
+     ============================================================ */
+  function doMarch() {
+    /* فریم انیمیشن دو-حالتی همه مهاجم‌ها */
+    G.animFrame ^= 1;
+    /* نت چهارگانه پایین‌رونده */
+    gs('march', grid.noteIdx);
+    grid.noteIdx = (grid.noteIdx + 1) & 3;
+
+    if (grid.pendingDrop) {
+      /* در لبه: ۲۴ پیکسل پایین + تغییر جهت */
+      grid.y += DROP;
+      grid.dir *= -1;
+      grid.pendingDrop = false;
+    } else {
+      grid.x += grid.dir * G.stepX;
+      const b = formationBounds();
+      /* اگر گام بعدی از حاشیه بیرون می‌زند → گام بعد فقط پایین */
+      if (grid.dir > 0 && b.maxX + grid.dir * G.stepX > G.W - EDGE) grid.pendingDrop = true;
+      else if (grid.dir < 0 && b.minX + grid.dir * G.stepX < EDGE) grid.pendingDrop = true;
+    }
+
+    /* به‌روزرسانی مختصات همه مهاجم‌های زنده + بررسی‌ها */
+    let maxY = -Infinity;
+    let collided = null;
+    for (const inv of invaders) {
+      if (!inv.alive) continue;
+      inv.x = grid.x + inv.c * G.colGap;
+      inv.y = grid.y + inv.r * G.rowGap;
+      const bottom = inv.y + invHalfH(inv.type);
+      if (bottom > maxY) maxY = bottom;
+      /* جویدن سپرها هنگام عبور */
+      if (inv.chompT > 0) inv.chompT -= G.marchInterval;
+      for (const s of shields) {
+        const hw = (SH_W * SH_CELL) / 2, hh = (SH_H * SH_CELL) / 2;
+        if (inv.x + invHalfW(inv.type) > s.x - hw && inv.x - invHalfW(inv.type) < s.x + hw &&
+            bottom > s.y - hh && inv.y - invHalfH(inv.type) < s.y + hh) {
+          if (inv.chompT <= 0) {
+            inv.chompT = 0.15;
+            damageShield(s, inv.x, s.y - hh + 4, 5);
+            gs('shieldHit');
+          }
+        }
+      }
+      /* برخورد مستقیم با سفینه — در دوره مصونیت نادیده گرفته می‌شود
+         تا بررسی تهاجم همیشه اجرا شود */
+      if (!collided && !player.hidden && G.invulnT <= 0 &&
+          Math.abs(inv.x - player.x) < invHalfW(inv.type) + 6 * G.S &&
+          bottom >= G.playerY - 4 * G.S) {
+        collided = inv;
+      }
+    }
+
+    if (collided) {
+      killInvader(collided);
+      hurtPlayer('مهاجم‌ها به سفینه کوبیدند!');
+    }
+
+    /* تهاجم: رسیدن مهاجم‌ها به خط پایین = پایان بازی */
+    if (!grid.cleared && maxY >= G.invasionY && !G.demo) {
+      endGame('تهاجم کامل شد! مهاجم‌ها به زمین رسیدند!');
+    } else if (!grid.cleared && maxY >= G.invasionY && G.demo) {
+      /* در دمو: بی‌صدا ریست می‌شود */
+      resetDemo();
+    }
+  }
+
+  /* ============================================================
+     ۱۸) حلقه به‌روزرسانی — منطق اصلی (دمو هم همین را استفاده می‌کند)
+     ============================================================ */
+  function update(dt) {
+    const S = G.S;
+
+    /* --- تایمرهای عمومی --- */
+    if (G.shakeT > 0) { G.shakeT -= dt; if (G.shakeT <= 0) G.shakeMag = 0; }
+    if (G.flashT > 0) G.flashT -= dt;
+    if (G.invulnT > 0) G.invulnT -= dt;
+    if (G.tripleT > 0) {
+      G.tripleT -= dt;
+      if (G.tripleT <= 0) G.tripleT = 0;
+    }
+    if (G.fireCd > 0) G.fireCd -= dt;
+
+    /* --- ذرات --- */
+    for (const p of parts) {
+      if (!p.active) continue;
+      p.life -= dt;
+      if (p.life <= 0) { p.active = false; continue; }
+      p.vy += p.grav * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    }
+    for (const b of booms) {
+      if (!b.active) continue;
+      b.t += dt;
+      if (b.t >= b.dur) b.active = false;
+    }
+    for (const f of floatTxt) {
+      if (!f.active) continue;
+      f.t += dt;
+      f.y -= 26 * dt;
+      if (f.t > 1.1) f.active = false;
+    }
+
+    /* --- حالت INTRO: شمارش معکوس بنر موج --- */
+    if (G.state === 'INTRO') {
+      G.introT -= dt;
+      if (G.introT <= 0) {
+        introOv.classList.remove('show');
+        G.state = 'PLAYING';
+      }
+      return;
+    }
+
+    if (G.state !== 'PLAYING' && G.state !== 'DEMO') return;
+
+    /* --- حمله زمانی (در دمو شمارش نمی‌شود) --- */
+    if (G.mode === 'time' && G.state === 'PLAYING' && !G.demo) {
+      G.timeLeft -= dt;
+      const sec = Math.max(0, Math.ceil(G.timeLeft));
+      if (sec !== G.tickSec) {
+        G.tickSec = sec;
+        hudDirty = true;
+        if (sec <= 10 && sec > 0) gs('tick');
+      }
+      if (G.timeLeft <= 0) {
+        G.timeLeft = 0;
+        endGame('زمان تمام شد!');
+        return;
+      }
+    }
+
+    /* --- دمو: هوش مصنوعی ساده --- */
+    if (G.demo) demoAI(dt);
+
+    /* --- حرکت سفینه --- */
+    if (G.respawnT > 0) {
+      G.respawnT -= dt;
+      if (G.respawnT <= 0 && G.state !== 'GAMEOVER') {
+        player.hidden = false;
+        player.x = G.W / 2;
+        G.invulnT = 2.0;
+      }
+    }
+    if (!player.hidden) {
+      const spd = 330;
+      let mv = 0;
+      if (G.input.left) mv -= 1;
+      if (G.input.right) mv += 1;
+      if (mv !== 0) player.x += mv * spd * dt;
+      /* حالت کشیدن: حرکت نرم به سمت انگشت */
+      if (G.input.dragX != null && settings.controls === 'drag') {
+        player.x = lerp(player.x, G.input.dragX, clamp(dt * 14, 0, 1));
+      }
+      const hw = 6.5 * S;
+      player.x = clamp(player.x, hw + 4, G.W - hw - 4);
+    }
+
+    /* --- شلیک بازیکن --- */
+    if (G.input.fire && !player.hidden) tryFire();
+
+    /* --- گام‌های مهاجم‌ها (March) --- */
+    recalcMarch();
+    grid.marchT += dt;
+    let guard = 0;
+    while (grid.marchT >= G.marchInterval && guard++ < 8) {
+      grid.marchT -= G.marchInterval;
+      if (grid.alive > 0) doMarch();
+      if (G.state === 'GAMEOVER') return;
+    }
+
+    /* --- گلوله‌های بازیکن --- */
+    for (const b of pBullets) {
+      if (!b.active) continue;
+      b.y += b.vy * dt;
+      if (b.y < -10) { b.active = false; continue; }
+      /* برخورد با سپر (نوک گلوله) */
+      const sh = pointInShield(b.x, b.y);
+      if (sh) {
+        b.active = false;
+        damageShield(sh, b.x, b.y, 2.2);
+        spawnParticles(b.x, b.y, 5, '#39d97a', 90, 1.8, 60);
+        gs('shieldHit');
+        continue;
+      }
+      /* برخورد با بشقاب پرنده */
+      if (ufo.active && Math.abs(b.x - ufo.x) < 8 * S && Math.abs(b.y - ufo.y) < 4 * S) {
+        b.active = false;
+        killUfo();
+        continue;
+      }
+      /* برخورد با مهاجم‌ها */
+      let hit = null;
+      for (const inv of invaders) {
+        if (!inv.alive) continue;
+        if (Math.abs(b.x - inv.x) < invHalfW(inv.type) && Math.abs(b.y - inv.y) < invHalfH(inv.type)) {
+          hit = inv; break;
+        }
+      }
+      if (hit) {
+        b.active = false;
+        killInvader(hit);
+        continue;
+      }
+      /* برخورد با گلوله دشمن (خنثی‌سازی متقابل) */
+      for (const eb of eBullets) {
+        if (!eb.active) continue;
+        if (Math.abs(b.x - eb.x) < 5 && Math.abs(b.y - eb.y) < 8) {
+          b.active = false; eb.active = false;
+          spawnParticles((b.x + eb.x) / 2, (b.y + eb.y) / 2, 7, '#cfd8ff', 110, 1.8, 40);
+          gs('shieldHit');
+          break;
+        }
+      }
+    }
+
+    /* --- گلوله‌های مهاجم‌ها --- */
+    eFireT -= dt;
+    if (eFireT <= 0 && grid.alive > 0) {
+      enemyFire();
+      const base = clamp(rr(0.9, 1.6) - G.wave * 0.05, 0.35, 2);
+      eFireT = base * diff().enemyRate;
+    }
+    for (const b of eBullets) {
+      if (!b.active) continue;
+      b.t += dt;
+      b.y += b.vy * dt;
+      /* زیگزاگ: جابه‌جایی افقی سینوسی + تعویض فریم */
+      if (b.zig) b.x += Math.sin(b.t * 22) * 46 * dt;
+      b.frame = (Math.floor(b.t * 14) & 1);
+      if (b.y > G.H + 10) { b.active = false; continue; }
+      /* برخورد با سپر */
+      const sh = pointInShield(b.x, b.y);
+      if (sh) {
+        b.active = false;
+        damageShield(sh, b.x, b.y, 2.6);
+        spawnParticles(b.x, b.y, 6, '#39d97a', 90, 1.8, 60);
+        gs('shieldHit');
+        continue;
+      }
+      /* برخورد با سفینه */
+      if (!player.hidden && G.invulnT <= 0 &&
+          Math.abs(b.x - player.x) < 6.5 * S && Math.abs(b.y - G.playerY) < 4.5 * S) {
+        b.active = false;
+        hurtPlayer('سفینه نابود شد!');
+        if (G.state === 'GAMEOVER') return;
+        continue;
+      }
+    }
+
+    /* --- پاورآپ‌ها --- */
+    for (const p of powerups) {
+      if (!p.active) continue;
+      p.t += dt;
+      p.y += p.vy * dt;
+      if (p.y > G.H + 20) { p.active = false; continue; }
+      if (!player.hidden && Math.abs(p.x - player.x) < 8 * S && Math.abs(p.y - G.playerY) < 7 * S) {
+        p.active = false;
+        gs('power');
+        buzz(22);
+        if (p.kind === 'triple') {
+          G.tripleT = 10;
+          spawnFloatTxt(player.x, G.playerY - 26, 'شلیک سه‌گانه!', '#7fd0ff');
+        } else {
+          /* تعمیر: سالم‌ترین نیست — آسیب‌دیده‌ترین سپر کامل بازسازی می‌شود */
+          let worst = null, worstHp = 2;
+          for (const s of shields) {
+            const hp = shieldHp(s);
+            if (hp < worstHp) { worstHp = hp; worst = s; }
+          }
+          if (worst) {
+            for (let i = 0; i < worst.grid.length; i++) {
+              const y = Math.floor(i / SH_W), x = i % SH_W;
+              worst.grid[i] = SHIELD_ROWS[y][x] === '#' ? 1 : 0;
+            }
+            redrawShield(worst);
+            spawnFloatTxt(player.x, G.playerY - 26, 'سپر تعمیر شد!', '#69f0ae');
+          } else {
+            addScore(200);
+            spawnFloatTxt(player.x, G.playerY - 26, '+200', '#69f0ae');
+          }
+        }
+        spawnParticles(p.x, p.y, 14, p.kind === 'triple' ? '#7fd0ff' : '#69f0ae', 120, 2.2, 30);
+      }
+    }
+
+    /* --- بشقاب پرنده --- */
+    if (!ufo.active) {
+      ufo.timer -= dt;
+      if (ufo.timer <= 0 && grid.alive > 4) {
+        ufo.active = true;
+        ufo.dir = Math.random() < 0.5 ? 1 : -1;
+        ufo.x = ufo.dir > 0 ? -30 : G.W + 30;
+        ufo.y = 64;
+        ufo.score = pick(UFO_PTS);
+        /* زمان‌بندی پرواز بعدی — بلافاصله پس از ظاهر شدن */
+        ufo.timer = rr(18, 28) * diff().ufoRate;
+        gs('ufoStart');
+      }
+    } else {
+      ufo.x += ufo.dir * 95 * dt;
+      if ((ufo.dir > 0 && ufo.x > G.W + 40) || (ufo.dir < 0 && ufo.x < -40)) {
+        ufo.active = false;
+        gs('ufoStop');
+        Snd.ufoStop();
+        ufo.timer = rr(18, 28) * diff().ufoRate;
+      }
+    }
+  }
+
+  /* ============================================================
+     ۱۹) هوش مصنوعی دمو (حالت جذب)
+     ============================================================ */
+  let demoFireT = 0, demoResetT = 0;
+  function demoAI(dt) {
+    /* هدف‌گیری: پایین‌ترین مهاجم ستون نزدیک */
+    let target = G.W / 2, lowest = null;
+    for (const inv of invaders) {
+      if (!inv.alive) continue;
+      if (!lowest || inv.y > lowest.y) lowest = inv;
+    }
+    if (lowest) target = lowest.x;
+    /* فرار از گلوله نزدیک */
+    let danger = null;
+    for (const b of eBullets) {
+      if (!b.active) continue;
+      if (b.y < G.playerY && G.playerY - b.y < 150 && Math.abs(b.x - player.x) < 34) {
+        if (!danger || b.y > danger.y) danger = b;
+      }
+    }
+    G.input.left = false; G.input.right = false;
+    if (danger) {
+      if (danger.x < player.x) G.input.right = true; else G.input.left = true;
+    } else if (Math.abs(target - player.x) > 16) {
+      if (target < player.x) G.input.left = true; else G.input.right = true;
+    }
+    demoFireT -= dt;
+    G.input.fire = false;
+    if (demoFireT <= 0 && pBulletCount() < pBulletCap()) {
+      G.input.fire = true;
+      demoFireT = rr(0.4, 0.9);
+    }
+    /* ریست دوره‌ای تا دمو طولانی و تکراری نشود */
+    demoResetT += dt;
+    if (demoResetT > 45) resetDemo();
+  }
+
+  function resetDemo() {
+    demoResetT = 0;
+    G.score = 0;
+    G.wave = 1 + ri(0, 2);
+    G.lives = 3;
+    G.invulnT = 0; G.respawnT = 0; G.tripleT = 0;
+    player.hidden = false;
+    player.x = G.W / 2;
+    clearField();
+    initShields();
+    buildWave();
+    ufo.timer = rr(10, 18);
+    G.state = 'DEMO';
+  }
+
+  /* ============================================================
+     ۲۰) رندر — رسم کامل صحنه (بازی و دمو مشترک)
+     ============================================================ */
+  const actx = attractCv.getContext('2d');
+
+  /* بوم کمکی انحراف رنگی CRT */
+  const chromaCv = document.createElement('canvas');
+  const chx = chromaCv.getContext('2d');
+
+  function renderScene(c, now) {
+    const W = G.W, H = G.H, S = G.S;
+    c.imageSmoothingEnabled = false;
+
+    /* --- پس‌زمینه: سیاه مطلق + هاله سبز بسیار خفیف --- */
+    c.fillStyle = '#000';
+    c.fillRect(0, 0, W, H);
+
+    /* لرزش دوربین */
+    let sx = 0, sy = 0;
+    if (G.shakeT > 0) {
+      sx = (Math.random() * 2 - 1) * G.shakeMag;
+      sy = (Math.random() * 2 - 1) * G.shakeMag;
+    }
+    c.save();
+    c.translate(sx, sy);
+
+    /* --- ستاره‌ها: سه لایه پارالاکس آرام + سوسو --- */
+    for (const st of stars) {
+      const spd = [1.5, 4, 8][st.layer];
+      const y = (st.y + now * spd) % H;
+      const tw = 0.55 + 0.45 * Math.sin(now * st.tws + st.tw);
+      c.globalAlpha = tw * (0.3 + st.layer * 0.2);
+      c.fillStyle = '#dfe9ff';
+      c.fillRect(st.x, y, st.r, st.r);
+    }
+    c.globalAlpha = 1;
+
+    /* --- خط تهاجم: قرمز چشمک‌زن وقتی مهاجم‌ها نزدیک‌اند --- */
+    const fb = formationBounds();
+    let danger = 0;
+    if (fb.maxY > -Infinity) danger = clamp((fb.maxY - (G.invasionY - 110)) / 110, 0, 1);
+    if (danger > 0.02) {
+      c.save();
+      c.strokeStyle = 'rgba(255,80,70,' + (0.14 + danger * 0.4 * (0.7 + 0.3 * Math.sin(now * 7))).toFixed(3) + ')';
+      c.lineWidth = 1.5;
+      c.setLineDash([7, 9]);
+      c.beginPath();
+      c.moveTo(0, G.invasionY);
+      c.lineTo(W, G.invasionY);
+      c.stroke();
+      c.restore();
+    }
+
+    /* --- سپرها --- */
+    const shW = SH_W * SH_CELL, shH = SH_H * SH_CELL;
+    for (const s of shields) {
+      c.save();
+      c.shadowColor = 'rgba(57,217,122,.8)';
+      c.shadowBlur = 7;
+      c.drawImage(s.cv, Math.round(s.x - shW / 2), Math.round(s.y - shH / 2), shW, shH);
+      c.restore();
+      c.drawImage(s.cv, Math.round(s.x - shW / 2), Math.round(s.y - shH / 2), shW, shH);
+    }
+
+    /* --- مهاجم‌ها: انیمیشن دو فریمی --- */
+    const fr = G.animFrame ? 'B' : 'A';
+    for (const inv of invaders) {
+      if (!inv.alive) continue;
+      drawSpr(c, inv.type + fr, inv.x, inv.y);
+    }
+
+    /* --- بشقاب پرنده با چراغ چشمک‌زن --- */
+    if (ufo.active) {
+      drawSpr(c, 'ufo', ufo.x, ufo.y);
+      c.globalAlpha = 0.4 + 0.4 * Math.sin(now * 11);
+      c.fillStyle = '#ffe27a';
+      c.fillRect(Math.round(ufo.x - 1.5 * S), Math.round(ufo.y - 3.5 * S), Math.max(2, S), Math.max(2, S));
+      c.globalAlpha = 1;
+    }
+
+    /* --- پاورآپ‌ها --- */
+    for (const p of powerups) {
+      if (!p.active) continue;
+      const bob = Math.sin(p.t * 6) * 2;
+      drawSpr(c, p.kind === 'triple' ? 'powTriple' : 'powRepair', p.x, p.y + bob);
+    }
+
+    /* --- گلوله‌های بازیکن: خط سفید با هاله سبز --- */
+    c.save();
+    c.shadowColor = '#69f0ae';
+    c.shadowBlur = 6;
+    c.fillStyle = '#eafff2';
+    for (const b of pBullets) {
+      if (!b.active) continue;
+      c.fillRect(Math.round(b.x - 1), Math.round(b.y - 4 * S), 2, Math.round(4 * S));
+    }
+    c.restore();
+
+    /* --- گلوله‌های مهاجم: زیگزاگ دو فریمی --- */
+    for (const b of eBullets) {
+      if (!b.active) continue;
+      drawSpr(c, b.frame ? 'ebulB' : 'ebulA', b.x, b.y);
+    }
+
+    /* --- سفینه بازیکن --- */
+    if (!player.hidden) {
+      const blink = G.invulnT > 0 && (Math.floor(now * 12) % 2 === 0);
+      if (!blink) {
+        drawSpr(c, 'ship', player.x, G.playerY);
+        /* شعله موتور هنگام حرکت */
+        if (G.input.left || G.input.right) {
+          c.fillStyle = 'rgba(123,247,176,' + (0.5 + Math.random() * 0.4).toFixed(2) + ')';
+          c.fillRect(Math.round(player.x - S / 2), Math.round(G.playerY + 4 * S), S, Math.round(S * (1 + Math.random() * 1.5)));
+        }
+        /* نشانگر شلیک سه‌گانه */
+        if (G.tripleT > 0) {
+          c.fillStyle = '#7fd0ff';
+          c.font = 'bold ' + (10 + S) + 'px Vazirmatn, Tahoma, sans-serif';
+          c.textAlign = 'center';
+          c.fillText('×3', player.x, G.playerY - 6.5 * S);
+        }
+      }
+    }
+
+    /* --- انفجارهای پیکسلی --- */
+    for (const b of booms) {
+      if (!b.active) continue;
+      const k = b.t / b.dur;
+      const size = SPR.boom.w * b.scale * (1 + k * 1.1);
+      c.globalAlpha = clamp(1 - k, 0, 1);
+      c.drawImage(SPR.boom.cv,
+        Math.round(b.x - size / 2) - SPR.boom.pad * b.scale,
+        Math.round(b.y - size / 2) - SPR.boom.pad * b.scale,
+        size + SPR.boom.pad * 2 * b.scale, size + SPR.boom.pad * 2 * b.scale);
+      c.globalAlpha = 1;
+    }
+
+    /* --- ذرات --- */
+    for (const p of parts) {
+      if (!p.active) continue;
+      c.globalAlpha = clamp(p.life / p.max, 0, 1);
+      c.fillStyle = p.color;
+      c.fillRect(p.x, p.y, p.size, p.size);
+    }
+    c.globalAlpha = 1;
+
+    /* --- متن‌های امتیاز شناور --- */
+    c.textAlign = 'center';
+    c.font = 'bold ' + (11 + S) + 'px Vazirmatn, Tahoma, sans-serif';
+    for (const f of floatTxt) {
+      if (!f.active) continue;
+      c.globalAlpha = clamp(1 - f.t / 1.1, 0, 1);
+      c.fillStyle = f.color;
+      c.fillText(f.txt, f.x, f.y);
+    }
+    c.globalAlpha = 1;
+
+    /* --- نوار زمین تیره --- */
+    c.fillStyle = '#0a1a10';
+    c.fillRect(-20, G.groundY, W + 40, H - G.groundY + 20);
+    c.fillStyle = 'rgba(57,217,122,.7)';
+    c.fillRect(-20, G.groundY, W + 40, 2);
+
+    c.restore();
+
+    /* --- فلش سفید آسیب --- */
+    if (G.flashT > 0) {
+      c.fillStyle = 'rgba(255,255,255,' + (clamp(G.flashT / 0.12, 0, 1) * 0.45).toFixed(3) + ')';
+      c.fillRect(0, 0, W, H);
+    }
+  }
+
+  /* انحراف رنگی CRT روی بوم بازی (نه دمو) */
+  function chromaPass() {
+    const W = G.W, H = G.H;
+    if (chromaCv.width !== cv.width || chromaCv.height !== cv.height) {
+      chromaCv.width = cv.width;
+      chromaCv.height = cv.height;
+    }
+    chx.clearRect(0, 0, chromaCv.width, chromaCv.height);
+    chx.drawImage(cv, 0, 0);
+    ctx.save();
+    ctx.globalAlpha = 0.045;
+    ctx.globalCompositeOperation = 'lighter';
+    const o = 1.4;
+    ctx.drawImage(chromaCv, 0, 0, chromaCv.width, chromaCv.height, o, 0, W, H);
+    ctx.drawImage(chromaCv, 0, 0, chromaCv.width, chromaCv.height, -o, 0, W, H);
+    ctx.restore();
+  }
+
+  function renderGame(now) {
+    renderScene(ctx, now);
+    if (settings.crt && !G.demo) chromaPass();
+  }
+
+  /* ============================================================
+     ۲۱) HUD — به‌روزرسانی DOM فقط هنگام تغییر
+     ============================================================ */
+  function updateHud() {
+    if (hudDirty) {
+      hudDirty = false;
+      scoreVal.textContent = String(G.score);
+      waveVal.textContent  = String(G.wave);
+      livesVal.textContent = String(Math.max(0, G.lives));
+      timeVal.textContent  = String(Math.max(0, Math.ceil(G.timeLeft)));
+    }
+    /* سلامت سپرها: چهار نوار کوچک */
+    for (let i = 0; i < 4; i++) {
+      const el = shieldPips.children[i];
+      if (!el) continue;
+      const s = shields[i];
+      const pct = s ? Math.round(shieldHp(s) * 100) : 0;
+      if (el.__pct !== pct) {
+        el.__pct = pct;
+        const fill = el.firstElementChild;
+        if (fill) fill.style.width = pct + '%';
+        el.classList.toggle('dead', pct <= 0);
+      }
+    }
+  }
+
+  /* ============================================================
+     ۲۲) ورودی — کیبورد، لمسی، کشیدن و دسته بازی
+     ============================================================ */
+  const keyIn   = { left: false, right: false, fire: false };
+  const touchIn = { left: false, right: false, fire: false };
+  const padIn   = { left: false, right: false, fire: false };
+
+  function mergeInputs() {
+    if (G.demo) return;
+    G.input.left  = keyIn.left  || touchIn.left  || padIn.left;
+    G.input.right = keyIn.right || touchIn.right || padIn.right;
+    G.input.fire  = keyIn.fire  || touchIn.fire  || padIn.fire;
+  }
+
+  /* نگاشت کلیدها: ←→ / A-D حرکت، Space شلیک */
+  const KEYMAP = {
+    ArrowLeft: 'left',  KeyA: 'left',
+    ArrowRight: 'right', KeyD: 'right',
+    Space: 'fire', ArrowUp: 'fire', KeyW: 'fire'
+  };
+
+  function anyModalOpen() {
+    return document.querySelector('.modal.show') != null;
+  }
+
+  window.addEventListener('keydown', function (e) {
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {
+      if (e.key === 'Enter' && $('nameModal').classList.contains('show')) $('nameSave').click();
+      return;
+    }
+    if ((e.code === 'KeyM') && !e.repeat) { muteBtn.click(); return; }
+    if (e.code === 'Escape') {
+      if (anyModalOpen()) {
+        document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+        return;
+      }
+      if (!gameWrap.hidden && !e.repeat) togglePause();
+      return;
+    }
+    if (!gameWrap.hidden || !G.demo) {
+      const act = KEYMAP[e.code];
+      if (act) {
+        e.preventDefault();
+        keyIn[act] = true;
+      }
+      if ((e.code === 'KeyP') && !e.repeat && !gameWrap.hidden) togglePause();
+    }
+  });
+  window.addEventListener('keyup', function (e) {
+    const act = KEYMAP[e.code];
+    if (act) keyIn[act] = false;
+  });
+
+  /* پاک‌سازی ورودی‌ها وقتی پنجره فوکوس را از دست می‌دهد */
+  window.addEventListener('blur', function () {
+    keyIn.left = keyIn.right = keyIn.fire = false;
+    touchIn.left = touchIn.right = touchIn.fire = false;
+    G.input.dragX = null;
+    document.querySelectorAll('.move-btn.active, #fireBtn.active')
+      .forEach(b => b.classList.remove('active'));
+  });
+
+  /* دکمه‌های لمسی: نگه‌داشتنی */
+  function bindHold(el, obj, prop) {
+    const on = function (e) {
+      e.preventDefault();
+      Snd.init();
+      obj[prop] = true;
+      el.classList.add('active');
+      if (e.pointerId != null && el.setPointerCapture) {
+        try { el.setPointerCapture(e.pointerId); } catch (err) { /* بی‌خطر */ }
+      }
+    };
+    const off = function () {
+      obj[prop] = false;
+      el.classList.remove('active');
+    };
+    el.addEventListener('pointerdown', on);
+    el.addEventListener('pointerup', off);
+    el.addEventListener('pointercancel', off);
+    el.addEventListener('lostpointercapture', off);
+    el.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  bindHold($('btnLeft'),  touchIn, 'left');
+  bindHold($('btnRight'), touchIn, 'right');
+  bindHold($('fireBtn'),  touchIn, 'fire');
+
+  /* حالت کشیدن: سفینه به‌صورت نرم دنبال انگشت */
+  let dragging = false;
+  function stageX(e) {
+    const r = cv.getBoundingClientRect();
+    return (e.clientX - r.left) * (G.W / Math.max(1, r.width));
+  }
+  cv.addEventListener('pointerdown', function (e) {
+    Snd.init();
+    if (settings.controls !== 'drag' || G.demo) return;
+    dragging = true;
+    G.input.dragX = stageX(e);
+    if (e.pointerId != null && cv.setPointerCapture) {
+      try { cv.setPointerCapture(e.pointerId); } catch (err) { /* بی‌خطر */ }
+    }
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    G.input.dragX = stageX(e);
+  });
+  const endDrag = function () { dragging = false; G.input.dragX = null; };
+  cv.addEventListener('pointerup', endDrag);
+  cv.addEventListener('pointercancel', endDrag);
+
+  /* جلوگیری از منوی زمینه و زوم ژست روی صحنه بازی */
+  stage.addEventListener('contextmenu', e => e.preventDefault());
+  stage.addEventListener('gesturestart', e => e.preventDefault());
+
+  /* --- دسته بازی: آنالوگ چپ + دکمه A --- */
+  function pollGamepad() {
+    if (!navigator.getGamepads) return;
+    let gp = null;
+    try {
+      const gps = navigator.getGamepads();
+      for (let i = 0; i < gps.length; i++) {
+        if (gps[i] && gps[i].connected) { gp = gps[i]; break; }
+      }
+    } catch (e) { return; }
+    if (!gp) { padIn.left = padIn.right = padIn.fire = false; return; }
+    const ax = (gp.axes && gp.axes[0]) || 0;
+    padIn.left  = ax < -0.35 || !!(gp.buttons[14] && gp.buttons[14].pressed);
+    padIn.right = ax >  0.35 || !!(gp.buttons[15] && gp.buttons[15].pressed);
+    padIn.fire  = !!(gp.buttons[0] && gp.buttons[0].pressed) ||
+                  !!(gp.buttons[7] && gp.buttons[7].pressed);
+  }
+
+  /* ============================================================
+     ۲۳) مکث، شروع و خروج
+     ============================================================ */
+  function pauseGame() {
+    if (G.state !== 'PLAYING') return;
+    G.state = 'PAUSED';
+    pauseOv.classList.add('show');
+    Snd.ufoStop();          /* وزوز بشقاب در مکث قطع می‌شود */
+    Snd.ui();
+  }
+  function resumeGame() {
+    if (G.state !== 'PAUSED') return;
+    G.state = 'PLAYING';
+    pauseOv.classList.remove('show');
+    if (ufo.active) gs('ufoStart');
+    Snd.ui();
+  }
+  function togglePause() {
+    if (G.demo) return;
+    if (G.state === 'PLAYING') pauseGame();
+    else if (G.state === 'PAUSED') resumeGame();
+  }
+
+  function openGame() {
+    Snd.init();
+    /* خارج کردن فوکوس از دکمه‌های لندینگ تا Space باعث کلیک مجدد نشود */
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    gameWrap.hidden = false;
+    gameOverEl.classList.remove('show');
+    pauseOv.classList.remove('show');
+    introOv.classList.remove('show');
+    stage.classList.remove('hurt');
+    resizeGame();
+    startRun(G.mode);
+  }
+
+  function quitToMenu() {
+    Snd.ufoStop();
+    Snd.ui();
+    gameWrap.hidden = true;
+    gameOverEl.classList.remove('show');
+    pauseOv.classList.remove('show');
+    introOv.classList.remove('show');
+    keyIn.left = keyIn.right = keyIn.fire = false;
+    touchIn.left = touchIn.right = touchIn.fire = false;
+    G.input.dragX = null;
+    G.demo = true;
+    sizeAttract();
+    resetDemo();
+  }
+
+  /* توقف خودکار وقتی تب پنهان می‌شود */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && G.state === 'PLAYING' && !G.demo) pauseGame();
+  });
+
+  /* ============================================================
+     ۲۴) مودال‌ها، تنظیمات، رکوردها و دستاوردها (UI)
+     ============================================================ */
+  function openModal(id) { $(id).classList.add('show'); Snd.init(); Snd.ui(); }
+  function closeModal(id) { $(id).classList.remove('show'); Snd.ui(); }
+
+  document.querySelectorAll('[data-close]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      closeModal(el.getAttribute('data-close'));
+    });
+  });
+
+  /* ردیف‌های تنظیمات: کلیک روی هر گزینه segment */
+  document.querySelectorAll('.seg[data-set]').forEach(function (seg) {
+    const key = seg.getAttribute('data-set');
+    seg.addEventListener('click', function (e) {
+      const b = e.target.closest ? e.target.closest('button[data-v]') : null;
+      if (!b) return;
+      const v = b.getAttribute('data-v');
+      settings[key] = (key === 'sound' || key === 'crt') ? Number(v) : v;
+      saveSettings();
+      applySettings();
+      Snd.init();
+      if (key === 'sound' && settings.sound) Snd.ui(); else Snd.ui();
+    });
+  });
+
+  /* اعمال تنظیمات روی DOM و موتور صدا */
+  function applySettings() {
+    /* خوشه دکمه‌های لمسی فقط روی دستگاه‌های لمسی */
+    document.documentElement.classList.toggle('no-touch', !IS_COARSE);
+    gameWrap.classList.toggle('crt', !!settings.crt);
+    gameWrap.setAttribute('data-controls', settings.controls);
+    muteBtn.classList.toggle('muted', !settings.sound);
+    Snd.setMuted(!settings.sound);
+    document.querySelectorAll('.seg[data-set]').forEach(function (seg) {
+      const key = seg.getAttribute('data-set');
+      const cur = (key === 'sound' || key === 'crt')
+        ? String(settings[key] ? 1 : 0)
+        : String(settings[key]);
+      seg.querySelectorAll('button').forEach(function (b) {
+        b.classList.toggle('on', b.getAttribute('data-v') === cur);
+      });
+    });
+  }
+
+  muteBtn.addEventListener('click', function () {
+    settings.sound = settings.sound ? 0 : 1;
+    saveSettings();
+    applySettings();
+    Snd.init();
+    if (settings.sound) Snd.ui();
+  });
+
+  /* انتخاب حالت بازی */
+  document.querySelectorAll('.mode-chip').forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      document.querySelectorAll('.mode-chip').forEach(o => o.classList.remove('sel'));
+      ch.classList.add('sel');
+      G.mode = ch.getAttribute('data-mode');
+      Snd.init();
+      Snd.ui();
+    });
+  });
+
+  /* تب‌های رکوردها */
+  let scoreTab = 'endless';
+  document.querySelectorAll('#scoreTabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#scoreTabs button').forEach(o => o.classList.remove('on'));
+      b.classList.add('on');
+      scoreTab = b.getAttribute('data-tab');
+      renderScoreTab(scoreTab);
+      Snd.ui();
+    });
+  });
+
+  function renderScoreTab(mode) {
+    const list = scores[mode] || [];
+    const el = $('scoreList');
+    if (!list.length) {
+      el.innerHTML = '<p class="empty-note">هنوز رکوردی ثبت نشده — اولین نفر باش!</p>';
+      return;
+    }
+    el.innerHTML = '';
+    list.forEach(function (e, i) {
+      const row = document.createElement('div');
+      row.className = 'score-row';
+      row.innerHTML = '<span>' + (i + 1) + '. ' + escapeHtml(e.name) +
+        (e.wave ? ' — موج ' + toFa(e.wave) : '') + '</span><b>' + e.score + '</b>';
+      el.appendChild(row);
+    });
+  }
+
+  function renderAchvList() {
+    const el = $('achvList');
+    el.innerHTML = '';
+    ACHV_DEF.forEach(function (a) {
+      const done = !!achv[a.id];
+      const d = document.createElement('div');
+      d.className = 'achv ' + (done ? 'done' : 'locked');
+      let extra = '';
+      if (a.id === 'ufo3' && !done) {
+        extra = ' — پیشرفت: ' + toFa(Math.min(achv.ufoProg || 0, 3)) + '/۳';
+      }
+      d.innerHTML = '<div class="achv-ico">' + a.icon + '</div>' +
+        '<div class="achv-txt"><b>' + a.name + (done ? ' ✓' : '') + '</b>' +
+        '<small>' + a.desc + extra + '</small></div>';
+      el.appendChild(d);
+    });
+  }
+
+  /* توست دستاورد/پیام */
+  function showToast(title, desc, icon) {
+    const wrap = $('toasts');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = '<span class="t-ico">' + (icon || '★') + '</span>' +
+      '<span><b>' + title + '</b><small>' + desc + '</small></span>';
+    wrap.appendChild(t);
+    setTimeout(function () {
+      t.classList.add('out');
+      setTimeout(function () { if (t.parentNode) t.remove(); }, 350);
+    }, 3400);
+  }
+
+  /* مودال نام برای ثبت رکورد */
+  function openNameModal() {
+    $('nameInput').value = settings.playerName || '';
+    $('nameModal').classList.add('show');
+    setTimeout(function () { $('nameInput').focus(); }, 120);
+  }
+  $('nameSave').addEventListener('click', function () {
+    const n = $('nameInput').value.trim() || 'بازیکن';
+    settings.playerName = n;
+    saveSettings();
+    $('nameModal').classList.remove('show');
+    commitScore(n);
+  });
+  $('nameSkip').addEventListener('click', function () {
+    $('nameModal').classList.remove('show');
+    commitScore(settings.playerName || 'بازیکن');
+  });
+
+  /* دکمه‌های اصلی */
+  $('playBtn').addEventListener('click', openGame);
+  $('closeBtn').addEventListener('click', quitToMenu);
+  $('pauseBtn').addEventListener('click', togglePause);
+  $('resumeBtn').addEventListener('click', resumeGame);
+  $('prestartBtn').addEventListener('click', function () {
+    pauseOv.classList.remove('show');
+    startRun(G.mode);
+  });
+  $('psettingsBtn').addEventListener('click', function () { openModal('settingsModal'); });
+  $('pquitBtn').addEventListener('click', quitToMenu);
+  $('restartBtn').addEventListener('click', function () {
+    gameOverEl.classList.remove('show');
+    startRun(G.mode);
+  });
+  $('menuBtn').addEventListener('click', quitToMenu);
+  $('openScores').addEventListener('click', function () {
+    renderScoreTab(scoreTab);
+    openModal('scoresModal');
+  });
+  $('openSettings').addEventListener('click', function () { openModal('settingsModal'); });
+  $('openAchv').addEventListener('click', function () {
+    renderAchvList();
+    openModal('achvModal');
+  });
+
+  /* ============================================================
+     ۲۵) حلقه اصلی — rAF با مهار dt
+     ============================================================ */
+  let lastT = performance.now();
+  function frame(now) {
+    requestAnimationFrame(frame);
+    let dt = (now - lastT) / 1000;
+    lastT = now;
+    if (!isFinite(dt) || dt <= 0) dt = 1 / 60;
+    if (dt > 0.05) dt = 0.05;              /* مهار پرش بزرگ (تعویض تب) */
+    const t = now / 1000;
+
+    pollGamepad();
+    mergeInputs();
+
+    if (G.state !== 'PAUSED') update(dt);
+
+    if (gameWrap.hidden) renderScene(actx, t);
+    else renderGame(t);
+
+    updateHud();
+  }
+
+  /* resize / orientation با تأخیر کوتاه برای ثبات چیدمان */
+  let resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    if (gameWrap.hidden) {
+      sizeAttract();
+    } else {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resizeGame, 80);
+    }
+  });
+  window.addEventListener('orientationchange', function () {
+    setTimeout(function () {
+      if (gameWrap.hidden) sizeAttract();
+      else resizeGame();
+    }, 220);
+  });
+
+  /* ============================================================
+     ۲۶) PWA — manifest و service worker به‌صورت inline
+     ============================================================ */
+  (function setupPWA() {
+    /* ساخت آیکون با canvas — یک اسپیرالی پیکسلی سبز روی زمینه تیره */
+    try {
+      const ic = document.createElement('canvas');
+      ic.width = ic.height = 192;
+      const g = ic.getContext('2d');
+      const bg = g.createRadialGradient(96, 78, 16, 96, 96, 132);
+      bg.addColorStop(0, '#0e2a19');
+      bg.addColorStop(1, '#020604');
+      g.fillStyle = bg;
+      g.fillRect(0, 0, 192, 192);
+      /* پیکسل‌های اسپیرالی از همان بیت‌مپ بازی */
+      const rows = BITS.squidA;
+      const px = 16, off = (192 - 8 * px) / 2;
+      g.fillStyle = '#46f08a';
+      for (let y = 0; y < rows.length; y++) {
+        for (let x = 0; x < rows[y].length; x++) {
+          if (rows[y][x] !== '.') g.fillRect(off + x * px, off + y * px + 8, px - 1, px - 1);
+        }
+      }
+      const iconURL = ic.toDataURL('image/png');
+
+      const manifest = {
+        name: 'تهاجم فضایی — Space Invaders',
+        short_name: 'SpaceInvaders',
+        description: 'بازی کلاسیک تهاجم فضایی، بازسازی‌شده در مرورگر با فیلتر CRT',
+        lang: 'fa',
+        dir: 'rtl',
+        start_url: location.href.split('#')[0],
+        scope: './',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: '#000000',
+        theme_color: '#000000',
+        icons: [
+          { src: iconURL, sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: iconURL, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+        ]
+      };
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest));
+      document.head.appendChild(link);
+
+      const apple = document.createElement('link');
+      apple.rel = 'apple-touch-icon';
+      apple.href = iconURL;
+      document.head.appendChild(apple);
+    } catch (e) { /* ساخت آیکون ناموفق — بی‌خطر رد می‌شویم */ }
+
+    /* service worker به‌صورت inline با cache-first برای آفلاین */
+    try {
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        const swCode = [
+          "const CACHE='si-v1';",
+          "self.addEventListener('install',()=>self.skipWaiting());",
+          "self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));",
+          "self.addEventListener('fetch',e=>{",
+          "  if(e.request.method!=='GET')return;",
+          "  e.respondWith(",
+          "    caches.open(CACHE).then(c=>c.match(e.request).then(hit=>",
+          "      hit||fetch(e.request).then(res=>{",
+          "        try{c.put(e.request,res.clone());}catch(_){}",
+          "        return res;",
+          "      }).catch(()=>hit)",
+          "    ))",
+          "  );",
+          "});"
+        ].join('\n');
+        const tryRegister = url => navigator.serviceWorker.register(url).catch(() => false);
+        const blobURL = URL.createObjectURL(new Blob([swCode], { type: 'text/javascript' }));
+        tryRegister(blobURL).then(ok => {
+          if (!ok) {
+            /* اگر مرورگر blob را نپذیرفت، با data URL تلاش می‌کنیم */
+            tryRegister('data:text/javascript;charset=utf-8,' + encodeURIComponent(swCode)).catch(() => {});
+          }
+        }).catch(() => {});
+      }
+    } catch (e) { /* PWA اختیاری است */ }
+  })();
+
+  /* ============================================================
+     BOOT
+     ============================================================ */
+  /* اولین تعامل کاربر = آزادسازی AudioContext (سیاست مرورگرها) */
+  window.addEventListener('pointerdown', function once() {
+    Snd.init();
+    window.removeEventListener('pointerdown', once);
+  });
+
+  sizeAttract();
+  resetDemo();          /* حالت جذب: دمو روی بوم پس‌زمینه اجرا می‌شود */
+  applySettings();
+  renderScoreTab(scoreTab);
+  renderAchvList();
+  requestAnimationFrame(frame);
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4efcf88ffd43801',t:'MTc5Mjc0ODc0NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
