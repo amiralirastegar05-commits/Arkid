@@ -3,322 +3,447 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0d12">
+<meta name="theme-color" content="#05070c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="مجموعه بازی‌های کلاسیک آرکید — طراحی و توسعه: AliGraph">
 <title>آرکید کلاسیک | Classic Arcade</title>
+<!-- آیکون سایت: جوی‌استیک طلایی (data URI) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0d12'/%3E%3Ccircle cx='16' cy='6.5' r='3' fill='%23ff8a5c'/%3E%3Crect x='14.8' y='8' width='2.4' height='8' rx='1.2' fill='%23f5c518'/%3E%3Crect x='5' y='15' width='22' height='11' rx='3' fill='%23f5c518'/%3E%3Ccircle cx='11' cy='20.5' r='2.2' fill='%230a0d12'/%3E%3Ccircle cx='21' cy='20.5' r='2.2' fill='%230a0d12'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
 <style>
+/* ============================================================
+   Premium Arcade — iOS 18 + Vision Pro + Apple Store
+   ============================================================ */
 :root {
-  --bg-deep: #060810; --bg: #0a0d12;
-  --panel: rgba(255,255,255,.04); --panel-hover: rgba(255,255,255,.07);
-  --border: rgba(255,255,255,.1); --border-hover: rgba(245,197,24,.5);
-  --text: #e8eef5; --text-dim: #8894a6;
-  --gold: #f5c518;
-  --radius: 16px; --radius-lg: 20px;
-  --shadow-lg: 0 20px 50px rgba(0,0,0,.5);
-  --shadow-glow: 0 0 40px rgba(245,197,24,.15);
+  /* پس‌زمینه */
+  --bg-0: #05070c; --bg-1: #080c14; --bg-2: #0d1219;
+  /* سطوح سالید (کارت‌ها) */
+  --surface: #0e131b; --surface-hover: #131a24; --surface-alt: #0a0e15;
+  /* متن */
+  --text-primary: #f0f3f8; --text-secondary: #8b95a8; --text-tertiary: #5a6477; --text-inverse: #0a0d12;
+  /* اکسنت طلایی */
+  --gold: #f5c518; --gold-light: #ffd54a; --gold-dark: #c9a010;
+  --gold-dim: rgba(245,197,24,.12); --gold-glow: rgba(245,197,24,.25);
+  /* border */
+  --border-subtle: rgba(255,255,255,.06); --border-normal: rgba(255,255,255,.1); --border-strong: rgba(255,255,255,.16);
+  /* سایه */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.3); --shadow-md: 0 8px 24px rgba(0,0,0,.4); --shadow-lg: 0 20px 50px rgba(0,0,0,.6);
+  /* فاصله */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-14: 56px; --space-18: 72px;
+  /* گوشه */
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px; --radius-2xl: 28px; --radius-full: 999px;
+  /* انیمیشن */
+  --ease-out: cubic-bezier(.2,.8,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { min-height: 100%; }
-html { background: var(--bg-deep); }
+html { background: var(--bg-0); scroll-behavior: smooth; }
+button, input { font-family: inherit; }
+[hidden] { display: none !important; }
+
+/* ---------- پس‌زمینه: دو درخشش بسیار ظریف + نویز ---------- */
 body {
   font-family: Vazirmatn, Tahoma, system-ui, sans-serif;
-  color: var(--text);
+  color: var(--text-primary);
   background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(245,197,24,.06), transparent 60%),
-    radial-gradient(ellipse 70% 40% at 50% 100%, rgba(96,165,250,.05), transparent 60%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+    radial-gradient(ellipse 70% 45% at 85% 0%, rgba(245,197,24,.06), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 15% 100%, rgba(59,130,246,.05), transparent 70%),
+    linear-gradient(180deg, #05070c 0%, #080c14 50%, #05070c 100%);
+  background-attachment: fixed;
   min-height: 100vh;
   display: flex; flex-direction: column;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  /* فضا برای نوار ناوبری پایین */
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
 }
 body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background-image:
-    linear-gradient(rgba(96,165,250,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(96,165,250,.025) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .025;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
 }
-body::after {
-  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  opacity: .04;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+main, footer { position: relative; z-index: 1; }
+main { flex: 1 1 auto; }
+
+/* ============================================================
+   Liquid Glass — فقط روی ۵ سطح شناور:
+   header · bottom-nav · sort-menu · about-card · toast
+   ============================================================ */
+.lg-glass {
+  background: linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.04));
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(255,255,255,.03),
+    0 8px 32px rgba(0,0,0,.45),
+    0 1px 2px rgba(0,0,0,.2);
 }
+
+/* ============ Header ============ */
 header {
-  position: sticky; top: 0; z-index: 20;
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px;
-  background: rgba(10,13,18,.78);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  height: 64px; padding: 0 20px;
+  display: flex; align-items: center; gap: 8px;
+  border-top: none; border-inline: none; border-radius: 0;
 }
-.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-primary); }
 .logo-icon {
-  width: 34px; height: 34px; border-radius: 10px;
+  width: 34px; height: 34px; border-radius: 50%;
   display: grid; place-items: center;
-  background: linear-gradient(135deg, var(--gold), #ff8a5c);
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
   color: #1a1500;
-  box-shadow: 0 4px 14px rgba(245,197,24,.3);
+  box-shadow: 0 2px 10px rgba(245,197,24,.28);
 }
-.logo-text { font-size: 15px; font-weight: 900; letter-spacing: .22em; }
+.logo-text { font-size: 15px; font-weight: 900; letter-spacing: .28em; }
 .header-spacer { flex: 1 1 auto; }
 .header-btn {
   width: 38px; height: 38px; border-radius: 10px;
-  border: 1px solid var(--border); background: var(--panel);
-  color: var(--text-dim);
-  display: grid; place-items: center;
-  cursor: pointer; text-decoration: none;
-  transition: all .18s;
+  display: grid; place-items: center; cursor: pointer; text-decoration: none;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border-normal);
+  transition: color .2s var(--ease-out), border-color .2s var(--ease-out), background .2s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
 }
-.header-btn:hover {
-  color: var(--gold);
-  border-color: var(--border-hover);
-  background: var(--panel-hover);
-  transform: translateY(-1px);
-}
+.header-btn:hover { color: var(--gold); border-color: rgba(245,197,24,.4); }
+.header-btn:focus-visible, .nav-item:focus-visible, .filter-chip:focus-visible, .sort-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .header-btn.spinning svg { animation: spin .8s linear infinite; }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.hero {
-  padding: 56px 20px 40px;
-  max-width: 1200px; margin: 0 auto;
-  text-align: center; position: relative; z-index: 1;
-}
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: 999px;
-  border: 1px solid rgba(245,197,24,.3);
-  background: rgba(245,197,24,.08);
-  color: var(--gold);
-  font-size: 11.5px; font-weight: 700; letter-spacing: .04em;
-  margin-bottom: 18px;
-}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============ Hero ============ */
+.hero { max-width: 900px; margin: 0 auto; padding: 72px 20px 48px; text-align: center; }
 .hero-title {
-  font-size: clamp(32px, 6vw, 56px); font-weight: 900;
-  line-height: 1.15; margin-bottom: 14px;
-  background: linear-gradient(135deg, #fff 30%, var(--gold) 60%, #ff8a5c 90%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent; color: transparent;
-  letter-spacing: -.02em;
+  font-size: clamp(36px, 5vw, 52px); font-weight: 900; letter-spacing: -.03em; line-height: 1.2;
+  background: linear-gradient(180deg, #ffffff 30%, #c4cbd8 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
 }
-.hero-sub {
-  font-size: clamp(13px, 2vw, 16px);
-  color: var(--text-dim); max-width: 560px;
-  margin: 0 auto 28px; line-height: 1.7;
-}
-.hero-stats {
-  display: inline-flex; gap: 28px;
-  padding: 16px 26px; border-radius: var(--radius);
-  background: var(--panel); border: 1px solid var(--border);
-}
-.stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.stat b { font-size: 24px; font-weight: 900; color: var(--gold); line-height: 1; }
-.stat span { font-size: 11px; color: var(--text-dim); letter-spacing: .04em; }
-.recent {
-  max-width: 1200px; margin: 0 auto 28px; padding: 0 20px;
-  position: relative; z-index: 1;
-}
-.recent h2 {
-  font-size: 12px; font-weight: 800;
-  letter-spacing: .16em; text-transform: uppercase;
-  color: var(--text-dim); margin-bottom: 12px;
-}
-.recent-list {
-  display: flex; gap: 10px; overflow-x: auto;
-  padding-bottom: 8px; scrollbar-width: thin;
-}
-.recent-list::-webkit-scrollbar { height: 6px; }
-.recent-list::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,.15); border-radius: 3px;
-}
+.hero-line { width: 60px; height: 2px; margin: 18px auto 20px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+.hero-sub { font-size: clamp(14px, 2vw, 16px); color: var(--text-secondary); max-width: 520px; margin: 0 auto 36px; line-height: 1.8; }
+.hero-stats { display: inline-flex; align-items: center; gap: 32px; }
+.stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.stat b { font-size: 26px; font-weight: 900; color: var(--gold); line-height: 1; }
+.stat span { font-size: 11px; color: var(--text-tertiary); }
+.stat-div { width: 1px; height: 32px; background: rgba(255,255,255,.08); }
+
+/* ============ ادامه بده ============ */
+.recent { max-width: 1200px; margin: 0 auto 32px; padding: 0 20px; }
+.recent h2 { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px; }
+.recent-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+.recent-list::-webkit-scrollbar { height: 5px; }
+.recent-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 3px; }
 .recent-card {
-  flex: 0 0 auto; display: flex; gap: 10px; align-items: center;
-  padding: 8px 14px 8px 8px; border-radius: var(--radius);
-  background: var(--panel); border: 1px solid var(--border);
-  cursor: pointer; text-decoration: none; color: inherit;
-  transition: all .16s; min-width: 170px;
+  flex: 0 0 auto; min-width: 170px; display: flex; gap: 10px; align-items: center;
+  padding: 8px 14px 8px 8px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--border-subtle);
+  cursor: pointer; transition: border-color .25s var(--ease-out), background .25s var(--ease-out);
 }
-.recent-card:hover { border-color: var(--border-hover); background: var(--panel-hover); }
-.recent-card-cover {
-  width: 44px; height: 44px; border-radius: 8px;
-  overflow: hidden; flex: 0 0 44px; background: #000;
-}
-.recent-card-cover svg { width: 100%; height: 100%; }
+.recent-card:hover { border-color: rgba(245,197,24,.3); background: var(--surface-hover); }
+.recent-card-cover { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 8px; overflow: hidden; background: #000; }
+.recent-card-cover svg { width: 100%; height: 100%; display: block; }
 .recent-card-body { display: flex; flex-direction: column; gap: 2px; }
 .recent-card-title { font-size: 12.5px; font-weight: 800; }
-.recent-card-meta { font-size: 10.5px; color: var(--text-dim); }
-.games {
-  max-width: 1200px; margin: 0 auto; padding: 0 20px 80px;
-  position: relative; z-index: 1; flex: 1 1 auto;
-}
-.section-head {
-  display: flex; justify-content: space-between;
-  align-items: center; gap: 16px;
-  margin-bottom: 22px; flex-wrap: wrap;
-}
-.section-head h2 { font-size: 22px; font-weight: 800; }
+.recent-card-meta { font-size: 10.5px; color: var(--text-tertiary); }
+
+/* ============ بازی‌ها + Toolbar ============ */
+.games { max-width: 1200px; margin: 0 auto; padding: 0 20px 56px; scroll-margin-top: 80px; }
+.section-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.section-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+
 .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .filter-chip {
-  padding: 7px 14px; border-radius: 999px;
-  border: 1px solid var(--border); background: var(--panel);
-  color: var(--text-dim); font-family: inherit;
-  font-size: 12px; font-weight: 700; cursor: pointer;
-  transition: all .16s;
+  padding: 8px 16px; border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle); background: transparent;
+  color: var(--text-secondary); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all .2s var(--ease-out);
 }
-.filter-chip:hover { color: var(--text); border-color: rgba(255,255,255,.2); }
-.filter-chip.on {
-  color: #1a1500; background: var(--gold); border-color: var(--gold);
-  box-shadow: 0 4px 14px rgba(245,197,24,.3);
+.filter-chip:hover { color: var(--text-primary); border-color: var(--border-normal); background: rgba(255,255,255,.03); }
+.filter-chip.on { background: var(--gold); border-color: var(--gold); color: var(--text-inverse); box-shadow: 0 2px 8px rgba(245,197,24,.25); }
+
+.games-toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
+.search-wrap { position: relative; flex: 1 1 240px; max-width: 340px; }
+.search-wrap > svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
+.search-input {
+  width: 100%; padding: 11px 16px 11px 42px; border-radius: var(--radius-md);
+  background: var(--surface); border: 1px solid var(--border-subtle);
+  color: var(--text-primary); font-size: 13px; outline: none;
+  transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out);
 }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 18px;
+.search-input::placeholder { color: var(--text-tertiary); }
+.search-input::-webkit-search-cancel-button { display: none; }
+.search-input:focus { border-color: rgba(245,197,24,.45); box-shadow: 0 0 0 3px var(--gold-dim); }
+.search-clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; border-radius: 7px; border: none; cursor: pointer;
+  background: rgba(255,255,255,.07); color: var(--text-secondary); display: none; place-items: center;
 }
+.search-clear.show { display: grid; }
+.search-clear:hover { color: var(--gold); }
+
+/* منوی مرتب‌سازی */
+.sort-wrap { position: relative; z-index: 30; }
+.sort-btn {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-width: 170px; padding: 11px 16px; border-radius: var(--radius-md);
+  background: var(--surface); border: 1px solid var(--border-subtle);
+  color: var(--text-primary); font-size: 12.5px; font-weight: 700; cursor: pointer; outline: none;
+  transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out);
+}
+.sort-btn:hover { border-color: var(--border-normal); }
+.sort-prefix { color: var(--text-tertiary); font-weight: 500; margin-inline-end: 4px; }
+.sort-btn svg { color: var(--text-tertiary); transition: transform .25s var(--ease-out), color .2s; flex: 0 0 auto; }
+.sort-wrap.open .sort-btn { border-color: rgba(245,197,24,.45); box-shadow: 0 0 0 3px var(--gold-dim); }
+.sort-wrap.open .sort-btn svg { transform: rotate(180deg); color: var(--gold); }
+.sort-menu {
+  position: absolute; top: calc(100% + 8px); inset-inline-start: 0;
+  min-width: 100%; width: max-content; list-style: none; padding: 6px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.04)), rgba(10,14,22,.55);
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(.96); transform-origin: top;
+  transition: opacity .18s, transform .22s var(--ease-out), visibility 0s .22s;
+}
+.sort-wrap.open .sort-menu { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.sort-menu li {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  padding: 9px 12px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  white-space: nowrap; cursor: pointer; transition: background .15s, color .15s;
+}
+.sort-menu li:hover, .sort-menu li.active { background: rgba(255,255,255,.08); }
+.sort-menu li.on { color: var(--gold); background: var(--gold-dim); }
+.sort-menu .tick { opacity: 0; color: var(--gold); font-size: 12px; }
+.sort-menu li.on .tick { opacity: 1; }
+
+/* ============ کارت‌ها (سالید، بدون شیشه) ============ */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
 .card {
-  position: relative; border-radius: var(--radius-lg);
-  overflow: hidden; background: var(--panel);
-  border: 1px solid var(--border); cursor: pointer;
-  display: flex; flex-direction: column;
-  transition: transform .22s, border-color .22s, box-shadow .22s, opacity .3s;
+  position: relative; display: flex; flex-direction: column; overflow: hidden; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl);
+  transition: transform .3s var(--ease-out), border-color .3s var(--ease-out), box-shadow .3s var(--ease-out), opacity .3s;
 }
-.card:hover:not(.soon) {
-  transform: translateY(-4px);
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
-}
-.card-cover { position: relative; aspect-ratio: 4/5; overflow: hidden; background: #000; }
+.card:hover:not(.soon) { transform: translateY(-3px); border-color: rgba(245,197,24,.3); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+.card-cover { position: relative; aspect-ratio: 4/5; background: #000; overflow: hidden; }
+.card-cover::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 -40px 60px rgba(0,0,0,.4); }
 .card-cover svg { width: 100%; height: 100%; display: block; }
 .card-hover-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.75));
-  display: grid; place-items: center;
-  opacity: 0; transition: opacity .22s; pointer-events: none;
+  position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.1), rgba(0,0,0,.7));
+  opacity: 0; transition: opacity .3s var(--ease-out);
 }
 .card:hover .card-hover-overlay { opacity: 1; }
 .card-play-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 11px 24px; border-radius: 999px;
-  background: var(--gold); color: #1a1500;
-  font-weight: 800; font-size: 14px;
-  transform: translateY(12px);
-  transition: transform .22s;
-  box-shadow: 0 8px 22px rgba(245,197,24,.4);
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: var(--radius-full);
+  background: var(--gold); color: var(--text-inverse); font-weight: 800; font-size: 13px;
+  transform: translateY(14px); transition: transform .3s var(--ease-out); box-shadow: 0 8px 24px rgba(245,197,24,.4);
 }
 .card:hover .card-play-btn { transform: translateY(0); }
-.soon-badge {
-  position: absolute; top: 12px; right: 12px;
-  padding: 4px 10px; border-radius: 999px;
-  background: rgba(0,0,0,.78); border: 1px solid var(--border);
-  color: var(--text-dim); font-size: 10px; font-weight: 700;
-  backdrop-filter: blur(8px);
-}
-.card-body { padding: 12px 14px 14px; }
-.card-title { font-size: 15px; font-weight: 800; margin-bottom: 3px; line-height: 1.3; }
-.card-sub { font-size: 10.5px; color: var(--text-dim); letter-spacing: .06em; margin-bottom: 10px; }
-.card-meta {
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 8px; font-size: 11px;
-}
-.card-meta .genre {
-  padding: 2px 8px; border-radius: 5px;
-  background: rgba(255,255,255,.06);
-  color: var(--text-dim); font-weight: 600;
-}
-.card-meta .best { color: var(--gold); font-weight: 800; }
-.card.soon { cursor: default; }
-.card.soon .card-cover { filter: grayscale(.65) brightness(.65); }
-.card.soon .card-title { color: var(--text-dim); }
+.card-body { padding: 14px 16px 16px; background: var(--surface); }
+.card-title { font-size: 14px; font-weight: 800; margin-bottom: 4px; line-height: 1.3; }
+.card-sub { font-size: 10px; color: var(--text-tertiary); letter-spacing: .08em; margin-bottom: 10px; direction: ltr; text-align: right; }
+.card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+.genre { padding: 3px 9px; border-radius: 6px; background: rgba(255,255,255,.05); color: var(--text-secondary); font-size: 10.5px; font-weight: 600; }
+.best { font-family: 'SF Mono', 'Courier New', monospace; color: var(--gold); font-weight: 700; font-size: 12px; }
+.plays-line { margin-top: 8px; font-size: 10px; color: var(--text-tertiary); }
+
+/* کارت «به زودی» */
+.card.soon { background: var(--surface-alt); border-color: rgba(255,255,255,.03); cursor: default; opacity: .6; }
+.card.soon .card-body { background: var(--surface-alt); }
+.card.soon .card-cover { filter: grayscale(1) brightness(.35); }
+.card.soon .card-title { color: var(--text-tertiary); }
+.card.soon .best { color: var(--text-tertiary); }
 .card.checking { opacity: .55; }
-.card.new-found { animation: newPulse 1.5s ease-out; }
-@keyframes newPulse {
-  0% { box-shadow: 0 0 0 0 rgba(245,197,24,.8); }
-  100% { box-shadow: 0 0 0 20px rgba(245,197,24,0); }
+
+.new-badge, .soon-badge {
+  position: absolute; top: 10px; right: 10px; z-index: 3;
+  padding: 3px 9px; border-radius: 6px; font-size: 9.5px; font-weight: 800;
 }
-footer {
-  padding: 22px 20px; border-top: 1px solid var(--border);
-  text-align: center; color: var(--text-dim);
-  font-size: 12px; line-height: 1.7;
-  position: relative; z-index: 1;
-}
+.new-badge { background: #10b981; color: #fff; letter-spacing: .02em; box-shadow: 0 2px 8px rgba(16,185,129,.3); }
+.soon-badge { background: rgba(0,0,0,.8); border: 1px solid rgba(255,255,255,.1); color: var(--text-tertiary); font-weight: 700; }
+
+/* ============ Footer ============ */
+footer { padding: 24px 20px; border-top: 1px solid var(--border-subtle); text-align: center; color: var(--text-tertiary); font-size: 12px; line-height: 1.8; margin-bottom: 8px; }
 footer a { color: var(--gold); text-decoration: none; font-weight: 700; }
 footer a:hover { text-decoration: underline; }
-/* ---- Toast ---- */
-.hub-toast {
-  position: fixed;
-  bottom: 24px; left: 50%;
-  transform: translate(-50%, 100px);
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #1a1f2e, #0f1420);
-  border: 1px solid rgba(245,197,24,.5);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 13px; font-weight: 700;
-  display: flex; align-items: center; gap: 10px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.6), 0 0 20px rgba(245,197,24,.2);
-  z-index: 1000;
-  opacity: 0;
-  transition: transform .35s cubic-bezier(.2, .9, .3, 1.2), opacity .3s;
-  max-width: min(420px, 90vw);
+footer .copy { margin-top: 6px; font-size: 11px; opacity: .7; }
+
+/* ============================================================
+   نوار ناوبری پایین (iOS 18 / Vision Pro)
+   ============================================================ */
+.bottom-nav {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 100;
+  width: min(440px, calc(100vw - 32px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
-.hub-toast.show { transform: translate(-50%, 0); opacity: 1; }
-.hub-toast .ico { font-size: 18px; flex: 0 0 auto; }
+.bottom-nav-inner {
+  display: flex; align-items: center; justify-content: space-around; gap: 4px; padding: 6px; border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255,255,255,.1), rgba(255,255,255,.04));
+  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(255,255,255,.03), 0 12px 40px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.3);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 8px 4px 6px; border: none; border-radius: 22px; background: transparent;
+  color: var(--text-secondary); font-size: 10px; font-weight: 600; cursor: pointer; position: relative;
+  transition: color .2s var(--ease-out), background .2s var(--ease-out), transform .2s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-item svg { width: 22px; height: 22px; transition: transform .25s var(--ease-spring); }
+.nav-item span { opacity: .75; transition: opacity .2s; }
+.nav-item.active {
+  color: var(--gold);
+  background: linear-gradient(135deg, rgba(245,197,24,.18), rgba(245,197,24,.06));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 2px 8px rgba(245,197,24,.15);
+}
+.nav-item.active svg { transform: scale(1.08); }
+.nav-item.active span { opacity: 1; font-weight: 700; }
+@media (hover: hover) { .nav-item:hover:not(.active) { color: var(--text-primary); background: rgba(255,255,255,.05); } }
+.nav-item:active { transform: scale(.94); }
+.nav-item.active:active { transform: scale(.96); }
+
+/* ============ مودال درباره ============ */
+.about-modal { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+.about-modal.show { display: flex; }
+.about-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.about-card {
+  position: relative; width: min(420px, 90vw); max-height: 88vh; overflow-y: auto;
+  border-radius: 24px; padding: 32px 24px 24px; text-align: center;
+  background: linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.04)), rgba(10,14,22,.6);
+  animation: modalIn .3s var(--ease-out);
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+.about-close {
+  position: absolute; top: 14px; left: 14px; width: 32px; height: 32px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--border-normal); background: rgba(255,255,255,.05); color: var(--text-secondary);
+  display: grid; place-items: center; font-size: 13px; transition: color .2s, border-color .2s;
+}
+.about-close:hover { color: var(--gold); border-color: rgba(245,197,24,.4); }
+.about-icon {
+  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark)); color: #1a1500; box-shadow: 0 6px 22px rgba(245,197,24,.3);
+}
+.about-card h2 { font-size: 22px; font-weight: 900; margin-bottom: 6px; letter-spacing: -.01em; }
+.about-tagline { color: var(--text-secondary); font-size: 13px; line-height: 1.7; margin-bottom: 20px; }
+.about-info { background: rgba(0,0,0,.2); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 4px 14px; margin-bottom: 20px; text-align: right; }
+.about-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,.07); font-size: 12.5px; }
+.about-row:last-child { border-bottom: none; }
+.about-row span { color: var(--text-secondary); }
+.about-row b { font-weight: 700; }
+.about-row b a { color: var(--gold); text-decoration: none; }
+.about-row b a:hover { text-decoration: underline; }
+.about-shortcuts { text-align: right; margin-bottom: 18px; }
+.about-shortcuts h3 { font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--text-tertiary); margin-bottom: 10px; }
+.shortcut { display: flex; align-items: center; gap: 10px; padding: 5px 0; font-size: 12.5px; }
+.shortcut kbd {
+  min-width: 32px; padding: 4px 8px; border-radius: 6px; text-align: center;
+  background: rgba(255,255,255,.07); border: 1px solid var(--border-normal); border-bottom-width: 2px;
+  font-family: monospace; font-size: 11px; font-weight: 800; color: var(--gold);
+}
+.about-footer { font-size: 11px; color: var(--text-tertiary); padding-top: 14px; border-top: 1px solid var(--border-subtle); }
+
+/* ============ Toast ============ */
+.hub-toast {
+  position: fixed; left: 50%; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 300;
+  display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 14px;
+  max-width: min(420px, 90vw); font-size: 13px; font-weight: 700;
+  background: linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.04)), rgba(10,14,22,.6);
+  animation: toastIn .35s var(--ease-out);
+  transition: opacity .3s, transform .3s var(--ease-out);
+}
+.hub-toast.hide { opacity: 0; transform: translate(-50%, 12px); }
+.hub-toast .ico { font-size: 17px; flex: 0 0 auto; }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ============ انیمیشن‌ها ============ */
+@keyframes cardEnter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.card.anim-in { animation: cardEnter .5s var(--ease-out) backwards; }
+@keyframes newPulse { 0% { box-shadow: 0 0 0 0 rgba(245,197,24,.5); } 100% { box-shadow: 0 0 0 18px rgba(245,197,24,0); } }
+.card.new-found { animation: cardEnter .5s var(--ease-out) backwards, newPulse 1.5s var(--ease-out) .5s; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* ============ ریسپانسیو ============ */
+@media (max-width: 768px) {
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .hero { padding: 48px 16px 32px; }
+  .games-toolbar { flex-direction: column; }
+  .search-wrap { max-width: none; flex: 1 1 auto; }
+  .sort-wrap { width: 100%; }
+  .sort-btn { width: 100%; }
+  .sort-menu { width: 100%; }
+}
 @media (max-width: 600px) {
-  header { padding: 12px 14px; gap: 8px; }
-  .logo-text { font-size: 13px; letter-spacing: .18em; }
-  .hero { padding: 36px 14px 28px; }
-  .hero-stats { gap: 20px; padding: 14px 20px; }
-  .stat b { font-size: 20px; }
+  header { height: 56px; padding: 0 14px; gap: 6px; }
+  .header-spacer { display: none; }
+  .logo { margin-inline-end: auto; }
+  .logo-icon { width: 30px; height: 30px; }
+  .logo-text { font-size: 13px; letter-spacing: .2em; }
+  .header-btn { width: 34px; height: 34px; }
   .recent { padding: 0 14px; }
-  .games { padding: 0 14px 60px; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; }
-  .card-body { padding: 10px 12px 12px; }
-  .card-title { font-size: 13.5px; }
-  .card-sub { font-size: 9.5px; }
+  .games { padding: 0 14px 40px; scroll-margin-top: 70px; }
+  .hero-stats { gap: 22px; }
+  .stat b { font-size: 22px; }
   .section-head h2 { font-size: 18px; }
+  footer { font-size: 11px; padding: 20px 14px; }
+  .hub-toast { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 480px) {
+  .bottom-nav { width: calc(100vw - 20px); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .nav-item { padding: 7px 2px 5px; font-size: 9px; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .grid { gap: 12px; }
+  .card-body { padding: 12px; }
+  .card-title { font-size: 13px; }
+  .card-sub { font-size: 9.5px; }
 }
 </style>
 </head>
 <body>
-<header>
-  <a class="logo" href="./index.html">
+
+<!-- ============ Header (شیشه) ============ -->
+<header class="lg-glass">
+  <a class="logo" href="./index.html" aria-label="آرکید">
     <div class="logo-icon">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="6" width="20" height="12" rx="2"/>
-        <circle cx="7" cy="12" r="1.5" fill="currentColor"/>
-        <circle cx="17" cy="12" r="1.5" fill="currentColor"/>
+        <rect x="2" y="6" width="20" height="12" rx="3"/>
+        <circle cx="7.5" cy="12" r="1.5" fill="currentColor"/>
+        <circle cx="16.5" cy="12" r="1.5" fill="currentColor"/>
       </svg>
     </div>
     <span class="logo-text">ARCADE</span>
   </a>
   <div class="header-spacer"></div>
-  <button class="header-btn" id="refreshBtn" title="بررسی بازی‌های جدید" aria-label="بررسی بازی‌های جدید">
+  <!-- پشتیبانی (آیکون هدفون) — لینک را در صورت نیاز تغییر دهید -->
+  <a class="header-btn" href="https://eitaa.com/dr_plus_ir" target="_blank" rel="noopener noreferrer" title="پشتیبانی" aria-label="پشتیبانی">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 14v-2a9 9 0 0 1 18 0v2"/>
+      <path d="M21 15a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2zM3 15a2 2 0 0 0 2 2h1v-6H5a2 2 0 0 0-2 2z"/>
+    </svg>
+  </a>
+  <!-- کانال (آیکون بلندگو) -->
+  <a class="header-btn" href="https://eitaa.com/dr_plus_ir" target="_blank" rel="noopener noreferrer" title="کانال دکتر پلاس" aria-label="کانال دکتر پلاس">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m3 11 18-5v12L3 14v-3z"/>
+      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
+    </svg>
+  </a>
+  <!-- طراح (آیکون قلم‌مو) -->
+  <a class="header-btn" href="https://aligraph-art.cv/" target="_blank" rel="noopener noreferrer" title="طراح و توسعه‌دهنده" aria-label="طراح و توسعه‌دهنده">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18.4 2.6a2 2 0 0 1 2.8 2.8L11 15.6 8.4 13z"/>
+      <path d="M8.4 13c-2.2 0-3.4 1.6-3.4 3.4 0 1.2-.7 2.2-2 2.6 1.2.9 2.6 1.4 4 1.4 2.5 0 4.5-2 4.5-4.5z"/>
+    </svg>
+  </a>
+  <button class="header-btn" id="refreshBtn" type="button" title="بررسی بازی‌های جدید" aria-label="بررسی بازی‌های جدید">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M23 4v6h-6M1 20v-6h6"/>
       <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
     </svg>
   </button>
-  <a class="header-btn" href="https://aligraph-art.cv/" target="_blank" rel="noopener noreferrer" title="طراح و توسعه‌دهنده">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 3a9 9 0 1 0 0 18c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6h1.3A5.3 5.3 0 0 0 21 10.3C21 6.2 16.9 3 12 3z"/>
-      <circle cx="7.2" cy="12" r="1.1" fill="currentColor" stroke="none"/>
-      <circle cx="9.8" cy="7.6" r="1.1" fill="currentColor" stroke="none"/>
-      <circle cx="14.4" cy="7.2" r="1.1" fill="currentColor" stroke="none"/>
-      <circle cx="17.4" cy="11" r="1.1" fill="currentColor" stroke="none"/>
-    </svg>
-  </a>
-  <a class="header-btn" href="https://eitaa.com/dr_plus_ir" target="_blank" rel="noopener noreferrer" title="کانال دکتر پلاس" aria-label="کانال دکتر پلاس">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="m3 11 18-5v12L3 14v-3z"/>
-      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>
-    </svg>
-  </a>
-  <button class="header-btn" id="installBtn" hidden title="نصب برنامه">
+  <button class="header-btn" id="installBtn" type="button" hidden title="نصب برنامه" aria-label="نصب برنامه">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>
     </svg>
@@ -326,30 +451,60 @@ footer a:hover { text-decoration: underline; }
 </header>
 
 <main>
-  <section class="hero">
-    <div class="hero-badge">▶ مجموعه‌ای از بازی‌های کلاسیک</div>
+  <!-- ============ Hero ============ -->
+  <section class="hero" id="hero">
     <h1 class="hero-title">آرکید کلاسیک</h1>
+    <div class="hero-line"></div>
     <p class="hero-sub">به یاد روزهای طلایی بازی‌های آرکید — بازسازی مدرن، تجربه نوستالژیک</p>
     <div class="hero-stats">
       <div class="stat"><b id="statGames">۰</b><span>بازی</span></div>
+      <div class="stat-div"></div>
       <div class="stat"><b id="statPlays">۰</b><span>دست بازی</span></div>
+      <div class="stat-div"></div>
       <div class="stat"><b id="statBest">۰</b><span>بهترین امتیاز</span></div>
     </div>
   </section>
 
+  <!-- ============ ادامه بده ============ -->
   <section class="recent" id="recentSection" hidden>
     <h2>ادامه بده</h2>
     <div class="recent-list" id="recentList"></div>
   </section>
 
-  <section class="games">
+  <!-- ============ همه بازی‌ها ============ -->
+  <section class="games" id="gamesSection">
     <div class="section-head">
       <h2>همه بازی‌ها</h2>
       <div class="filter-row" id="filters">
-        <button class="filter-chip on" data-filter="all">همه</button>
-        <button class="filter-chip" data-filter="shooter">شوتر</button>
-        <button class="filter-chip" data-filter="classic">کلاسیک</button>
-        <button class="filter-chip" data-filter="puzzle">پازل</button>
+        <button type="button" class="filter-chip on" data-filter="all">همه</button>
+        <button type="button" class="filter-chip" data-filter="shooter">شوتر</button>
+        <button type="button" class="filter-chip" data-filter="classic">کلاسیک</button>
+        <button type="button" class="filter-chip" data-filter="puzzle">پازل</button>
+      </div>
+    </div>
+    <div class="games-toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+        </svg>
+        <input type="search" id="searchInput" class="search-input" placeholder="جستجوی بازی..." autocomplete="off" aria-label="جستجوی بازی">
+        <button class="search-clear" id="searchClear" type="button" aria-label="پاک کردن جستجو">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="sort-wrap" id="sortWrap">
+        <button type="button" class="sort-btn" id="sortBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="مرتب‌سازی">
+          <span><span class="sort-prefix">مرتب‌سازی:</span><span id="sortLabel">پیش‌فرض</span></span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <ul class="sort-menu lg-glass" id="sortMenu" role="listbox" aria-label="مرتب‌سازی">
+          <li role="option" data-value="default" class="on" aria-selected="true"><span>پیش‌فرض</span><span class="tick">✓</span></li>
+          <li role="option" data-value="name" aria-selected="false"><span>نام بازی</span><span class="tick">✓</span></li>
+          <li role="option" data-value="year-new" aria-selected="false"><span>جدیدترین</span><span class="tick">✓</span></li>
+          <li role="option" data-value="year-old" aria-selected="false"><span>قدیمی‌ترین</span><span class="tick">✓</span></li>
+          <li role="option" data-value="best" aria-selected="false"><span>بهترین امتیاز</span><span class="tick">✓</span></li>
+          <li role="option" data-value="plays" aria-selected="false"><span>محبوب‌ترین</span><span class="tick">✓</span></li>
+        </ul>
       </div>
     </div>
     <div class="grid" id="grid"></div>
@@ -358,14 +513,75 @@ footer a:hover { text-decoration: underline; }
 
 <footer>
   <div>طراحی و توسعه توسط <a href="https://aligraph-art.cv/" target="_blank" rel="noopener noreferrer">AliGraph</a></div>
-  <div style="margin-top:6px;font-size:11px;opacity:.6">© 2026 — همه بازی‌ها با ❤️ در مرورگر شما</div>
+  <div class="copy">© 2026 — همه بازی‌ها با ❤️ در مرورگر شما</div>
 </footer>
+
+<!-- ============ نوار ناوبری پایین ============ -->
+<nav class="bottom-nav" id="bottomNav" role="tablist" aria-label="ناوبری اصلی">
+  <div class="bottom-nav-inner">
+    <button type="button" class="nav-item active" data-tab="home" role="tab" aria-selected="true" aria-label="خانه">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+      <span>خانه</span>
+    </button>
+    <button type="button" class="nav-item" data-tab="games" role="tab" aria-selected="false" aria-label="بازی‌ها">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 10v4M5 12h4"/><circle cx="15.5" cy="11" r=".8" fill="currentColor"/><circle cx="18" cy="13.2" r=".8" fill="currentColor"/></svg>
+      <span>بازی‌ها</span>
+    </button>
+    <button type="button" class="nav-item" data-tab="search" role="tab" aria-selected="false" aria-label="جستجو">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span>جستجو</span>
+    </button>
+    <button type="button" class="nav-item" data-tab="random" role="tab" aria-selected="false" aria-label="تصادفی">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+      <span>تصادفی</span>
+    </button>
+    <button type="button" class="nav-item" data-tab="about" role="tab" aria-selected="false" aria-label="درباره">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span>درباره</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ============ مودال درباره (شیشه) ============ -->
+<div class="about-modal" id="aboutModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-label="درباره آرکید">
+    <button class="about-close" id="aboutClose" type="button" aria-label="بستن">✕</button>
+    <div class="about-icon">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="6" width="20" height="12" rx="3"/>
+        <circle cx="8" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+        <circle cx="16" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <h2>آرکید کلاسیک</h2>
+    <p class="about-tagline">مجموعه‌ای از بازی‌های کلاسیک، بازسازی‌شده برای مرورگر</p>
+    <div class="about-info">
+      <div class="about-row"><span>تعداد بازی‌ها</span><b id="aboutGamesCount">-</b></div>
+      <div class="about-row"><span>مجموع دست‌های بازی</span><b id="aboutTotalPlays">-</b></div>
+      <div class="about-row"><span>تکنولوژی</span><b>HTML5 · Canvas · Web Audio</b></div>
+      <div class="about-row"><span>طراح و توسعه‌دهنده</span><b><a href="https://aligraph-art.cv/" target="_blank" rel="noopener noreferrer">AliGraph</a></b></div>
+    </div>
+    <div class="about-shortcuts">
+      <h3>میان‌برهای صفحه‌کلید</h3>
+      <div class="shortcut"><kbd>/</kbd><span>جستجو</span></div>
+      <div class="shortcut"><kbd>G</kbd><span>رفتن به گرید بازی‌ها</span></div>
+      <div class="shortcut"><kbd>R</kbd><span>بازی تصادفی</span></div>
+      <div class="shortcut"><kbd>?</kbd><span>درباره</span></div>
+      <div class="shortcut"><kbd>Esc</kbd><span>بستن / پاک کردن جستجو</span></div>
+    </div>
+    <div class="about-footer">ساخته‌شده با ❤️ برای همه‌ی نوستالژی‌بازها</div>
+  </div>
+</div>
 
 <script>
 (function(){
 'use strict';
 
+/* ---------- ابزارهای کمکی ---------- */
 const faNum = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+/* escape HTML برای امنیت */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const LS = {
   get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
@@ -374,6 +590,18 @@ const LS = {
 const getTop = id => { try { return parseInt(localStorage.getItem('arcade_top_'+id)||'0',10)||0; } catch(e){ return 0; } };
 const getPlays = () => { try { return parseInt(localStorage.getItem('arcade_plays')||'0',10)||0; } catch(e){ return 0; } };
 const getLast = () => LS.get('arcade_last',[]);
+
+/* تعداد دفعات بازی و تاریخ افزوده‌شدن */
+const getPlayCount = id => { try { return parseInt(localStorage.getItem('arcade_playcount_'+id)||'0',10)||0; } catch(e){ return 0; } };
+const getAddedDate = id => { try { return parseInt(localStorage.getItem('arcade_added_'+id)||'0',10)||0; } catch(e){ return 0; } };
+const setAddedDate = id => {
+  try { if (!localStorage.getItem('arcade_added_'+id)) localStorage.setItem('arcade_added_'+id, String(Date.now())); } catch(e){}
+};
+const isNewGame = id => { const t = getAddedDate(id); return t > 0 && Date.now() - t < 7*24*60*60*1000; };
+
+/* وضعیت جستجو و مرتب‌سازی */
+let searchQuery = '';
+let sortMode = 'default';
 
 /* ============================================================
    آرایهٔ بازی‌ها
@@ -410,6 +638,21 @@ const COVERS = {
 };
 
 /* ============================================================
+   Toast (شیشه) — بالاتر از bottom nav
+   ============================================================ */
+function showToast(text, icon) {
+  const el = document.createElement('div');
+  el.className = 'hub-toast lg-glass';
+  el.setAttribute('role', 'status');
+  el.innerHTML = `<span class="ico">${esc(icon || '✨')}</span><span>${esc(text)}</span>`;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('hide');
+    setTimeout(() => el.remove(), 350);
+  }, 3500);
+}
+
+/* ============================================================
    تشخیص خودکار وجود فایل‌های بازی
    ============================================================ */
 let filesChecked = false;
@@ -422,11 +665,9 @@ async function checkOneFile(game) {
     const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
     if (res.status === 404) return false;
     if (res.ok) return true;
-    // 403, 500, 405 و بقیه: نامشخص — پرچم دستی حفظ بشه
-    return null;
+    return null; // 403، 500، 405 و ...: نامشخص — پرچم دستی حفظ بشه
   } catch (e) {
-    // خطای شبکه یا CORS — نامشخص
-    return null;
+    return null; // خطای شبکه یا CORS — نامشخص
   }
 }
 
@@ -435,61 +676,36 @@ async function checkGameFiles(opts) {
   const silent = !!opts.silent;
 
   // روی file:// امکان fetch نیست — از پرچم دستی استفاده کن
-  if (location.protocol === 'file:') {
-    filesChecked = true;
-    return;
-  }
-
+  if (location.protocol === 'file:') { filesChecked = true; return; }
   if (checkPromise && !opts.force) return checkPromise;
 
   const changed = [];
-
   const run = (async () => {
-    if (!silent) {
-      document.querySelectorAll('.card').forEach(c => c.classList.add('checking'));
-    }
+    if (!silent) document.querySelectorAll('.card').forEach(c => c.classList.add('checking'));
 
     await Promise.all(GAMES.map(async (g) => {
       const prev = g.available;
       const exists = await checkOneFile(g);
       if (exists === true) {
+        if (!g.available) setAddedDate(g.id);
         g.available = true;
       } else if (exists === false) {
         g.available = false;
       }
-      // exists === null: پرچم دستی حفظ بشه
-      if (!prev && g.available) {
-        changed.push(g);
-        newFoundGames.add(g.id);
-      }
+      if (!prev && g.available) { changed.push(g); newFoundGames.add(g.id); }
     }));
 
     filesChecked = true;
+    renderAll();
 
-    // Re-render
-    const activeFilter = (document.querySelector('.filter-chip.on') || {}).dataset?.filter || 'all';
-    renderAll(activeFilter);
-
-    // Toast برای بازی‌های جدید
     if (changed.length > 0 && !silent) {
-      if (changed.length === 1) {
-        showToast(`بازی جدید پیدا شد: ${changed[0].title}`, '✨');
-      } else {
-        showToast(`${changed.length} بازی جدید پیدا شد!`, '🎮');
-      }
-      // پاک کردن انیمیشن جدید بعد از مدتی
-      setTimeout(() => {
-        changed.forEach(g => newFoundGames.delete(g.id));
-      }, 3000);
+      if (changed.length === 1) showToast('بازی جدید پیدا شد: ' + changed[0].title, '✨');
+      else showToast(faNum(changed.length) + ' بازی جدید پیدا شد!', '🎮');
+      setTimeout(() => changed.forEach(g => newFoundGames.delete(g.id)), 3000);
     }
 
-    // پاک کردن حالت loading
     document.querySelectorAll('.card.checking').forEach(c => c.classList.remove('checking'));
-
-    // پاک کردن انیمیشن new-found بعد از مدتی
-    setTimeout(() => {
-      document.querySelectorAll('.card.new-found').forEach(c => c.classList.remove('new-found'));
-    }, 2000);
+    setTimeout(() => document.querySelectorAll('.card.new-found').forEach(c => c.classList.remove('new-found')), 2000);
   })();
 
   checkPromise = run;
@@ -497,49 +713,68 @@ async function checkGameFiles(opts) {
 }
 
 /* ============================================================
-   Toast
+   ساخت کارت‌ها
    ============================================================ */
-function showToast(text, icon) {
-  const el = document.createElement('div');
-  el.className = 'hub-toast';
-  el.innerHTML = `<span class="ico">${icon || '✨'}</span><span>${text}</span>`;
-  document.body.appendChild(el);
-  requestAnimationFrame(() => el.classList.add('show'));
-  setTimeout(() => {
-    el.classList.remove('show');
-    setTimeout(() => el.remove(), 400);
-  }, 3500);
-}
-
-/* ============================================================
-   ساخت کارت
-   ============================================================ */
-function cardHTML(g){
+function cardHTML(g, index){
+  index = index || 0;
   const best = getTop(g.id);
+  const plays = getPlayCount(g.id);
+  const isNew = isNewGame(g.id);
   const dis = !g.available;
-  const isNew = newFoundGames.has(g.id);
-  return `<div class="card ${dis?'soon':''} ${isNew?'new-found':''}" data-id="${g.id}">
+  const isAnim = newFoundGames.has(g.id);
+  const delay = Math.min(index * 35, 700);
+  return `<div class="card ${dis?'soon':''} ${isAnim?'new-found':''} anim-in" data-id="${esc(g.id)}" style="animation-delay:${delay}ms">
     <div class="card-cover">
       ${COVERS[g.cover]?COVERS[g.cover]():''}
+      ${isNew && !dis ? '<span class="new-badge">جدید</span>' : ''}
       ${dis?'<span class="soon-badge">به زودی</span>':''}
       ${!dis?`<div class="card-hover-overlay"><div class="card-play-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>بازی کن</div></div>`:''}
     </div>
     <div class="card-body">
-      <div class="card-title">${g.title}</div>
-      <div class="card-sub">${g.sub} · ${g.year}</div>
+      <div class="card-title">${esc(g.title)}</div>
+      <div class="card-sub">${esc(g.sub)} · ${esc(g.year)}</div>
       <div class="card-meta">
-        <span class="genre">${g.genre}</span>
+        <span class="genre">${esc(g.genre)}</span>
         <span class="best">${best>0?faNum(best):'—'}</span>
       </div>
+      ${plays > 0 ? `<div class="plays-line">🎮 ${faNum(plays)} بار بازی</div>` : ''}
     </div>
   </div>`;
 }
 
-function renderGrid(filter){
-  filter = filter || 'all';
+/* بازی‌های قابل نمایش با توجه به فیلتر، جستجو و مرتب‌سازی */
+function getVisibleGames() {
+  let gs = GAMES.slice();
+  const activeFilter = (document.querySelector('.filter-chip.on') || {}).dataset?.filter || 'all';
+  if (activeFilter !== 'all') gs = gs.filter(g => g.genreTag === activeFilter);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    gs = gs.filter(g =>
+      g.title.toLowerCase().includes(q) ||
+      g.sub.toLowerCase().includes(q) ||
+      g.genre.toLowerCase().includes(q)
+    );
+  }
+  switch (sortMode) {
+    case 'name': gs.sort((a, b) => a.title.localeCompare(b.title, 'fa')); break;
+    case 'year-new': gs.sort((a, b) => b.year - a.year); break;
+    case 'year-old': gs.sort((a, b) => a.year - b.year); break;
+    case 'best': gs.sort((a, b) => getTop(b.id) - getTop(a.id)); break;
+    case 'plays': gs.sort((a, b) => getPlayCount(b.id) - getPlayCount(a.id)); break;
+  }
+  return gs;
+}
+
+function renderGrid() {
   const grid = document.getElementById('grid');
-  const gs = filter==='all' ? GAMES : GAMES.filter(g => g.genreTag===filter);
-  grid.innerHTML = gs.map(cardHTML).join('');
+  const gs = getVisibleGames();
+  if (!gs.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--text-secondary)">' +
+      '<p style="font-size:15px;font-weight:700;margin-bottom:6px">بازی‌ای پیدا نشد</p>' +
+      '<p style="font-size:12px;opacity:.7">فیلتر یا جستجو رو تغییر بده</p></div>';
+    return;
+  }
+  grid.innerHTML = gs.map((g, i) => cardHTML(g, i)).join('');
   grid.querySelectorAll('.card:not(.soon)').forEach(c => {
     c.addEventListener('click', () => {
       const g = GAMES.find(x => x.id === c.dataset.id);
@@ -556,10 +791,10 @@ function renderRecent(){
   section.hidden = false;
   list.innerHTML = games.map(g => {
     const top = getTop(g.id);
-    return `<div class="recent-card" data-id="${g.id}">
+    return `<div class="recent-card" data-id="${esc(g.id)}">
       <div class="recent-card-cover">${COVERS[g.cover]?COVERS[g.cover]():''}</div>
       <div class="recent-card-body">
-        <div class="recent-card-title">${g.title}</div>
+        <div class="recent-card-title">${esc(g.title)}</div>
         <div class="recent-card-meta">بهترین: ${top>0?faNum(top):'—'}</div>
       </div>
     </div>`;
@@ -580,19 +815,21 @@ function updateStats(){
   document.getElementById('statBest').textContent = faNum(best);
 }
 
-function renderAll(filter) {
-  updateStats();
-  renderRecent();
-  renderGrid(filter);
-}
+function renderAll() { updateStats(); renderRecent(); renderGrid(); }
 
 function launch(g){
   if (!g.available) return;
+  try { localStorage.setItem('arcade_playcount_'+g.id, String(getPlayCount(g.id) + 1)); } catch(e){}
   const last = getLast().filter(x => x!==g.id);
   last.unshift(g.id);
   LS.set('arcade_last', last.slice(0,6));
   LS.set('arcade_plays', getPlays()+1);
   location.href = g.file;
+}
+
+function launchRandom() {
+  const available = GAMES.filter(g => g.available);
+  if (available.length) launch(available[Math.floor(Math.random() * available.length)]);
 }
 
 /* ============================================================
@@ -602,7 +839,7 @@ document.getElementById('filters').addEventListener('click', e => {
   const b = e.target.closest('.filter-chip');
   if (!b) return;
   document.querySelectorAll('.filter-chip').forEach(x => x.classList.toggle('on', x===b));
-  renderGrid(b.dataset.filter);
+  renderGrid();
 });
 
 /* ============================================================
@@ -615,9 +852,7 @@ document.getElementById('refreshBtn').addEventListener('click', async () => {
   btn.classList.remove('spinning');
 });
 
-/* ============================================================
-   چک خودکار هنگام برگشت به تب (با throttle)
-   ============================================================ */
+/* چک خودکار هنگام برگشت به تب (با throttle) */
 let lastAutoCheck = 0;
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && filesChecked && Date.now() - lastAutoCheck > 45000) {
@@ -643,11 +878,175 @@ document.getElementById('installBtn').addEventListener('click', async () => {
 });
 
 /* ============================================================
+   جستجو
+   ============================================================ */
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+
+searchInput.addEventListener('input', () => {
+  searchQuery = searchInput.value.trim();
+  searchClear.classList.toggle('show', searchQuery.length > 0);
+  renderGrid();
+});
+searchClear.addEventListener('click', () => {
+  searchInput.value = ''; searchQuery = '';
+  searchClear.classList.remove('show');
+  searchInput.focus();
+  renderGrid();
+});
+
+/* ============================================================
+   منوی مرتب‌سازی سفارشی (شیشه)
+   ============================================================ */
+const sortWrap = document.getElementById('sortWrap');
+const sortBtn = document.getElementById('sortBtn');
+const sortMenu = document.getElementById('sortMenu');
+const sortLabel = document.getElementById('sortLabel');
+{
+  const opts = Array.from(sortMenu.querySelectorAll('li'));
+  let activeIdx = -1;
+  const setActive = i => { activeIdx = i; opts.forEach((o, k) => o.classList.toggle('active', k === i)); };
+  const closeMenu = () => { sortWrap.classList.remove('open'); sortBtn.setAttribute('aria-expanded', 'false'); setActive(-1); };
+  const openMenu = () => { sortWrap.classList.add('open'); sortBtn.setAttribute('aria-expanded', 'true'); setActive(opts.findIndex(o => o.classList.contains('on'))); };
+  const choose = o => {
+    sortMode = o.dataset.value;
+    sortLabel.textContent = o.firstElementChild.textContent;
+    opts.forEach(x => { const on = x === o; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    closeMenu();
+    renderGrid();
+  };
+  sortBtn.addEventListener('click', () => sortWrap.classList.contains('open') ? closeMenu() : openMenu());
+  opts.forEach((o, i) => {
+    o.addEventListener('click', () => choose(o));
+    o.addEventListener('mouseenter', () => setActive(i));
+  });
+  document.addEventListener('click', e => { if (!sortWrap.contains(e.target)) closeMenu(); });
+  sortWrap.addEventListener('keydown', e => {
+    const open = sortWrap.classList.contains('open');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!open) { openMenu(); return; }
+      const d = e.key === 'ArrowDown' ? 1 : -1;
+      setActive((activeIdx + d + opts.length) % opts.length);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      if (open && activeIdx >= 0) { e.preventDefault(); choose(opts[activeIdx]); }
+    } else if (e.key === 'Escape') {
+      if (open) { e.preventDefault(); closeMenu(); sortBtn.focus(); }
+    }
+    e.stopPropagation(); // جلوگیری از فعال شدن میان‌برهای سراسری
+  });
+}
+
+/* ============================================================
+   مودال درباره
+   ============================================================ */
+const aboutModal = document.getElementById('aboutModal');
+function openAboutModal() {
+  document.getElementById('aboutGamesCount').textContent = faNum(GAMES.filter(g=>g.available).length);
+  document.getElementById('aboutTotalPlays').textContent = faNum(getPlays());
+  aboutModal.classList.add('show');
+  setActiveTab('about');
+  document.getElementById('aboutClose').focus();
+}
+function closeAboutModal() {
+  if (!aboutModal.classList.contains('show')) return;
+  aboutModal.classList.remove('show');
+  syncTabWithScroll(true);
+}
+document.getElementById('aboutClose').addEventListener('click', closeAboutModal);
+aboutModal.querySelector('.about-backdrop').addEventListener('click', closeAboutModal);
+
+/* ============================================================
+   نوار ناوبری پایین: setActiveTab + کلیک‌ها
+   ============================================================ */
+const bottomNav = document.getElementById('bottomNav');
+const navItems = bottomNav.querySelectorAll('.nav-item');
+
+function setActiveTab(tab) {
+  navItems.forEach(b => {
+    const isActive = b.dataset.tab === tab;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+}
+
+navItems.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    setActiveTab(tab);
+    switch (tab) {
+      case 'home':
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        break;
+      case 'games':
+        document.querySelector('.games')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        break;
+      case 'search':
+        document.querySelector('.games')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => { searchInput?.focus(); searchInput?.select?.(); }, 400);
+        break;
+      case 'random':
+        launchRandom();
+        // برگردون به تب خانه بعد از کمی
+        setTimeout(() => setActiveTab('home'), 300);
+        break;
+      case 'about':
+        openAboutModal();
+        break;
+    }
+  });
+});
+
+/* ---------- اسکرول اسپای: تعیین تب فعال بر اساس موقعیت اسکرول ---------- */
+const gamesEl = document.querySelector('.games');
+let scrollSpyTicking = false;
+function syncTabWithScroll(force) {
+  const active = bottomNav.querySelector('.nav-item.active');
+  if (!active || !gamesEl) return;
+  const t = active.dataset.tab;
+  const reached = gamesEl.getBoundingClientRect().top < window.innerHeight * 0.4;
+  if (force && (t === 'about' || t === 'random')) { setActiveTab(reached ? 'games' : 'home'); return; }
+  if (reached) {
+    if (t !== 'games' && t !== 'search' && t !== 'about') setActiveTab('games');
+  } else if (t === 'games') {
+    setActiveTab('home');
+  }
+}
+window.addEventListener('scroll', () => {
+  if (scrollSpyTicking) return;
+  scrollSpyTicking = true;
+  requestAnimationFrame(() => { syncTabWithScroll(false); scrollSpyTicking = false; });
+}, { passive: true });
+
+/* ============================================================
+   میان‌برهای صفحه‌کلید
+   ============================================================ */
+document.addEventListener('keydown', e => {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+    if (e.key === 'Escape') e.target.blur();
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === '/') { e.preventDefault(); searchInput.focus(); }
+  else if (e.key === 'g' || e.key === 'G') { gamesEl?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  else if (e.key === 'r' || e.key === 'R') { launchRandom(); }
+  else if (e.key === 'Escape') {
+    if (aboutModal.classList.contains('show')) closeAboutModal();
+    else if (searchQuery) {
+      searchInput.value = ''; searchQuery = '';
+      searchClear.classList.remove('show');
+      renderGrid();
+    }
+  }
+  else if (e.key === '?' || e.key === '؟') { openAboutModal(); }
+});
+
+/* ============================================================
    شروع
    ============================================================ */
-// ۱) رندر اولیه با پرچم‌های دستی (بدون تأخیر، کاربر فوراً محتوا رو می‌بینه)
-renderAll('all');
-
+// ۱) رندر اولیه با پرچم‌های دستی (محتوا فوراً دیده می‌شود)
+renderAll();
 // ۲) چک خودکار فایل‌ها در پس‌زمینه
 checkGameFiles({ silent: false });
 
