@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>گیم رانر | مسابقه حرفه‌ای مدرن</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Game Runner">
+    <meta name="theme-color" content="#0a0f1e">
+    <meta name="description" content="گیم رانر — مسابقه حرفه‌ای ماشین‌ها">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+
+        body.day-mode {
+            background: linear-gradient(135deg, #ff4d4d, #ffffff);
+        }
+        body.day-mode .app-container {
+            background: rgba(255, 245, 240, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0,0,0,0.15);
+            color: #1e1e1e;
+        }
+        body.day-mode .status-bar,
+        body.day-mode .nav-tabs,
+        body.day-mode .car-card,
+        body.day-mode .upgrade-item,
+        body.day-mode .setting-row {
+            color: #1e1e1e;
+            background: rgba(0,0,0,0.08);
+        }
+        body.day-mode .coin-panel {
+            background: #f0a500;
+            color: #2c1e0a;
+        }
+        body.day-mode .highscore-badge {
+            background: #e0e0e0;
+            color: #b83b1e;
+        }
+        body.day-mode button:not(.buy-car-btn):not(.upg-btn) {
+            background: #c2410c;
+            color: white;
+        }
+
+        body.night-mode {
+            background: #03050b;
+        }
+        body.night-mode .app-container {
+            background: rgba(18, 25, 45, 0.9);
+            color: #f5f5f5;
+        }
+        body.night-mode .status-bar,
+        body.night-mode .nav-tabs,
+        body.night-mode .car-card,
+        body.night-mode .upgrade-item,
+        body.night-mode .setting-row {
+            color: #f5f5f5;
+            background: rgba(0,0,0,0.4);
+        }
+
+        .app-container {
+            max-width: 700px;
+            width: 100%;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .status-bar {
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .back-btn {
+            width: 36px; height: 36px;
+            display: grid; place-items: center;
+            border-radius: 10px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.15);
+            color: currentColor;
+            text-decoration: none;
+            font-size: 18px;
+            transition: .2s;
+            flex: 0 0 auto;
+        }
+        .back-btn:hover {
+            background: rgba(245,197,24,.15);
+            border-color: rgba(245,197,24,.4);
+            color: #f5c518;
+        }
+        .coin-panel {
+            background: linear-gradient(135deg, #f5b042, #ffd966);
+            padding: 6px 18px;
+            border-radius: 60px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+        .highscore-badge {
+            background: #1e2a3e;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 12px 0 12px;
+            background: rgba(0,0,0,0.2);
+        }
+        .tab-btn {
+            flex: 1 0 auto;
+            min-width: 70px;
+            background: none;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            padding: 10px 6px;
+            border-radius: 32px;
+            transition: 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #b9c7d9;
+        }
+        .tab-btn i {
+            font-size: 1rem;
+        }
+        .tab-btn.active {
+            background: linear-gradient(120deg, #ffb347, #ff7e05);
+            color: #0a0a1a;
+            box-shadow: 0 -2px 6px #ff9f2e;
+        }
+
+        .section {
+            display: none;
+            padding: 20px 16px 28px;
+            animation: fade 0.25s ease;
+        }
+        .section.active-section {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .game-area {
+            display: flex;
+            justify-content: center;
+            padding: 8px;
+        }
+        canvas {
+            background: #1f2a3a;
+            border-radius: 32px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.5);
+            width: 100%;
+            height: auto;
+            cursor: grab;
+            touch-action: none;
+            display: block;
+            margin: 0 auto;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            background: #00000066;
+            padding: 10px 18px;
+            border-radius: 50px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .restart-btn {
+            background: #ff5722;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .car-grid, .upgrade-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .car-card {
+            background: rgba(0,0,0,0.4);
+            border-radius: 28px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-right: 4px solid #ffb347;
+        }
+        .car-info h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .car-stats {
+            font-size: 0.7rem;
+        }
+        button {
+            background: #2a3b55;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            color: white;
+            transition: 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+        .upgrade-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 28px;
+            padding: 12px 16px;
+            margin: 6px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 12px 18px;
+            border-radius: 48px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .social-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .social-btn {
+            background: #1e2b3c;
+            padding: 8px 14px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+        }
+        .buy-car-btn:disabled {
+            background: #6c757d !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .buy-car-btn.enabled-btn {
+            background: #2ecc71 !important;
+        }
+        .modal-message {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+        }
+        .modal-card {
+            background: #221c2e;
+            border-radius: 48px;
+            padding: 28px;
+            text-align: center;
+            border: 1px solid gold;
+            max-width: 300px;
+            width: 85%;
+            color: #f5f5f5;
+        }
+        .tip-text {
+            background: #00000066;
+            padding: 12px;
+            border-radius: 28px;
+            margin-top: 16px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 550px) {
+            .tab-btn span { display: none; }
+            .tab-btn i { margin: 0; font-size: 1.3rem; }
+            .tab-btn { min-width: 55px; padding: 8px 4px; }
+            .car-card { flex-direction: column; align-items: stretch; text-align: center; }
+            .car-card button { align-self: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="status-bar">
+        <a href="./index.html" class="back-btn" aria-label="بازگشت به آرکید" title="بازگشت">←</a>
+        <div class="coin-panel"><i class="fas fa-coins"></i> <span id="totalCoinsDisplay">0</span></div>
+        <div class="highscore-badge"><i class="fas fa-trophy"></i> <span id="highScoreDisplay">0</span></div>
+    </div>
+    <div class="nav-tabs">
+        <button class="tab-btn" data-tab="garage"><i class="fas fa-car"></i><span> گاراژ</span></button>
+        <button class="tab-btn" data-tab="shop"><i class="fas fa-store"></i><span> فروشگاه</span></button>
+        <button class="tab-btn" data-tab="play"><i class="fas fa-gamepad"></i><span> بازی</span></button>
+        <button class="tab-btn" data-tab="settings"><i class="fas fa-sliders-h"></i><span> تنظیمات</span></button>
+        <button class="tab-btn" data-tab="guide"><i class="fas fa-book-open"></i><span> راهنما</span></button>
+    </div>
+
+    <div id="garage" class="section"><h2><i class="fas fa-garage"></i> گاراژ شخصی</h2><div id="ownedCarsList" class="car-grid"></div>
+        <div style="margin-top: 24px; border-radius: 32px; padding: 16px; background:rgba(0,0,0,0.3);"><h3><i class="fas fa-gift"></i> هدیه روزانه</h3><button id="dailyRewardBtn" style="background:#ffaa33;"><i class="fas fa-calendar-day"></i> دریافت سکه</button></div>
+        <div style="margin-top: 16px; text-align:center;"><button id="upgradeFromGarageBtn"><i class="fas fa-chart-line"></i> ارتقاها</button></div>
+    </div>
+
+    <div id="shop" class="section"><h2><i class="fas fa-shopping-cart"></i> فروشگاه ماشین‌ها</h2><div id="shopCarsList" class="car-grid"></div>
+        <h3 style="margin-top: 24px;"><i class="fas fa-rocket"></i> ارتقاهای ویژه</h3><div id="upgradesShopList"></div>
+    </div>
+
+    <div id="play" class="section">
+        <div class="game-header"><span><i class="fas fa-tachometer-alt"></i> سرعت: <span id="currentSpeedVal">0</span></span><span><i class="fas fa-coins"></i> سکه دور: <span id="runCoinsVal">0</span></span><span id="gotdBadge" style="display:none;background:#f5c518;color:#000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:800;">⭐ ×۲</span><button id="quickRestartBtn" class="restart-btn"><i class="fas fa-sync-alt"></i> نو</button></div>
+        <div class="game-area"><canvas id="gameCanvas" width="650" height="800" style="width:100%; height:auto; max-width:650px; aspect-ratio:650/800"></canvas></div>
+        <p style="text-align:center; margin-top:12px;"><i class="fas fa-hand-peace"></i> انگشت خود را بکشید (چپ/راست)</p>
+    </div>
+
+    <div id="settings" class="section">
+        <div class="setting-row"><span><i class="fas fa-chart-simple"></i> دشواری</span> <select id="difficultySelect"><option value="easy">آسان</option><option value="normal" selected>متوسط</option><option value="hard">سخت</option></select></div>
+        <div class="setting-row"><span><i class="fas fa-moon"></i> حالت شب</span> <input type="checkbox" id="nightModeToggle"></div>
+        <div class="setting-row"><span><i class="fas fa-volume-up"></i> صدا</span> <input type="checkbox" id="soundToggle" checked></div>
+        <div class="setting-row"><span><i class="fas fa-music"></i> موزیک (فایل)</span> <input type="file" id="musicFileInput" accept="audio/*"></div>
+        <div class="social-links">
+            <button id="supportBtn" class="social-btn"><i class="fas fa-headset"></i> پشتیبانی</button>
+            <button id="channelBtn" class="social-btn"><i class="fab fa-telegram"></i> کانال</button>
+            <button id="academyBtn" class="social-btn"><i class="fas fa-graduation-cap"></i> دکتر پلاس</button>
+        </div>
+    </div>
+
+    <div id="guide" class="section"><h3><i class="fas fa-question-circle"></i> راهنما</h3>
+        <ul style="list-style: none; line-height:2;"><li><i class="fas fa-car-side"></i> حرکت با کشیدن انگشت</li><li><i class="fas fa-coins"></i> جمع‌آوری سکه برای خرید</li><li><i class="fas fa-ban"></i> برخورد نکنید</li><li><i class="fas fa-chart-line"></i> هر ماشین سرعت خاص</li><li><i class="fas fa-gem"></i> ارتقا موتور، آهنربا، سکه</li><li><i class="fas fa-gift"></i> هدیه روزانه هر ۲۴ ساعت</li></ul>
+    </div>
+</div>
+<div id="gameOverModal" class="modal-message"><div class="modal-card"><h2><i class="fas fa-car-crash"></i> تصادف کردی!</h2><p id="modalMessageText"></p><div id="randomTip" class="tip-text"><i class="fas fa-lightbulb"></i> <span id="tipContent"></span></div><button id="modalCloseBtn">باشه</button></div></div>
+
+<script>
+    (function(){
+        const gotdActive = (new URLSearchParams(location.search).get('gotd') === '1');
+
+        // ---------- داده‌ها ----------
+        let totalCoins = 500;
+        let highScore = 0;
+        let ownedCars = ["car1"];
+        let currentCarId = "car1";
+        let upgrades = {engine:0, magnet:0, coinBonus:0};
+        let lastDailyClaim = 0;
+        let settings = {difficulty:"normal", nightMode:false, soundEnabled:true};
+        
+        const carsData = {
+            car1: {name:"اسپیدفایر", color:"#E34234", price:0, baseSpeedMulti:1.0, colorName:"قرمز آتشین"},
+            car2: {name:"نایت‌هانتر", color:"#2F5F8C", price:1200, baseSpeedMulti:1.12, colorName:"آبی دودی"},
+            car3: {name:"طلایی‌دم", color:"#D4AF37", price:2400, baseSpeedMulti:1.2, colorName:"طلایی"},
+            car4: {name:"یخ‌شکن", color:"#4DB6AC", price:3800, baseSpeedMulti:1.28, colorName:"فیروزه‌ای"},
+            car5: {name:"آتشفشان", color:"#BF4E3C", price:5500, baseSpeedMulti:1.38, colorName:"نارنجی سوخته"}
+        };
+        
+        const upgradePrices = {engine:[0,800,1800,3000], magnet:[0,600,1400,2400], coinBonus:[0,500,1200,2200]};
+        const upgradeEffects = {engine:[1.0,1.1,1.22,1.35], magnet:[40,55,70,90], coinBonus:[1.0,1.2,1.45,1.75]};
+        
+        const tipsList = [
+            "هنگام دیدن ماشین جلو، به سمت لبه جاده برو.", "سکه‌ها را اولویت جمع‌آوری کن، سرعت زیاد میشه!",
+            "آپگرید موتور سرعت نهایی را بالا می‌برد.", "آهنربا برد جمع‌آوری سکه را بیشتر می‌کند.",
+            "در حالت شب، تمرکز بیشتری داری.", "هدیه روزانه را فراموش نکن.",
+            "هر ماشین ضریب سرعت منحصربفردی دارد.", "در دشواری سخت، ماشین‌ها سریع‌تر می‌آیند.",
+            "به جای حرکت ناگهانی، آرام هدایت کن.", "سکه‌ها در جاده ظاهر می‌شوند.",
+            "ارتقای سکه‌ها باعث ارزش بیشتر هر سکه می‌شود.", "بعد از هر تصادف، نفس عمیق بکش!",
+            "هیچ وقت ماشین را ثابت نگه ندار.", "صدای موتور را تنظیم کن تا تمرکز بهتری داشته باشی.",
+            "ماشین گران‌تر، رکوردهای بزرگتر.", "سکه‌های زرد را اولویت بده.",
+            "حالت روز گرادینت قرمز و سفید.", "قبل از بازی آرامش داشته باش.",
+            "سرعت با زمان زیاد می‌شود، زودتر جمع کن.", "آپگرید آهنربا در سطوح بالا عالی است.",
+            "با هر بازی مهارتت بالا می‌رود.", "آهنگ آرام انتخاب کن.",
+            "تصادف فرصتی برای یادگیری است.", "حداکثر سرعت با ارتقا موتور باورنکردنی می‌شود.",
+            "گاراژ را مرتب بررسی کن."
+        ];
+        
+        // ---------- متغیرهای بازی ----------
+        let gameActive = false;
+        let animationId = null;
+        let playerX = 290;
+        let playerY = 730;
+        const CAR_W = 52, CAR_H = 78;
+        const PLAYER_HIT_W = CAR_W * 0.68, PLAYER_HIT_H = CAR_H * 0.68;
+        let enemies = [], coins = [];
+        let currentRunCoins = 0, currentGameSpeed = 5.2;
+        let speedIncreaseTimer = 0;
+        let difficultySettings = {easy:{spawnRate:85, speedInc:0.008}, normal:{spawnRate:65, speedInc:0.012}, hard:{spawnRate:45, speedInc:0.018}};
+        let ctx, canvas;
+        let roadMinX = 80, roadMaxX = 570;
+        let backgroundMusic = null;
+        
+        // ---------- یکپارچگی با هاب ----------
+        function saveToHubKeys() {
+            try {
+                const prevTop = parseInt(localStorage.getItem('arcade_top_game-runner') || '0', 10) || 0;
+                if (highScore > prevTop) {
+                    localStorage.setItem('arcade_top_game-runner', String(highScore));
+                }
+            } catch(e) {}
+        }
+        function incrementPlayCount() {
+            try {
+                const prev = parseInt(localStorage.getItem('arcade_playcount_game-runner') || '0', 10) || 0;
+                localStorage.setItem('arcade_playcount_game-runner', String(prev + 1));
+            } catch(e) {}
+        }
+        
+        // ---------- ذخیره / بارگذاری ----------
+        function saveGame() {
+            try {
+                localStorage.setItem("GameRunnerSave", JSON.stringify({
+                    totalCoins, ownedCars, currentCarId, upgrades, lastDailyClaim, highScore, settings
+                }));
+                saveToHubKeys();
+            } catch(e) { /* بی‌صدا */ }
+        }
+        function loadGame() {
+            try {
+                const raw = localStorage.getItem("GameRunnerSave");
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    totalCoins = data.totalCoins ?? 500;
+                    ownedCars = data.ownedCars ?? ["car1"];
+                    currentCarId = data.currentCarId ?? "car1";
+                    upgrades = data.upgrades ?? {engine:0,magnet:0,coinBonus:0};
+                    lastDailyClaim = data.lastDailyClaim ?? 0;
+                    highScore = data.highScore ?? 0;
+                    settings = data.settings ?? {difficulty:"normal", nightMode:false, soundEnabled:true};
+                }
+            } catch(e) { /* بی‌صدا */ }
+            if(!ownedCars.includes(currentCarId)) currentCarId = "car1";
+            if(!ownedCars.includes("car1")) ownedCars.push("car1");
+            document.getElementById("nightModeToggle").checked = settings.nightMode;
+            document.getElementById("difficultySelect").value = settings.difficulty;
+            document.getElementById("soundToggle").checked = settings.soundEnabled;
+            applyTheme();
+            updateUI();
+        }
+        function applyTheme(){
+            const body = document.body;
+            if(settings.nightMode){ body.classList.add("night-mode"); body.classList.remove("day-mode"); }
+            else { body.classList.add("day-mode"); body.classList.remove("night-mode"); }
+        }
+        function updateUI(){
+            document.getElementById("totalCoinsDisplay").innerText = totalCoins;
+            document.getElementById("highScoreDisplay").innerText = highScore;
+            renderGarage();
+            renderShop();
+            renderUpgradesShop();
+        }
+        
+        // گاراژ
+        function renderGarage(){
+            const container = document.getElementById("ownedCarsList");
+            if(!container) return;
+            container.innerHTML = "";
+            for(let id of ownedCars){
+                const car = carsData[id];
+                if(!car) continue;
+                const div = document.createElement("div");
+                div.className = "car-card";
+                div.innerHTML = `<div class="car-info"><h4><i class="fas fa-car"></i> ${car.name}</h4><div class="car-stats"><i class="fas fa-tachometer-alt"></i> ضریب: ${car.baseSpeedMulti}x | رنگ: ${car.colorName}</div></div>
+                <button class="equip-btn" data-id="${id}">${currentCarId===id?"<i class='fas fa-check-circle'></i> فعال":"<i class='fas fa-exchange-alt'></i> انتخاب"}</button>`;
+                container.appendChild(div);
+            }
+            document.querySelectorAll(".equip-btn").forEach(btn=>{
+                btn.removeEventListener("click", equipHandler);
+                btn.addEventListener("click", equipHandler);
+            });
+            function equipHandler(e){
+                const id = e.currentTarget.getAttribute("data-id");
+                if(ownedCars.includes(id)){
+                    currentCarId = id;
+                    saveGame();
+                    renderGarage();
+                    renderShop();
+                    showToast("ماشین "+carsData[id].name+" انتخاب شد");
+                }
+            }
+        }
+        
+        // فروشگاه
+        function renderShop(){
+            const shopDiv = document.getElementById("shopCarsList");
+            if(!shopDiv) return;
+            shopDiv.innerHTML = "";
+            for(let [id, car] of Object.entries(carsData)){
+                const owned = ownedCars.includes(id);
+                const canAfford = totalCoins >= car.price;
+                let btnText = owned ? "خریداری شده" : `خرید ${car.price} سکه`;
+                if(!owned && canAfford) btnText = `💰 خرید (${car.price})`;
+                const div = document.createElement("div");
+                div.className = "car-card";
+                div.innerHTML = `<div><h4><i class="fas fa-car"></i> ${car.name}</h4><div>🎨 رنگ: ${car.colorName} | ضریب: ${car.baseSpeedMulti}x</div><div>💰 قیمت: ${car.price}</div></div>
+                <button class="buy-car-btn" data-id="${id}" ${owned ? "disabled" : ""} style="${!owned && canAfford ? 'background:#2ecc71;' : (owned?'background:#555;':'background:#6c757d;')}">${btnText}</button>`;
+                shopDiv.appendChild(div);
+            }
+            document.querySelectorAll(".buy-car-btn:not([disabled])").forEach(btn=>{
+                btn.removeEventListener("click", buyHandler);
+                btn.addEventListener("click", buyHandler);
+            });
+            function buyHandler(e){
+                const id = e.currentTarget.getAttribute("data-id");
+                if(ownedCars.includes(id)) return;
+                const price = carsData[id].price;
+                if(totalCoins >= price){
+                    totalCoins -= price;
+                    ownedCars.push(id);
+                    saveGame();
+                    updateUI();
+                    if(settings.soundEnabled) playBeep();
+                    showToast(`${carsData[id].name} خریداری شد!`);
+                }
+            }
+        }
+        
+        function renderUpgradesShop(){
+            const upDiv = document.getElementById("upgradesShopList");
+            if(!upDiv) return;
+            upDiv.innerHTML = "";
+            const types = [
+                {key:"engine", label:"🚀 موتور (حداکثر سرعت)"},
+                {key:"magnet", label:"🧲 برد سکه (آهنربا)"},
+                {key:"coinBonus", label:"💰 جایزه سکه"}
+            ];
+            types.forEach(t=>{
+                const level = upgrades[t.key];
+                const maxLevel = 3;
+                const nextPrice = level < maxLevel ? upgradePrices[t.key][level+1] : null;
+                const canAfford = nextPrice ? totalCoins >= nextPrice : false;
+                const div = document.createElement("div");
+                div.className = "upgrade-item";
+                let effectText = "";
+                if(t.key === "engine") effectText = `ضریب سرعت: ${upgradeEffects.engine[level]}x`;
+                else if(t.key === "magnet") effectText = `برد: ${upgradeEffects.magnet[level]} پیکسل`;
+                else effectText = `ضریب سکه: ${upgradeEffects.coinBonus[level]}x`;
+                div.innerHTML = `<div><strong><i class="fas fa-microchip"></i> ${t.label}</strong> (سطح ${level}/${maxLevel})<br><small>${effectText}</small></div>
+                ${level < maxLevel ? `<button class="upg-btn" data-type="${t.key}" style="${canAfford ? 'background:#2ecc71' : 'background:#6c757d'}">⬆️ ارتقا (${nextPrice})</button>` : "<span><i class='fas fa-check'></i> نهایی</span>"}`;
+                upDiv.appendChild(div);
+            });
+            document.querySelectorAll(".upg-btn").forEach(btn=>{
+                btn.removeEventListener("click", upgradeHandler);
+                btn.addEventListener("click", upgradeHandler);
+            });
+            function upgradeHandler(e){
+                const type = e.currentTarget.getAttribute("data-type");
+                const nextLv = upgrades[type] + 1;
+                if(nextLv > 3) return;
+                const cost = upgradePrices[type][nextLv];
+                if(totalCoins >= cost){
+                    totalCoins -= cost;
+                    upgrades[type] = nextLv;
+                    saveGame();
+                    updateUI();
+                    if(settings.soundEnabled) playBeep();
+                    showToast(`ارتقا ${type==="engine"?"موتور":type==="magnet"?"آهنربا":"پاداش سکه"} انجام شد`);
+                } else showToast("سکه کافی نیست");
+            }
+        }
+        
+        // توابع گیم پلی
+        function getFinalSpeedMulti(){ return carsData[currentCarId].baseSpeedMulti * upgradeEffects.engine[upgrades.engine]; }
+        function getMagnetRadius(){ return upgradeEffects.magnet[upgrades.magnet]; }
+        function getCoinBonus(){ return upgradeEffects.coinBonus[upgrades.coinBonus]; }
+        
+        function initCanvas(){
+            canvas = document.getElementById("gameCanvas");
+            if(!canvas) return;
+            ctx = canvas.getContext("2d");
+            attachControls();
+        }
+        function attachControls(){
+            canvas.addEventListener("touchmove", (e)=>{
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                let newX = (e.touches[0].clientX - rect.left) / rect.width * canvas.width;
+                newX = Math.min(roadMaxX - CAR_W/2, Math.max(roadMinX + CAR_W/2, newX));
+                playerX = newX;
+            }, {passive:false});
+            canvas.addEventListener("mousemove", (e)=>{
+                if(!gameActive) return;
+                const rect = canvas.getBoundingClientRect();
+                let mouseX = (e.clientX - rect.left) / rect.width * canvas.width;
+                mouseX = Math.min(roadMaxX - CAR_W/2, Math.max(roadMinX + CAR_W/2, mouseX));
+                playerX = mouseX;
+            });
+        }
+        
+        function startGame(){
+            if(animationId) cancelAnimationFrame(animationId);
+            gameActive = true;
+            enemies = [];
+            coins = [];
+            currentRunCoins = 0;
+            document.getElementById("runCoinsVal").innerText = "0";
+            currentGameSpeed = 5.2;
+            speedIncreaseTimer = 0;
+            playerX = (roadMinX+roadMaxX)/2;
+            const diff = settings.difficulty;
+            const diffObj = difficultySettings[diff] || difficultySettings.normal;
+            window.speedIncRate = diffObj.speedInc;
+            gameLoop();
+        }
+        
+        function gameLoop(){
+            if(!gameActive) return;
+            speedIncreaseTimer++;
+            if(speedIncreaseTimer > 15){
+                speedIncreaseTimer = 0;
+                let inc = (window.speedIncRate || 0.012) * getFinalSpeedMulti();
+                currentGameSpeed = Math.min(currentGameSpeed + inc, 15.5);
+            }
+            // اسپاون
+            let spawnChance = (settings.difficulty==="hard"?1.4:1) * 3.2;
+            if(Math.random()*100 < spawnChance && enemies.length < 9) spawnEnemy();
+            if(Math.random()*100 < 4.5 && coins.length < 15) spawnCoin();
+            
+            for(let i=0;i<enemies.length;i++) enemies[i].y += currentGameSpeed;
+            for(let i=0;i<coins.length;i++) coins[i].y += currentGameSpeed;
+            enemies = enemies.filter(e=> e.y < canvas.height+100);
+            coins = coins.filter(c=> c.y < canvas.height+50);
+            
+            const magnetRad = getMagnetRadius();
+            for(let i=0;i<coins.length;i++){
+                const c = coins[i];
+                if(Math.hypot(playerX - c.x, playerY+20 - c.y) < magnetRad){
+                    let earned = 10 + Math.floor(Math.random()*5);
+                    earned = Math.floor(earned * getCoinBonus());
+                    if (gotdActive) earned *= 2;
+                    totalCoins += earned;
+                    currentRunCoins += earned;
+                    document.getElementById("runCoinsVal").innerText = currentRunCoins;
+                    coins.splice(i,1); i--;
+                    if(settings.soundEnabled) playCoinSound();
+                    updateUI();
+                }
+            }
+            // برخورد
+            const pl = playerX - PLAYER_HIT_W/2, pr = playerX + PLAYER_HIT_W/2, pt = playerY - PLAYER_HIT_H/2, pb = playerY + PLAYER_HIT_H/2;
+            for(let i=0;i<enemies.length;i++){
+                const e = enemies[i];
+                const el = e.x - (CAR_W*0.68)/2, er = e.x + (CAR_W*0.68)/2, et = e.y - (CAR_H*0.68)/2, eb = e.y + (CAR_H*0.68)/2;
+                if(pr > el && pl < er && pb > et && pt < eb){
+                    gameActive = false;
+                    if(settings.soundEnabled) playCrashSound();
+                    if(currentRunCoins > highScore){ highScore = currentRunCoins; saveGame(); updateUI(); }
+                    saveGame();
+                    showGameOverModal(currentRunCoins);
+                    if(animationId) cancelAnimationFrame(animationId);
+                    return;
+                }
+            }
+            drawScene();
+            document.getElementById("currentSpeedVal").innerText = currentGameSpeed.toFixed(1);
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        function spawnEnemy(){
+            const possibleColors = ["#E34234","#2F5F8C","#D4AF37","#4DB6AC","#BF4E3C"];
+            const color = possibleColors[Math.floor(Math.random()*5)];
+            const x = Math.random() * (roadMaxX - CAR_W - 20) + roadMinX + 10;
+            enemies.push({x:x, y:-80, w:CAR_W, h:CAR_H, color:color});
+        }
+        function spawnCoin(){
+            const x = Math.random() * (roadMaxX - 40) + roadMinX + 20;
+            coins.push({x:x, y:-40, size:16});
+        }
+        
+        function drawScene(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            // چمن
+            ctx.fillStyle = settings.nightMode ? "#1e4a2f" : "#4caf50";
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            // خطوط چمن
+            ctx.fillStyle = settings.nightMode ? "#0f3b1f" : "#2e7d32";
+            for(let i=0;i<120;i++){
+                let x = Math.random() * canvas.width;
+                let y = Math.random() * canvas.height;
+                if(x < roadMinX-15 || x > roadMaxX+15) ctx.fillRect(x, y, 4, 12);
+            }
+            // جاده
+            ctx.fillStyle = settings.nightMode ? "#2f2f2f" : "#7a7a7a";
+            ctx.fillRect(roadMinX-15, 0, roadMaxX-roadMinX+30, canvas.height);
+            ctx.fillStyle = "#1e1e1e";
+            ctx.fillRect(roadMinX, 0, roadMaxX-roadMinX, canvas.height);
+            ctx.beginPath();
+            ctx.strokeStyle = "#FFF";
+            ctx.lineWidth = 4;
+            ctx.setLineDash([20,35]);
+            ctx.moveTo((roadMinX+roadMaxX)/2,0);
+            ctx.lineTo((roadMinX+roadMaxX)/2,canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = "#B0B0B0";
+            ctx.strokeRect(roadMinX, 0, roadMaxX-roadMinX, canvas.height);
+            // سکه‌ها
+            for(let c of coins){
+                ctx.fillStyle = "#FFD966";
+                ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#E5A812";
+                ctx.beginPath(); ctx.arc(c.x, c.y, 7, 0, Math.PI*2); ctx.fill();
+            }
+            for(let e of enemies) drawCar(e.x-CAR_W/2, e.y-CAR_H/2, CAR_W, CAR_H, e.color);
+            drawCar(playerX-CAR_W/2, playerY-CAR_H/2, CAR_W, CAR_H, carsData[currentCarId].color, true);
+        }
+        
+        function drawCar(x,y,w,h,baseColor,isPlayer=false){
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(x,y,w,h);
+            ctx.fillStyle = "#B0C4DE";
+            ctx.fillRect(x+6, y-5, w-12, 8);
+            ctx.fillRect(x+6, y+h-5, w-12, 8);
+            ctx.fillStyle = "#2d2d2d";
+            ctx.fillRect(x+8, y+12, 8, h-24);
+            ctx.fillRect(x+w-16, y+12, 8, h-24);
+            ctx.fillStyle = "#111";
+            ctx.beginPath(); ctx.arc(x+10, y+h-12, 10, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x+w-10, y+h-12, 10, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x+10, y+12, 10, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x+w-10, y+12, 10, 0, Math.PI*2); ctx.fill();
+            if(isPlayer){ ctx.fillStyle = "#FFE484"; ctx.fillRect(x+12, y+h/2-4, w-24, 8); }
+        }
+        
+        // موزیک
+        function setupMusic(){
+            const fileInput = document.getElementById("musicFileInput");
+            fileInput.addEventListener("change", (e)=>{
+                if(backgroundMusic) backgroundMusic.pause();
+                const file = e.target.files[0];
+                if(file){
+                    backgroundMusic = new Audio(URL.createObjectURL(file));
+                    backgroundMusic.loop = true;
+                    if(settings.soundEnabled) backgroundMusic.play().catch(e=>{});
+                }
+            });
+            document.getElementById("soundToggle").addEventListener("change", (e)=>{
+                settings.soundEnabled = e.target.checked;
+                saveGame();
+                if(backgroundMusic){
+                    if(settings.soundEnabled && backgroundMusic.paused) backgroundMusic.play().catch(e=>{});
+                    else if(!settings.soundEnabled) backgroundMusic.pause();
+                }
+            });
+        }
+        
+        function showGameOverModal(coinsCollected){
+            saveToHubKeys();
+            const randomTip = tipsList[Math.floor(Math.random() * tipsList.length)];
+            document.getElementById("tipContent").innerHTML = `<i class="fas fa-robot"></i> نکته: ${randomTip}`;
+            let msg = `سکه این مرحله: ${coinsCollected}<br>سکه کل: ${totalCoins}`;
+            if (gotdActive) msg += `<br>⭐ امتیاز دوبرابر فعال بود!`;
+            document.getElementById("modalMessageText").innerHTML = msg;
+            document.getElementById("gameOverModal").style.visibility = "visible";
+        }
+        
+        function showToast(msg){
+            let toast = document.createElement("div");
+            toast.innerText = msg;
+            toast.style.position="fixed";
+            toast.style.bottom="70px";
+            toast.style.left="50%";
+            toast.style.transform="translateX(-50%)";
+            toast.style.background="#000000cc";
+            toast.style.color="gold";
+            toast.style.padding="8px 20px";
+            toast.style.borderRadius="60px";
+            toast.style.zIndex=999;
+            toast.style.backdropFilter="blur(8px)";
+            document.body.appendChild(toast);
+            setTimeout(()=>toast.remove(),1800);
+        }
+        
+        // صداها با Web Audio
+        function playTone(freq, dur, type) {
+            if (!settings.soundEnabled) return;
+            try {
+                const C = window.AudioContext || window.webkitAudioContext;
+                if (!C) return;
+                const actx = new C(), t = actx.currentTime;
+                const o = actx.createOscillator(), g = actx.createGain();
+                o.type = type || 'square';
+                o.frequency.value = freq;
+                g.gain.setValueAtTime(0.1, t);
+                g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+                o.connect(g); g.connect(actx.destination);
+                o.start(t); o.stop(t + dur + 0.02);
+                setTimeout(() => actx.close().catch(() => {}), (dur + 0.1) * 1000);
+            } catch(e) {}
+        }
+        function playBeep() { playTone(620, 0.1, 'square'); }
+        function playCoinSound() {
+            playTone(880, 0.08, 'sine');
+            setTimeout(() => playTone(1320, 0.06, 'sine'), 40);
+        }
+        function playCrashSound() { playTone(140, 0.4, 'sawtooth'); }
+        
+        function bindEvents(){
+            document.getElementById("dailyRewardBtn").addEventListener("click",()=>{
+                const now = Date.now();
+                if(now - lastDailyClaim >= 86400000){
+                    totalCoins += 350;
+                    lastDailyClaim = now;
+                    saveGame();
+                    updateUI();
+                    showToast("هدیه روزانه ۳۵۰ سکه!");
+                } else {
+                    let remain = Math.ceil((86400000 - (now-lastDailyClaim))/3600000);
+                    showToast(`هدیه بعد از ${remain} ساعت`);
+                }
+            });
+            document.getElementById("quickRestartBtn").addEventListener("click",()=>{ if(animationId) cancelAnimationFrame(animationId); startGame(); });
+            document.getElementById("modalCloseBtn").addEventListener("click",()=>{
+                document.getElementById("gameOverModal").style.visibility = "hidden";
+                updateUI();
+                startGame();
+            });
+            document.getElementById("nightModeToggle").addEventListener("change",(e)=>{ settings.nightMode = e.target.checked; applyTheme(); saveGame(); });
+            document.getElementById("difficultySelect").addEventListener("change",(e)=>{ settings.difficulty = e.target.value; saveGame(); });
+            document.getElementById("supportBtn").addEventListener("click",()=> window.open("https://eitaa.com/AARSTGR","_blank"));
+            document.getElementById("channelBtn").addEventListener("click",()=> window.open("https://eitaa.com/Ali_Grapph","_blank"));
+            document.getElementById("academyBtn").addEventListener("click",()=> window.open("https://eitaa.com/dr_plus_ir","_blank"));
+            document.getElementById("upgradeFromGarageBtn").addEventListener("click",()=>{ document.querySelector(".tab-btn[data-tab='shop']").click(); });
+            
+            document.querySelectorAll(".tab-btn").forEach(btn=>{
+                btn.addEventListener("click",()=>{
+                    const tabId = btn.getAttribute("data-tab");
+                    document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active-section"));
+                    document.getElementById(tabId).classList.add("active-section");
+                    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+                    btn.classList.add("active");
+                    if(tabId === "play"){
+                        if(animationId) cancelAnimationFrame(animationId);
+                        startGame();
+                    } else {
+                        if(animationId && gameActive) cancelAnimationFrame(animationId);
+                        gameActive = false;
+                    }
+                });
+            });
+            document.querySelector(".tab-btn[data-tab='garage']").click();
+        }
+        
+        function init(){
+            loadGame();
+            saveToHubKeys();
+            incrementPlayCount();
+            if (gotdActive) {
+                const badge = document.getElementById("gotdBadge");
+                if (badge) badge.style.display = "inline-block";
+            }
+            initCanvas();
+            bindEvents();
+            setupMusic();
+            updateUI();
+            applyTheme();
+        }
+        init();
+    })();
+</script>
+</body>
+</html>

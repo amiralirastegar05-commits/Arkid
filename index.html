@@ -633,9 +633,177 @@ body.overlay-open { overflow: hidden; }
   .profile-actions { margin-top: 16px; }
 }
 
+/* ============================================================
+   مأموریت روزانه · باس هفته · مسابقه · کاراکترهای مخفی
+   همان سطوح Premium، اکسنت طلایی و Liquid Glass
+   ============================================================ */
+.quests-section { margin-top: 32px; padding: 16px; border-radius: 16px; background: var(--surface); border: 1px solid rgba(245,197,24,.2); text-align: right; }
+.quests-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 12px; }
+.quests-head small { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.quests-list { display: grid; gap: 8px; }
+.quest-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.03); }
+.quest-check { flex: 0 0 20px; width: 20px; height: 20px; border: 1.5px solid var(--gold); border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 900; }
+.quest-item.done .quest-check { background: var(--gold); color: var(--text-inverse); }
+.quest-desc { flex: 1; min-width: 0; font-size: 12px; line-height: 1.7; }
+.quest-item.done .quest-desc { opacity: .6; text-decoration: line-through; }
+.quest-meter { flex: 0 0 60px; text-align: center; }
+.quest-progress-bar { width: 60px; height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
+.quest-progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--gold-dark),var(--gold-light)); transition: width .35s var(--ease-out); }
+.quest-progress-text { display: block; margin-top: 4px; font-size: 9px; color: var(--text-tertiary); }
+.quest-xp { flex: 0 0 auto; font-size: 11px; color: var(--gold); font-weight: 800; direction: ltr; white-space: nowrap; }
+.quests-footer { padding-top: 12px; color: var(--text-tertiary); font-size: 10px; line-height: 1.7; }
+.quests-section.all-done { border-color: rgba(245,197,24,.55); }
+.quests-section.all-done .quests-footer { color: var(--gold); }
+.feature-empty { padding: 18px 8px; color: var(--text-secondary); font-size: 12px; text-align: center; line-height: 1.9; }
+
+.weekly-boss { padding: 20px; border-radius: 18px; background: linear-gradient(135deg,rgba(220,38,38,.12),rgba(245,197,24,.08)); border: 1px solid rgba(220,38,38,.4); margin-top: 20px; text-align: right; }
+.weekly-boss:empty { display: none; }
+.boss-layout { display: flex; align-items: center; gap: 16px; }
+.boss-cover { width: 72px; height: 90px; overflow: hidden; border-radius: 12px; background: #000; flex: 0 0 auto; border: 1px solid var(--border-normal); }
+.boss-cover svg { display: block; width: 100%; height: 100%; }
+.boss-copy { flex: 1; min-width: 0; }
+.boss-badge { display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(248,113,113,.25); padding: 3px 8px; border-radius: 7px; color: #fca5a5; background: rgba(220,38,38,.13); font-size: 10px; font-weight: 800; animation: bossPulse 3s ease-in-out infinite; }
+@keyframes bossPulse { 50% { box-shadow: 0 0 16px rgba(220,38,38,.22); border-color: rgba(248,113,113,.5); } }
+.boss-title { font-size: 20px; font-weight: 900; margin: 8px 0 4px; }
+.boss-target { font-size: 12px; color: #fca5a5; line-height: 1.9; }
+.boss-meta { display: block; color: var(--text-secondary); font-size: 10px; margin-top: 4px; }
+.boss-side { display: flex; flex-direction: column; align-items: center; gap: 9px; flex: 0 0 auto; }
+.boss-reward { color: var(--gold); font-size: 12px; font-weight: 800; }
+.boss-action { min-width: 105px; }
+.weekly-boss.completed { border-color: rgba(74,222,128,.3); background: linear-gradient(135deg,rgba(22,163,74,.1),rgba(245,197,24,.06)); }
+.weekly-boss.completed .boss-badge { color: #86efac; border-color: rgba(74,222,128,.25); background: rgba(22,163,74,.12); animation: none; }
+.weekly-boss.completed .boss-target { color: #86efac; }
+.boss-complete { color: #86efac; font-size: 12px; font-weight: 800; text-align: center; }
+.name-with-crown { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.boss-crown { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 3px; color: var(--gold); padding: 2px 6px; border: 1px solid rgba(245,197,24,.22); background: var(--gold-dim); border-radius: 7px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.profile-boss-badge { margin: 0 0 12px; font-size: 11px; padding: 5px 10px; }
+.profile-name-row { flex-wrap: wrap; }
+.avatar-option.locked { cursor: not-allowed; opacity: .5; }
+.avatar-option.locked:hover .pixel-avatar { transform: none; }
+.avatar-option .pixel-avatar.secret-locked { border: 2px dashed rgba(255,255,255,.2); background: rgba(255,255,255,.03); color: var(--text-tertiary); font-size: 24px; font-weight: 900; box-shadow: none; }
+.secret-hint { font-size: 9px; color: var(--text-tertiary); text-align: center; max-width: 72px; line-height: 1.4; min-height: 26px; }
+.avatar-option.secret:not(.locked) > span:last-child { color: var(--gold-light); }
+.avatar-option.secret:not(.locked) .pixel-avatar { box-shadow: 0 0 20px rgba(245,197,24,.08); }
+
+.section-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.menu-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; border-radius: 999px; border: 1px solid rgba(245,197,24,.3); background: var(--gold-dim); color: var(--gold); font-size: 11px; font-weight: 800; cursor: pointer; transition: background .2s,border-color .2s; }
+.menu-btn svg { width: 16px; height: 16px; }
+.menu-btn:hover { background: rgba(245,197,24,.2); border-color: var(--gold); }
+.menu-btn:focus-visible,.tournament-game:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.gold-btn:disabled,.subtle-btn:disabled { opacity: .45; cursor: not-allowed; }
+.tournament-banner { display: flex; justify-content: space-between; align-items: center; gap: 18px; max-width: 1160px; margin: 20px auto 0; padding: 16px; border-radius: 16px; background: linear-gradient(135deg,rgba(245,197,24,.08),rgba(255,255,255,.02)); border: 1px solid rgba(245,197,24,.4); }
+.tb-info { flex: 1; min-width: 0; }
+.tb-badge { font-size: 12px; font-weight: 800; color: var(--gold); }
+.tb-games { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 11px; }
+.tb-step { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border-subtle); background: rgba(255,255,255,.025); color: var(--text-tertiary); min-width: 0; }
+.tb-step-number { flex: 0 0 23px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; font-size: 10px; font-weight: 900; background: rgba(255,255,255,.05); }
+.tb-step-body { min-width: 0; flex: 1; }
+.tb-step b { display: block; font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+.tb-step small { display: block; font-size: 10px; margin-top: 2px; }
+.tb-step.current { color: var(--text-primary); border-color: rgba(245,197,24,.7); animation: tournamentPulse 2.5s ease-in-out infinite; }
+.tb-step.current .tb-step-number { color: var(--gold); background: var(--gold-dim); }
+.tb-step.done { color: #86efac; border-color: rgba(74,222,128,.2); }
+.tb-step.done .tb-step-number { background: rgba(74,222,128,.1); }
+@keyframes tournamentPulse { 50% { box-shadow: 0 0 0 3px rgba(245,197,24,.07); } }
+.tb-actions { display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap; }
+#tournamentModal .about-card { width: min(650px,94vw); padding: 26px 22px; text-align: right; }
+#tournamentModal .modal-title { font-size: 22px; padding-inline-end: 32px; }
+#tournamentModal .modal-sub { line-height: 1.9; margin: 8px 0 16px; }
+.tournament-picker { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+.tournament-game { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 7px 7px 10px; min-width: 0; border-radius: 14px; border: 1px solid var(--border-normal); background: var(--surface); color: var(--text-secondary); cursor: pointer; transition: border-color .2s,background .2s; }
+.tournament-game:hover { border-color: rgba(245,197,24,.45); }
+.tournament-game.selected { border-color: var(--gold); background: var(--gold-dim); color: var(--text-primary); }
+.tgp-cover { display: block; height: 100px; width: 100%; border-radius: 8px; overflow: hidden; background: #000; }
+.tgp-cover svg { width: 100%; height: 100%; display: block; }
+.tgp-name { font-size: 11px; font-weight: 700; line-height: 1.6; }
+.tgp-check { position: absolute; top: 12px; left: 12px; width: 22px; height: 22px; border: 1px solid rgba(255,255,255,.4); border-radius: 7px; display: grid; place-items: center; background: rgba(0,0,0,.6); color: transparent; font-size: 12px; font-weight: 900; }
+.tournament-game.selected .tgp-check { background: var(--gold); border-color: var(--gold); color: var(--text-inverse); }
+.tournament-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.tournament-selection-count { color: var(--text-secondary); font-size: 11px; }
+.tournament-selection-count b { color: var(--gold); }
+.tournament-note { color: var(--text-tertiary); font-size: 10px; line-height: 1.8; margin-top: 12px; }
+#tournamentResultModal .about-card { width: min(480px,94vw); padding: 30px 24px 24px; }
+#tournamentResultModal h2 { font-size: 23px; padding-inline: 22px; }
+.tournament-final-scores { display: grid; gap: 9px; margin: 22px 0; }
+.tournament-score-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; background: rgba(255,255,255,.035); text-align: right; }
+.tournament-score-cover { width: 36px; height: 44px; flex: 0 0 auto; overflow: hidden; border-radius: 6px; background: #000; }
+.tournament-score-cover svg { width: 100%; height: 100%; display: block; }
+.tournament-score-row span:nth-child(2) { flex: 1; min-width: 0; font-size: 12px; }
+.tournament-score-row b { color: var(--gold); font-size: 15px; white-space: nowrap; }
+.tournament-total { font-size: 12px; color: var(--text-secondary); }
+.tournament-total b { display: block; font-size: 42px; color: var(--gold-light); font-weight: 900; margin: 4px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.tournament-rank { margin-top: 12px; font-size: 12px; color: var(--text-primary); }
+.tournament-reward { display: inline-flex; margin-top: 10px; padding: 5px 10px; border-radius: 8px; background: var(--gold-dim); color: var(--gold); font-size: 11px; font-weight: 700; }
+.tournament-result-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+#tournamentConfirmModal .modal-sub { line-height: 1.9; margin-top: 12px; }
+
+/* افکت‌ها لایه‌های مستقل‌اند؛ نمای معمول هاب دست‌نخورده می‌ماند. */
+.parallax-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.p-layer { position: absolute; inset: -10%; background-repeat: repeat; opacity: .3; transition: transform .3s ease-out; will-change: transform; }
+.pl-1 { background-image: radial-gradient(circle,rgba(245,197,24,.3) 1px,transparent 1px); background-size: 80px 80px; }
+.pl-2 { background-image: radial-gradient(circle,rgba(96,165,250,.2) 1.5px,transparent 1.5px); background-size: 140px 140px; opacity: .25; }
+.pl-3 { background-image: radial-gradient(circle,rgba(139,92,246,.15) 2px,transparent 2px); background-size: 200px 200px; opacity: .2; }
+.card { transition: transform .15s ease-out,border-color .3s var(--ease-out),box-shadow .3s var(--ease-out),opacity .3s; }
+.card.tilting { transition: transform .05s linear,border-color .2s,box-shadow .2s; }
+.card:not(.tilting):not(.soon):hover { transform: translateY(-3px); }
+.attract-curtain { position: fixed; inset: 0; z-index: 1; background: #05070c; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .8s,visibility 0s .8s; }
+.attract-brand { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 110; display: none; text-align: center; pointer-events: none; }
+.attract-brand b { display: block; font-size: clamp(28px,5vw,48px); font-weight: 900; letter-spacing: .4em; padding-left: .4em; color: var(--gold); animation: attractPulse 3s ease-in-out infinite; }
+.attract-brand small { display: block; margin-top: 5px; color: var(--text-secondary); font-size: 10px; }
+body.attract-mode .attract-curtain { opacity: .85; visibility: visible; transition-delay: 0s; }
+body.attract-mode .attract-brand { display: block; }
+body.attract-mode main { z-index: 2; transition: opacity .8s; }
+body.attract-mode header { opacity: .3; }
+body.attract-mode .card { opacity: .3; transition: opacity .6s,transform .6s,box-shadow .6s,border-color .6s; }
+body.attract-mode .card.attract-focus { opacity: 1; transform: scale(1.05) translateY(-5px); border-color: var(--gold); box-shadow: 0 12px 40px rgba(245,197,24,.3),0 0 60px rgba(245,197,24,.15); z-index: 5; }
+body.attract-mode .card.attract-focus .card-play-btn { opacity: 1; transform: translateY(0); }
+body.attract-mode .card.attract-focus .card-hover-overlay { opacity: 1; }
+body.attract-mode .hero-title,body.attract-mode .hero-sub,body.attract-mode .hero-line,body.attract-mode .hero-stats,body.attract-mode .quests-section,body.attract-mode .weekly-boss,body.attract-mode .tournament-banner,body.attract-mode .recent,body.attract-mode footer,body.attract-mode #bottomNav { opacity: .4; transition: opacity .8s; pointer-events: none; }
+body.attract-mode::before { background-image: radial-gradient(circle at 20% 30%,rgba(245,197,24,.08),transparent 50%),radial-gradient(circle at 80% 70%,rgba(59,130,246,.06),transparent 50%); opacity: 1; animation: attractShift 12s ease-in-out infinite; z-index: 1; }
+@keyframes attractPulse { 0%,100% { opacity: .2; text-shadow: none; } 50% { opacity: .5; text-shadow: 0 0 40px rgba(245,197,24,.4); } }
+@keyframes attractShift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-5%,5%); } }
+@media (max-width: 1200px) { .tournament-banner { margin-inline: 20px; } }
+@media (max-width: 700px) {
+  .tournament-banner { flex-direction: column; align-items: stretch; margin-inline: 14px; }
+  .tb-actions { justify-content: flex-end; }
+  .tb-step { padding: 8px 6px; flex-direction: column; text-align: center; gap: 5px; }
+  .boss-layout { flex-wrap: wrap; }
+  .boss-side { flex-direction: row; justify-content: space-between; width: 100%; }
+  .section-controls { width: 100%; justify-content: space-between; gap: 10px; }
+}
+@media (max-width: 480px) {
+  .quests-section { padding: 13px 10px; }
+  .quest-item { padding: 9px 8px; gap: 7px; }
+  .quest-desc { font-size: 11px; }
+  .quest-meter { flex-basis: 42px; }
+  .quest-progress-bar { width: 42px; }
+  .quest-xp { font-size: 10px; }
+  .weekly-boss { padding: 16px; }
+  .boss-title { font-size: 18px; }
+  .boss-cover { width: 56px; height: 70px; }
+  .boss-layout { gap: 12px; }
+  .tournament-picker { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #tournamentModal .about-card { padding-inline: 16px; }
+  .tgp-cover { height: 84px; }
+  .section-controls .filter-row { flex: 1 1 100%; }
+  .menu-btn { padding: 8px 12px; }
+  .tournament-result-actions > button { flex: 1; }
+  .tournament-total b { font-size: 36px; }
+  .tb-step b { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .parallax-layer,.attract-curtain,.attract-brand { display: none !important; }
+  .card.tilting { transform: none !important; }
+  .boss-badge,.tb-step.current { animation: none !important; }
+}
+@media (pointer: coarse) { .parallax-layer { display: none; } .card.tilting { transform: none !important; } }
+
 </style>
 </head>
 <body>
+<div class="parallax-layer" aria-hidden="true"><div class="p-layer pl-1"></div><div class="p-layer pl-2"></div><div class="p-layer pl-3"></div></div>
+<div class="attract-curtain" id="attractCurtain" aria-hidden="true"></div>
+<div class="attract-brand" id="attractBrand" aria-hidden="true"><b dir="ltr">ARCADE</b><small>برای بازگشت، ماوس رو حرکت بده یا صفحه رو لمس کن.</small></div>
 
 <!-- ============ Header (شیشه) ============ -->
 <header class="lg-glass">
@@ -652,7 +820,7 @@ body.overlay-open { overflow: hidden; }
   <div class="header-spacer"></div>
   <button class="profile-chip" id="profileChip" type="button" aria-label="پروفایل من" aria-haspopup="dialog" aria-controls="profileModal">
     <span class="pc-avatar pixel-avatar" id="pcAvatar" role="img" aria-label="آواتار جنگجو"></span>
-    <span class="pc-info"><b id="pcName" dir="auto">بازیکن</b><small id="pcLevel">لول ۱ · تازه‌کار</small></span>
+    <span class="pc-info"><span class="name-with-crown"><b id="pcName" dir="auto">بازیکن</b><span class="boss-crown" id="pcBossBadge" hidden></span></span><small id="pcLevel">لول ۱ · تازه‌کار</small></span>
     <span class="pc-level-badge" id="pcLevelBadge" aria-hidden="true">۱</span>
   </button>
   <button class="header-btn menu-toggle" id="menuToggle" type="button" aria-label="باز کردن منو" aria-expanded="false" aria-controls="sideMenu" aria-haspopup="dialog">
@@ -661,6 +829,10 @@ body.overlay-open { overflow: hidden; }
 </header>
 
 <main>
+  <div class="tournament-banner" id="tournamentBanner" hidden>
+    <div class="tb-info"><span class="tb-badge">🏆 مسابقه در جریان</span><div class="tb-games" id="tbGames" aria-label="نوبت‌های مسابقه"></div></div>
+    <div class="tb-actions"><button class="gold-btn" id="tbContinueBtn" type="button">ادامه بازی</button><button class="subtle-btn" id="tbCancelBtn" type="button">انصراف</button></div>
+  </div>
   <!-- ============ Hero ============ -->
   <section class="hero" id="hero">
     <h1 class="hero-title">آرکید کلاسیک</h1>
@@ -673,6 +845,12 @@ body.overlay-open { overflow: hidden; }
       <div class="stat-div"></div>
       <div class="stat"><b id="statBest">۰</b><span>بهترین امتیاز</span></div>
     </div>
+    <div class="quests-section" id="questsSection">
+      <div class="quests-head"><span>🎯 مأموریت‌های امروز</span><small id="questsCount">۰ از ۳</small></div>
+      <div class="quests-list" id="questsList"></div>
+      <div class="quests-footer" id="questsBonus">تکمیل هر سه مأموریت: ۱۰۰ XP پاداش بیشتر</div>
+    </div>
+    <div class="weekly-boss" id="weeklyBoss"></div>
   </section>
 
   <!-- ============ ادامه بده ============ -->
@@ -685,11 +863,15 @@ body.overlay-open { overflow: hidden; }
   <section class="games" id="gamesSection">
     <div class="section-head">
       <h2>همه بازی‌ها</h2>
+      <div class="section-controls">
+      <button class="menu-btn" id="startTournamentBtn" type="button" aria-haspopup="dialog" aria-controls="tournamentModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v5a4 4 0 0 1-8 0V3zM8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4M12 12v6M8 21h8M9 18h6v3"/></svg><span>مسابقه جدید</span></button>
       <div class="filter-row" id="filters">
         <button type="button" class="filter-chip on" data-filter="all">همه</button>
         <button type="button" class="filter-chip" data-filter="shooter">شوتر</button>
         <button type="button" class="filter-chip" data-filter="classic">کلاسیک</button>
         <button type="button" class="filter-chip" data-filter="puzzle">پازل</button>
+        <button type="button" class="filter-chip" data-filter="racing">مسابقه</button>
+      </div>
       </div>
     </div>
     <div id="gameOfDay"></div>
@@ -803,7 +985,7 @@ body.overlay-open { overflow: hidden; }
     <div class="sm-header">
       <div class="sm-avatar pixel-avatar" id="smAvatar" role="img" aria-label="آواتار بازیکن"></div>
       <div class="sm-info">
-        <b id="smName" dir="auto">بازیکن</b>
+        <span class="name-with-crown"><b id="smName" dir="auto">بازیکن</b><span class="boss-crown" id="smBossBadge" hidden></span></span>
         <small id="smLevel">🌱 لول ۱ · تازه‌کار</small>
         <div class="sm-xp-bar" id="smXPBar" role="progressbar" aria-label="پیشرفت لول" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="smXPFill"></i></div>
         <small class="sm-xp-text" id="smXPText" dir="ltr">۰ / ۱۰۰ XP</small>
@@ -841,6 +1023,7 @@ body.overlay-open { overflow: hidden; }
         <button class="profile-name-button" id="profileNameBtn" type="button" title="ویرایش نام" aria-label="ویرایش نام بازیکن"><b id="profileName" dir="auto">بازیکن</b><svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L21 7a2.1 2.1 0 0 0-5-5L4 14z"/></svg></button>
         <input class="profile-name-input" id="profileNameInput" type="text" maxlength="20" autocomplete="off" dir="auto" aria-label="نام بازیکن، حداکثر ۲۰ کاراکتر" hidden>
       </div>
+      <span class="boss-crown profile-boss-badge" id="profileBossBadge" hidden></span>
       <div class="profile-level" id="profileLevel">🌱 لول ۱ · تازه‌کار</div>
       <div class="profile-xp">
         <div class="profile-xp-label"><span id="profileNextLevel">تا لول ۲</span><b id="profileXPPercent">۰٪</b></div>
@@ -864,7 +1047,7 @@ body.overlay-open { overflow: hidden; }
   <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="avatarHeading" tabindex="-1">
     <button class="about-close" data-close="avatarModal" type="button" aria-label="بستن انتخاب آواتار">✕</button>
     <h2 class="modal-title" id="avatarHeading">کاراکترت رو انتخاب کن</h2>
-    <p class="modal-sub">۱۲ کاراکتر پیکسلی · یک هویت برای تمام بازی‌ها</p>
+    <p class="modal-sub">۱۲ کاراکتر کلاسیک + ۴ کاراکتر مخفی · یک هویت برای تمام بازی‌ها</p>
     <div class="avatar-grid" id="avatarGrid" role="group" aria-label="آواتارهای پیکسلی"></div>
   </div>
 </div>
@@ -883,6 +1066,53 @@ body.overlay-open { overflow: hidden; }
   </div>
 </div>
 <div class="xp-toast-stack" id="xpToastStack" role="status" aria-live="polite" aria-atomic="false"></div>
+
+<!-- ============ انتخاب سه بازی مسابقه ============ -->
+<div class="about-modal" id="tournamentModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="tournamentTitle" aria-describedby="tournamentDescription" tabindex="-1">
+    <button class="about-close" data-close="tournamentModal" type="button" aria-label="بستن انتخاب بازی‌ها">✕</button>
+    <h2 class="modal-title" id="tournamentTitle">🏆 مسابقه جدید</h2>
+    <p class="modal-sub" id="tournamentDescription">۳ بازی انتخاب کن؛ مجموع امتیازهات رتبه‌ات رو در تاریخچه مشخص می‌کنه.</p>
+    <div id="tournamentGamePicker" class="tournament-picker" role="group" aria-label="انتخاب سه بازی"></div>
+    <div class="tournament-actions">
+      <span class="tournament-selection-count" id="tournamentSelectionCount" role="status">۰ از ۳ بازی انتخاب شد</span>
+      <button class="gold-btn" id="tournamentStartBtn" type="button" disabled>شروع مسابقه</button>
+    </div>
+    <p class="tournament-note" id="tournamentNote">پایان هر سه بازی: ۲۰۰ XP پاداش · پیشرفت مسابقه ذخیره می‌شه.</p>
+  </div>
+</div>
+
+<!-- ============ نتیجهٔ مسابقه ============ -->
+<div class="about-modal" id="tournamentResultModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="tournamentResultTitle" tabindex="-1">
+    <button class="about-close" data-close="tournamentResultModal" type="button" aria-label="بستن نتیجهٔ مسابقه">✕</button>
+    <h2 id="tournamentResultTitle">🏆 مسابقه تمام شد!</h2>
+    <div class="tournament-final-scores" id="tournamentFinalScores"></div>
+    <div class="tournament-total">مجموع: <b id="tournamentTotal">۰</b> امتیاز</div>
+    <div class="tournament-rank" id="tournamentRank"></div>
+    <div class="tournament-reward">پاداش پایان مسابقه: <bdi>+۲۰۰ XP</bdi></div>
+    <div class="tournament-result-actions">
+      <button class="gold-btn" id="tournamentShareBtn" type="button">اشتراک‌گذاری</button>
+      <button class="subtle-btn" id="tournamentNewBtn" type="button">مسابقه جدید</button>
+    </div>
+  </div>
+</div>
+
+<!-- تأیید داخلی، بدون وابستگی به window.confirm یا مجوز مودال در iframe -->
+<div class="about-modal" id="tournamentConfirmModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="tournamentConfirmTitle" aria-describedby="tournamentConfirmText" tabindex="-1">
+    <button class="about-close" data-close="tournamentConfirmModal" type="button" aria-label="بستن تأیید">✕</button>
+    <h2 id="tournamentConfirmTitle">از مسابقه انصراف می‌دی؟</h2>
+    <p class="modal-sub" id="tournamentConfirmText">پیشرفت این مسابقه حذف می‌شه؛ رکوردها و XP قبلی‌ات محفوظ می‌مونن.</p>
+    <div class="share-actions">
+      <button class="gold-btn" id="tournamentConfirmYes" type="button">بله، انصراف</button>
+      <button class="subtle-btn" data-close="tournamentConfirmModal" type="button" data-initial-focus>نه، ادامه می‌دم</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -936,11 +1166,20 @@ const AVATARS = [
   { id: "ghost", name: "روح", bg: ["#06b6d4", "#0e7490"], svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="6" y="1" width="4" height="1" fill="#67e8f9"/><rect x="4" y="2" width="8" height="1" fill="#f8fafc"/><rect x="3" y="3" width="10" height="2" fill="#f8fafc"/><rect x="2" y="5" width="12" height="7" fill="#f8fafc"/><rect x="3" y="12" width="10" height="1" fill="#f8fafc"/><rect x="2" y="12" width="3" height="2" fill="#67e8f9"/><rect x="5" y="12" width="2" height="3" fill="#67e8f9"/><rect x="7" y="12" width="2" height="1" fill="#67e8f9"/><rect x="9" y="12" width="2" height="3" fill="#67e8f9"/><rect x="11" y="12" width="3" height="2" fill="#67e8f9"/><rect x="3" y="14" width="2" height="1" fill="#06b6d4"/><rect x="6" y="15" width="1" height="1" fill="#06b6d4"/><rect x="10" y="15" width="1" height="1" fill="#06b6d4"/><rect x="12" y="14" width="2" height="1" fill="#06b6d4"/><rect x="2" y="7" width="1" height="5" fill="#67e8f9"/><rect x="13" y="5" width="1" height="7" fill="#67e8f9"/><rect x="12" y="9" width="1" height="3" fill="#67e8f9"/><rect x="5" y="4" width="1" height="1" fill="#111827"/><rect x="4" y="5" width="3" height="3" fill="#111827"/><rect x="5" y="8" width="1" height="1" fill="#111827"/><rect x="10" y="4" width="1" height="1" fill="#111827"/><rect x="9" y="5" width="3" height="3" fill="#111827"/><rect x="10" y="8" width="1" height="1" fill="#111827"/><rect x="5" y="5" width="1" height="1" fill="#ffffff"/><rect x="10" y="5" width="1" height="1" fill="#ffffff"/><rect x="7" y="9" width="2" height="1" fill="#0e7490"/><rect x="7" y="10" width="2" height="1" fill="#67e8f9"/><rect x="3" y="9" width="1" height="1" fill="#06b6d4"/><rect x="12" y="8" width="1" height="1" fill="#06b6d4"/><rect x="5" y="3" width="2" height="1" fill="#ffffff"/></svg>` },
 ];
 
+/* ایندکس‌های ۰ تا ۱۱ دست‌نخورده‌اند؛ چهار کاراکتر مخفی همیشه ۱۲ تا ۱۵ هستند. */
+const SECRET_AVATARS = [
+  { id: "unicorn", name: "اسب تک‌شاخ", bg: ["#f472b6", "#be185d"], unlockText: "به لول ۲۰ برس", condition: () => getProfile().level >= 20, svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="10" y="0" width="1" height="2" fill="#fbbf24"/><rect x="9" y="2" width="2" height="1" fill="#fde68a"/><rect x="8" y="3" width="3" height="1" fill="#fbbf24"/><rect x="6" y="2" width="2" height="3" fill="#fff7ed"/><rect x="6" y="3" width="1" height="1" fill="#f472b6"/><rect x="6" y="4" width="6" height="4" fill="#fff7ed"/><rect x="9" y="7" width="5" height="2" fill="#fff7ed"/><rect x="11" y="9" width="2" height="1" fill="#fed7aa"/><rect x="12" y="7" width="1" height="1" fill="#f472b6"/><rect x="9" y="5" width="1" height="1" fill="#38bdf8"/><rect x="10" y="5" width="1" height="1" fill="#0369a1"/><rect x="8" y="4" width="2" height="1" fill="#ffffff"/><rect x="4" y="4" width="2" height="3" fill="#f472b6"/><rect x="3" y="5" width="2" height="3" fill="#7c3aed"/><rect x="4" y="7" width="2" height="3" fill="#38bdf8"/><rect x="5" y="9" width="3" height="3" fill="#fff7ed"/><rect x="4" y="10" width="7" height="3" fill="#fff7ed"/><rect x="7" y="11" width="4" height="2" fill="#fed7aa"/><rect x="3" y="11" width="2" height="2" fill="#fff7ed"/><rect x="2" y="10" width="2" height="2" fill="#f472b6"/><rect x="1" y="11" width="2" height="2" fill="#a78bfa"/><rect x="1" y="13" width="2" height="1" fill="#38bdf8"/><rect x="4" y="13" width="2" height="3" fill="#fff7ed"/><rect x="9" y="13" width="2" height="3" fill="#fff7ed"/><rect x="4" y="15" width="2" height="1" fill="#f472b6"/><rect x="9" y="15" width="2" height="1" fill="#7c3aed"/><rect x="6" y="12" width="1" height="2" fill="#fed7aa"/><rect x="8" y="13" width="1" height="2" fill="#fed7aa"/><rect x="5" y="3" width="1" height="2" fill="#a78bfa"/><rect x="3" y="8" width="1" height="2" fill="#38bdf8"/><rect x="6" y="7" width="1" height="2" fill="#fed7aa"/><rect x="11" y="4" width="1" height="2" fill="#ffffff"/><rect x="7" y="10" width="2" height="1" fill="#ffffff"/></svg>` },
+  { id: "dragon", name: "اژدها", bg: ["#16a34a", "#14532d"], unlockText: "۱۰٬۰۰۰ امتیاز مجموع جمع کن", condition: () => getStats().totalScore >= 10000, svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="4" y="1" width="1" height="3" fill="#111827"/><rect x="5" y="2" width="1" height="2" fill="#14532d"/><rect x="9" y="1" width="1" height="3" fill="#111827"/><rect x="8" y="2" width="1" height="2" fill="#14532d"/><rect x="4" y="4" width="7" height="1" fill="#16a34a"/><rect x="3" y="5" width="9" height="4" fill="#16a34a"/><rect x="4" y="5" width="6" height="3" fill="#4ade80"/><rect x="2" y="6" width="2" height="3" fill="#14532d"/><rect x="7" y="5" width="3" height="2" fill="#fbbf24"/><rect x="8" y="5" width="1" height="2" fill="#020617"/><rect x="7" y="5" width="1" height="1" fill="#fde68a"/><rect x="9" y="7" width="3" height="3" fill="#020617"/><rect x="10" y="7" width="1" height="1" fill="#ffffff"/><rect x="9" y="9" width="1" height="1" fill="#ffffff"/><rect x="4" y="9" width="5" height="2" fill="#16a34a"/><rect x="5" y="10" width="6" height="4" fill="#16a34a"/><rect x="7" y="11" width="3" height="3" fill="#fbbf24"/><rect x="7" y="12" width="3" height="1" fill="#92400e"/><rect x="3" y="10" width="2" height="3" fill="#4ade80"/><rect x="2" y="11" width="2" height="2" fill="#14532d"/><rect x="1" y="9" width="2" height="2" fill="#14532d"/><rect x="1" y="8" width="1" height="1" fill="#4ade80"/><rect x="10" y="11" width="2" height="2" fill="#14532d"/><rect x="12" y="12" width="2" height="2" fill="#16a34a"/><rect x="14" y="11" width="1" height="2" fill="#4ade80"/><rect x="5" y="14" width="2" height="2" fill="#14532d"/><rect x="9" y="14" width="2" height="2" fill="#14532d"/><rect x="5" y="15" width="1" height="1" fill="#ffffff"/><rect x="10" y="15" width="1" height="1" fill="#ffffff"/><rect x="5" y="7" width="1" height="1" fill="#16a34a"/><rect x="4" y="8" width="1" height="1" fill="#fbbf24"/><rect x="12" y="8" width="2" height="1" fill="#dc2626"/><rect x="13" y="7" width="3" height="1" fill="#ea580c"/><rect x="14" y="8" width="2" height="1" fill="#fb923c"/><rect x="15" y="6" width="1" height="1" fill="#fbbf24"/><rect x="14" y="7" width="1" height="1" fill="#fef08a"/></svg>` },
+  { id: "golden-alien", name: "فضایی طلایی", bg: ["#fbbf24", "#92400e"], unlockText: "۷ روز پشت‌سرهم بازی کن", condition: () => getStats().dailyStreak >= 7, svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="3" y="1" width="1" height="3" fill="#fbbf24"/><rect x="7" y="0" width="2" height="4" fill="#fbbf24"/><rect x="12" y="1" width="1" height="3" fill="#fbbf24"/><rect x="4" y="3" width="8" height="1" fill="#fbbf24"/><rect x="4" y="4" width="8" height="1" fill="#92400e"/><rect x="7" y="2" width="2" height="1" fill="#dc2626"/><rect x="4" y="3" width="1" height="1" fill="#fde68a"/><rect x="10" y="3" width="1" height="1" fill="#fde68a"/><rect x="3" y="5" width="10" height="5" fill="#92400e"/><rect x="4" y="5" width="8" height="5" fill="#fbbf24"/><rect x="2" y="6" width="2" height="2" fill="#fbbf24"/><rect x="12" y="6" width="2" height="2" fill="#fbbf24"/><rect x="5" y="5" width="2" height="1" fill="#fde68a"/><rect x="4" y="6" width="3" height="3" fill="#020617"/><rect x="9" y="6" width="3" height="3" fill="#020617"/><rect x="4" y="6" width="1" height="1" fill="#ffffff"/><rect x="10" y="6" width="1" height="1" fill="#ffffff"/><rect x="4" y="9" width="3" height="1" fill="#92400e"/><rect x="9" y="9" width="3" height="1" fill="#92400e"/><rect x="7" y="9" width="2" height="1" fill="#fde68a"/><rect x="6" y="10" width="4" height="1" fill="#92400e"/><rect x="6" y="11" width="4" height="2" fill="#fbbf24"/><rect x="7" y="11" width="2" height="1" fill="#fde68a"/><rect x="4" y="11" width="2" height="2" fill="#92400e"/><rect x="10" y="11" width="2" height="2" fill="#92400e"/><rect x="3" y="12" width="2" height="1" fill="#fbbf24"/><rect x="11" y="12" width="2" height="1" fill="#fbbf24"/><rect x="6" y="13" width="1" height="2" fill="#fbbf24"/><rect x="9" y="13" width="1" height="2" fill="#fbbf24"/><rect x="5" y="15" width="2" height="1" fill="#92400e"/><rect x="9" y="15" width="2" height="1" fill="#92400e"/><rect x="7" y="12" width="2" height="1" fill="#92400e"/></svg>` },
+  { id: "pumpkin", name: "کدو تنبل", bg: ["#f97316", "#7c2d12"], unlockText: "در هالووین بازی کن (۳۱ اکتبر)", condition: () => { const d = new Date(); return d.getMonth() === 9 && d.getDate() === 31; }, svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><rect x="7" y="0" width="2" height="3" fill="#14532d"/><rect x="8" y="0" width="3" height="1" fill="#16a34a"/><rect x="7" y="1" width="1" height="2" fill="#4ade80"/><rect x="6" y="2" width="4" height="1" fill="#14532d"/><rect x="4" y="3" width="8" height="1" fill="#fb923c"/><rect x="2" y="4" width="12" height="2" fill="#ea580c"/><rect x="1" y="6" width="14" height="6" fill="#ea580c"/><rect x="2" y="12" width="12" height="2" fill="#ea580c"/><rect x="4" y="14" width="8" height="1" fill="#9a3412"/><rect x="3" y="5" width="10" height="8" fill="#fb923c"/><rect x="2" y="6" width="1" height="6" fill="#9a3412"/><rect x="13" y="6" width="1" height="6" fill="#9a3412"/><rect x="4" y="5" width="1" height="8" fill="#ea580c"/><rect x="11" y="5" width="1" height="8" fill="#ea580c"/><rect x="7" y="4" width="1" height="10" fill="#fbbf24"/><rect x="8" y="4" width="1" height="10" fill="#fb923c"/><rect x="4" y="6" width="1" height="1" fill="#020617"/><rect x="3" y="7" width="3" height="1" fill="#020617"/><rect x="4" y="8" width="2" height="1" fill="#9a3412"/><rect x="10" y="6" width="1" height="1" fill="#020617"/><rect x="9" y="7" width="3" height="1" fill="#020617"/><rect x="9" y="8" width="2" height="1" fill="#9a3412"/><rect x="7" y="9" width="2" height="1" fill="#020617"/><rect x="4" y="10" width="8" height="2" fill="#020617"/><rect x="3" y="10" width="1" height="1" fill="#020617"/><rect x="12" y="10" width="1" height="1" fill="#020617"/><rect x="5" y="10" width="1" height="1" fill="#fb923c"/><rect x="9" y="10" width="1" height="1" fill="#fb923c"/><rect x="7" y="11" width="1" height="1" fill="#fbbf24"/><rect x="4" y="12" width="1" height="1" fill="#9a3412"/><rect x="11" y="12" width="1" height="1" fill="#9a3412"/><rect x="5" y="4" width="2" height="1" fill="#fef08a"/><rect x="9" y="13" width="2" height="1" fill="#ea580c"/></svg>` },
+];
+const ALL_AVATARS = AVATARS.concat(SECRET_AVATARS);
+
 /* ============================================================
    XP · Level · پروفایل — بدون تغییر کلیدهای دادهٔ قدیمی
    ============================================================ */
-const XP_REWARDS = { firstGame: 10, perPlay: 5, gotdBonus: 20, newHighScore: 20, achievement: 50, dailyVisit: 15, streak7: 100, streak30: 500 };
-const XP_REASON_LABELS = { firstGame: 'اولین بازی', perPlay: 'یک دست بازی', gotdBonus: 'بازی روز', newHighScore: 'رکورد جدید', achievement: 'دستاورد جدید', dailyVisit: 'بازدید روزانه', streak7: '۷ روز پیاپی', streak30: '۳۰ روز پیاپی' };
+const XP_REWARDS = { firstGame: 10, perPlay: 5, gotdBonus: 20, newHighScore: 20, achievement: 50, dailyVisit: 15, streak7: 100, streak30: 500, quest: 0, tournament: 200, weeklyBoss: 500 };
+const XP_REASON_LABELS = { firstGame: 'اولین بازی', perPlay: 'یک دست بازی', gotdBonus: 'بازی روز', newHighScore: 'رکورد جدید', achievement: 'دستاورد جدید', dailyVisit: 'بازدید روزانه', streak7: '۷ روز پیاپی', streak30: '۳۰ روز پیاپی', quest: 'مأموریت روزانه', tournament: 'پایان مسابقه', weeklyBoss: 'باس هفته' };
 const LEVEL_TITLES = [
   { min: 1, max: 4, title: 'تازه‌کار', icon: '🌱' },
   { min: 5, max: 9, title: 'آماتور', icon: '🎮' },
@@ -974,7 +1213,7 @@ function cleanProfileName(name) {
 function normalizeProfile(raw) {
   raw = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
   const xp = safeXP(raw.xp), avatar = Number(raw.avatar), joinedAt = Number(raw.joinedAt);
-  return { name: cleanProfileName(raw.name), avatar: Number.isInteger(avatar) && avatar >= 0 && avatar < AVATARS.length ? avatar : 0, joinedAt: Number.isFinite(joinedAt) && joinedAt > 0 && joinedAt <= Date.now() ? joinedAt : Date.now(), xp, level: levelFromXP(xp) };
+  return { name: cleanProfileName(raw.name), avatar: Number.isInteger(avatar) && avatar >= 0 && avatar < ALL_AVATARS.length && isAvatarUnlocked(avatar) ? avatar : 0, joinedAt: Number.isFinite(joinedAt) && joinedAt > 0 && joinedAt <= Date.now() ? joinedAt : Date.now(), xp, level: levelFromXP(xp) };
 }
 function getProfile() { return normalizeProfile(LS.get('arcade_profile',{})); }
 function saveProfile(p) {
@@ -990,6 +1229,7 @@ function addXP(amount, reason) {
   saveProfile(p);
   if (p.xp > oldXP) showXPGain(p.xp - oldXP,reason);
   if (p.level > oldLevel) showLevelUp(p.level);
+  checkSecretAvatars();
   updateProfileUI();
   updateHeaderProfile();
 }
@@ -1002,6 +1242,7 @@ pendingXPFeedback = pendingXPFeedback.filter(n => n && typeof n.id === 'string' 
 let pendingLevelUp = safeXP(safeSessionGet('arcade_pending_level'));
 let feedbackReady = false;
 const visibleXPFeedback = new Set();
+const xpFeedbackTimers = new Map();
 let feedbackSequence = 0, pendingNavigation = null, launchInProgress = false;
 function persistXPFeedback() {
   if (pendingXPFeedback.length) safeSessionSet('arcade_xp_feedback',JSON.stringify(pendingXPFeedback));
@@ -1026,12 +1267,13 @@ function flushXPFeedback() {
     const label = document.createElement('span');
     label.className = 'xp-reason'; label.textContent = '· ' + (XP_REASON_LABELS[notice.reason] || 'تجربه');
     toast.append(amount,label); stack.appendChild(toast);
-    setTimeout(() => toast.classList.add('hide'),1800);
-    setTimeout(() => {
-      toast.remove(); visibleXPFeedback.delete(notice.id);
+    const hideTimer = setTimeout(() => toast.classList.add('hide'),1800);
+    const removeTimer = setTimeout(() => {
+      toast.remove(); visibleXPFeedback.delete(notice.id); xpFeedbackTimers.delete(notice.id);
       pendingXPFeedback = pendingXPFeedback.filter(n => n.id !== notice.id);
       persistXPFeedback(); flushXPFeedback();
     },2000);
+    xpFeedbackTimers.set(notice.id,[hideTimer,removeTimer]);
   }
 }
 function levelUpJingle() {
@@ -1048,7 +1290,7 @@ function levelUpJingle() {
       oscillator.connect(gain); gain.connect(ctx.destination);
       oscillator.start(t); oscillator.stop(t + (i === 5 ? .52 : .25));
     });
-    setTimeout(() => { if (ctx.state !== 'closed') ctx.close().catch(() => {}); },1500);
+    scheduleAudioClose(ctx,1500);
   } catch(e) { /* Web Audio اختیاری است. */ }
 }
 function renderLevelUpContents() {
@@ -1077,10 +1319,9 @@ function flushLevelUp() {
 function continueAfterLevelUp() {
   pendingLevelUp = 0; safeSessionRemove('arcade_pending_level');
   closeModal('levelUpModal');
-  const navigate = pendingNavigation; pendingNavigation = null;
-  if (navigate) navigate();
+  flushTournamentResult(); resumePendingNavigation();
 }
-function enableRewardFeedback() { feedbackReady = true; syncOverlayState(); flushXPFeedback(); flushLevelUp(); }
+function enableRewardFeedback() { feedbackReady = true; syncOverlayState(); flushXPFeedback(); flushLevelUp(); flushHubToasts(); flushTournamentResult(); resumePendingNavigation(); }
 
 /* مدیریت مشترک مودال‌ها: لایه‌بندی، بازگشت فوکوس، Tab و قفل اسکرول. */
 let modalStack = [], sideMenuOpen = false;
@@ -1098,6 +1339,7 @@ function syncOverlayState() {
   document.querySelectorAll('body > header,body > main,body > footer,#bottomNav').forEach(el => { el.inert = locked; });
   document.querySelectorAll('.about-modal').forEach(el => { el.inert = el.id !== top; });
   document.getElementById('sideMenu').inert = !sideMenuOpen || !!top;
+  overlayVisualState(locked);
 }
 function focusDialog(modal) {
   const target = modal.querySelector('[data-initial-focus]') || visibleFocusable(modal)[0] || modal.querySelector('[role="dialog"]');
@@ -1107,7 +1349,9 @@ function showModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
   if (sideMenuOpen) closeSideMenu(false);
-  if (!modalStack.some(item => item.id === id)) modalStack.push({ id, trigger: document.activeElement });
+  const oldEntry = modalStack.find(item => item.id === id);
+  modalStack = modalStack.filter(item => item.id !== id);
+  modalStack.push(oldEntry || { id, trigger: document.activeElement });
   modal.classList.add('show');
   document.body.appendChild(modal);
   syncOverlayState(); focusDialog(modal);
@@ -1117,6 +1361,8 @@ function closeModal(id, restoreFocus = true) {
   if (!modal) return;
   const wasTop = index === modalStack.length - 1, entry = index >= 0 ? modalStack[index] : null;
   modal.classList.remove('show');
+  if (id === 'tournamentResultModal') acknowledgeTournamentResult();
+  if (id === 'tournamentConfirmModal') tournamentConfirmAction = null;
   modalStack = modalStack.filter(item => item.id !== id);
   syncOverlayState();
   if (restoreFocus && wasTop) {
@@ -1126,6 +1372,7 @@ function closeModal(id, restoreFocus = true) {
     else document.getElementById('profileChip').focus({ preventScroll: true });
   }
   if (!modalStack.some(item => item.id === 'profileModal')) syncTabWithScroll(true);
+  if (id === 'tournamentResultModal') resumePendingNavigation();
 }
 function requestCloseModal(id) { if (id === 'levelUpModal') continueAfterLevelUp(); else closeModal(id); }
 function openSideMenu() {
@@ -1159,7 +1406,7 @@ function trapOverlayKey(event) {
 
 function paintAvatar(el, index) {
   if (!el) return;
-  const avatar = AVATARS[index] || AVATARS[0];
+  const avatar = ALL_AVATARS[index] || ALL_AVATARS[0];
   if (el.dataset.avatar !== avatar.id) {
     el.innerHTML = avatar.svg; el.dataset.avatar = avatar.id;
     el.style.background = 'linear-gradient(135deg,' + avatar.bg[0] + ',' + avatar.bg[1] + ')';
@@ -1183,14 +1430,15 @@ function updateHeaderProfile() {
   document.getElementById('smXPFill').style.width = progress.percent + '%';
   document.getElementById('smXPBar').setAttribute('aria-valuenow',String(Math.round(progress.percent)));
   document.getElementById('smXPText').textContent = faNum(progress.current) + ' / ' + faNum(progress.needed) + ' XP';
+  updateBossBadges();
 }
 function joinedDate(timestamp) {
   try { return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{ day: 'numeric', month: 'long', year: 'numeric' }).format(timestamp); }
   catch(e) { return new Date(timestamp).toLocaleDateString('fa-IR'); }
 }
 function statsProfileHTML() {
-  const p = getProfile(), avatar = AVATARS[p.avatar];
-  return `<div class="stats-profile" data-profile-summary><div class="pixel-avatar" role="img" aria-label="${esc(avatar.name)}" style="background:linear-gradient(135deg,${avatar.bg[0]},${avatar.bg[1]})">${avatar.svg}</div><div><b dir="auto">${esc(p.name)}</b><small>${esc(profileLevelLabel(p,true))} · ${faNum(p.xp)} XP</small></div></div>`;
+  const p = getProfile(), avatar = ALL_AVATARS[p.avatar], bosses = defeatedBossCount();
+  return `<div class="stats-profile" data-profile-summary><div class="pixel-avatar" role="img" aria-label="${esc(avatar.name)}" style="background:linear-gradient(135deg,${avatar.bg[0]},${avatar.bg[1]})">${avatar.svg}</div><div><b dir="auto">${esc(p.name)}</b><small>${esc(profileLevelLabel(p,true))} · ${faNum(p.xp)} XP${bosses ? ' · 👑 ' + faNum(bosses) + ' باس' : ''}</small></div></div>`;
 }
 function updateProfileUI() {
   const p = getProfile(), progress = xpProgress(p.xp);
@@ -1210,13 +1458,13 @@ function updateProfileUI() {
     btn.classList.toggle('selected',selected); btn.setAttribute('aria-pressed',String(selected));
   });
   if (document.getElementById('levelUpModal').classList.contains('show')) renderLevelUpContents();
+  updateBossBadges();
 }
 function openProfileModal() { updateProfileUI(); showModal('profileModal'); setActiveTab('profile'); }
 function openAvatarModal() {
-  const p = getProfile();
-  document.getElementById('avatarGrid').innerHTML = AVATARS.map((avatar,i) => `<button class="avatar-option ${i === p.avatar ? 'selected' : ''}" type="button" data-avatar-index="${i}" aria-label="${esc(avatar.name)}" aria-pressed="${i === p.avatar}"><span class="pixel-avatar" style="background:linear-gradient(135deg,${avatar.bg[0]},${avatar.bg[1]})">${avatar.svg}<span class="avatar-tick" aria-hidden="true">✓</span></span><span>${esc(avatar.name)}</span></button>`).join('');
-  showModal('avatarModal');
-  document.querySelector('.avatar-option.selected').focus({ preventScroll: true });
+  checkSecretAvatars(); renderAvatarPicker(); showModal('avatarModal');
+  const selected = document.querySelector('#avatarGrid .avatar-option.selected');
+  if (selected) selected.focus({ preventScroll: true });
 }
 let editingProfileName = false;
 function startNameEdit() {
@@ -1252,7 +1500,7 @@ function bindProfileControls() {
     const button = event.target.closest('[data-avatar-index]');
     if (!button) return;
     const index = Number(button.dataset.avatarIndex);
-    if (!Number.isInteger(index) || !AVATARS[index]) return;
+    if (button.disabled || !Number.isInteger(index) || !isAvatarUnlocked(index)) return;
     const p = getProfile(); p.avatar = index; saveProfile(p);
     updateProfileUI(); updateHeaderProfile(); closeModal('avatarModal');
   });
@@ -1303,7 +1551,8 @@ const GAMES = [
   { id:'asteroids',      title:'سیارک‌ها',        sub:'ASTEROIDS',      year:1979, genre:'شوتر',       genreTag:'shooter', file:'asteroids.html',      available:false, cover:'asteroids' },
   { id:'pong',           title:'پینگ‌پنگ',        sub:'PONG',           year:1972, genre:'کلاسیک',     genreTag:'classic', file:'pong.html',           available:false, cover:'pong' },
   { id:'tetris',         title:'تتریس',           sub:'TETRIS',         year:1984, genre:'پازل',       genreTag:'puzzle',  file:'tetris.html',         available:false, cover:'tetris' },
-  { id:'pacman',         title:'پک‌من',           sub:'PAC-MAN',        year:1980, genre:'کلاسیک',     genreTag:'classic', file:'pacman.html',         available:false, cover:'pacman' }
+  { id:'pacman',         title:'پک‌من',           sub:'PAC-MAN',        year:1980, genre:'کلاسیک',     genreTag:'classic', file:'pacman.html',         available:false, cover:'pacman' },
+  { id:'game-runner',   title:'گیم رانر',       sub:'GAME RUNNER',    year:2024, genre:'مسابقه',     genreTag:'racing',  file:'game-runner.html',    available:false, cover:'racer' }
 ];
 
 /* ---- کاورها (SVG inline) ---- */
@@ -1321,22 +1570,648 @@ const COVERS = {
     const b=(x,y,c)=>`<rect x="${x}" y="${y}" width="20" height="20" fill="${c}" stroke="#000" stroke-width="1"/>`;
     return `<svg viewBox="0 0 220 280" preserveAspectRatio="xMidYMid slice"><rect width="220" height="280" fill="#0d0f1a"/><g stroke="#1e2836" stroke-width=".5">${Array.from({length:14},(_,i)=>`<line x1="0" y1="${i*20}" x2="220" y2="${i*20}"/>`).join('')}${Array.from({length:11},(_,i)=>`<line x1="${i*20}" y1="0" x2="${i*20}" y2="280"/>`).join('')}</g>${b(60,60,'#a78bfa')}${b(80,60,'#a78bfa')}${b(100,60,'#a78bfa')}${b(80,80,'#a78bfa')}${b(140,100,'#f5c518')}${b(140,120,'#f5c518')}${b(140,140,'#f5c518')}${b(160,140,'#f5c518')}${b(40,240,'#ff5a4a')}${b(60,240,'#4ade80')}${b(80,240,'#60a5fa')}${b(100,240,'#ff5a4a')}${b(120,240,'#4ade80')}${b(140,240,'#60a5fa')}${b(160,240,'#a78bfa')}${b(40,220,'#60a5fa')}${b(60,220,'#f5c518')}${b(80,220,'#ff5a4a')}${b(100,220,'#4ade80')}</svg>`;
   },
-  pacman: () => `<svg viewBox="0 0 220 280" preserveAspectRatio="xMidYMid slice"><rect width="220" height="280" fill="#000"/><g stroke="#1e3a8a" stroke-width="3" fill="none"><path d="M10,60 L60,60 L60,110"/><path d="M210,60 L160,60 L160,110"/><path d="M10,220 L60,220 L60,170"/><path d="M210,220 L160,220 L160,170"/></g><g fill="#f5c518"><circle cx="80" cy="90" r="3"/><circle cx="100" cy="90" r="3"/><circle cx="120" cy="90" r="3"/><circle cx="140" cy="90" r="3"/><circle cx="30" cy="140" r="3"/><circle cx="50" cy="140" r="3"/><circle cx="80" cy="140" r="3"/><circle cx="140" cy="140" r="3"/><circle cx="170" cy="140" r="3"/><circle cx="190" cy="140" r="3"/><circle cx="80" cy="190" r="3"/><circle cx="110" cy="190" r="3"/><circle cx="140" cy="190" r="3"/></g><circle cx="110" cy="140" r="22" fill="#f5c518"/><path d="M110,140 L130,128 L130,152 Z" fill="#000"/><g transform="translate(160,190)"><path d="M-16,-14 L-16,10 Q-16,20 -6,20 L-6,10 L-2,10 L-2,20 Q8,20 8,10 L8,-14 Q8,-22 0,-22 Q-8,-22 -8,-14 Z" fill="#ff5a4a"/><circle cx="-8" cy="-8" r="3" fill="#fff"/><circle cx="4" cy="-8" r="3" fill="#fff"/></g><g transform="translate(60,190)"><path d="M-14,-14 L-14,10 Q-14,20 -6,20 L-6,10 L-2,10 L-2,20 Q6,20 6,10 L6,-14 Q6,-22 0,-22 Q-6,-22 -6,-14 Z" fill="#60a5fa"/><circle cx="-6" cy="-8" r="2.5" fill="#fff"/><circle cx="4" cy="-8" r="2.5" fill="#fff"/></g></svg>`
+  pacman: () => `<svg viewBox="0 0 220 280" preserveAspectRatio="xMidYMid slice"><rect width="220" height="280" fill="#000"/><g stroke="#1e3a8a" stroke-width="3" fill="none"><path d="M10,60 L60,60 L60,110"/><path d="M210,60 L160,60 L160,110"/><path d="M10,220 L60,220 L60,170"/><path d="M210,220 L160,220 L160,170"/></g><g fill="#f5c518"><circle cx="80" cy="90" r="3"/><circle cx="100" cy="90" r="3"/><circle cx="120" cy="90" r="3"/><circle cx="140" cy="90" r="3"/><circle cx="30" cy="140" r="3"/><circle cx="50" cy="140" r="3"/><circle cx="80" cy="140" r="3"/><circle cx="140" cy="140" r="3"/><circle cx="170" cy="140" r="3"/><circle cx="190" cy="140" r="3"/><circle cx="80" cy="190" r="3"/><circle cx="110" cy="190" r="3"/><circle cx="140" cy="190" r="3"/></g><circle cx="110" cy="140" r="22" fill="#f5c518"/><path d="M110,140 L130,128 L130,152 Z" fill="#000"/><g transform="translate(160,190)"><path d="M-16,-14 L-16,10 Q-16,20 -6,20 L-6,10 L-2,10 L-2,20 Q8,20 8,10 L8,-14 Q8,-22 0,-22 Q-8,-22 -8,-14 Z" fill="#ff5a4a"/><circle cx="-8" cy="-8" r="3" fill="#fff"/><circle cx="4" cy="-8" r="3" fill="#fff"/></g><g transform="translate(60,190)"><path d="M-14,-14 L-14,10 Q-14,20 -6,20 L-6,10 L-2,10 L-2,20 Q6,20 6,10 L6,-14 Q6,-22 0,-22 Q-6,-22 -6,-14 Z" fill="#60a5fa"/><circle cx="-6" cy="-8" r="2.5" fill="#fff"/><circle cx="4" cy="-8" r="2.5" fill="#fff"/></g></svg>`,
+  racer: () => `<svg viewBox="0 0 220 280" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="racer-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0f1e"/><stop offset="1" stop-color="#1a2a4a"/></linearGradient><linearGradient id="racer-player" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff5a4a"/><stop offset="1" stop-color="#b91c1c"/></linearGradient></defs><rect width="220" height="280" fill="url(#racer-sky)"/><g fill="#cfe4ff" opacity=".6"><circle cx="30" cy="20" r="1"/><circle cx="80" cy="35" r=".8"/><circle cx="150" cy="15" r="1.2"/><circle cx="190" cy="40" r=".9"/><circle cx="60" cy="60" r=".7"/><circle cx="180" cy="75" r=".8"/><circle cx="120" cy="45" r=".9"/></g><rect x="0" y="80" width="55" height="200" fill="#2e7d32"/><rect x="165" y="80" width="55" height="200" fill="#2e7d32"/><g fill="#1e4a1e" opacity=".6"><circle cx="20" cy="110" r="4"/><circle cx="40" cy="140" r="3"/><circle cx="15" cy="180" r="5"/><circle cx="45" cy="230" r="3"/><circle cx="25" cy="260" r="4"/><circle cx="195" cy="120" r="4"/><circle cx="180" cy="160" r="3"/><circle cx="205" cy="200" r="5"/><circle cx="175" cy="240" r="3"/><circle cx="198" cy="265" r="4"/></g><rect x="55" y="80" width="110" height="200" fill="#1e1e1e"/><rect x="55" y="80" width="110" height="200" fill="none" stroke="#3a3a3a" stroke-width="2"/><line x1="110" y1="90" x2="110" y2="270" stroke="#fff" stroke-width="3" stroke-dasharray="8,10" stroke-linecap="round"/><circle cx="80" cy="130" r="6" fill="#FFD966"/><circle cx="80" cy="130" r="3.5" fill="#E5A812"/><circle cx="145" cy="180" r="6" fill="#FFD966"/><circle cx="145" cy="180" r="3.5" fill="#E5A812"/><circle cx="90" cy="220" r="5" fill="#FFD966"/><circle cx="90" cy="220" r="3" fill="#E5A812"/><g transform="translate(110,115)"><rect x="-18" y="-20" width="36" height="40" rx="4" fill="#2F5F8C"/><rect x="-14" y="-22" width="28" height="6" rx="2" fill="#B0C4DE"/><rect x="-14" y="16" width="28" height="6" rx="2" fill="#B0C4DE"/><circle cx="-12" cy="-14" r="4" fill="#111"/><circle cx="12" cy="-14" r="4" fill="#111"/><circle cx="-12" cy="14" r="4" fill="#111"/><circle cx="12" cy="14" r="4" fill="#111"/></g><g transform="translate(110,235)"><rect x="-22" y="-24" width="44" height="48" rx="5" fill="url(#racer-player)"/><rect x="-18" y="-26" width="36" height="7" rx="2" fill="#B0C4DE"/><rect x="-18" y="19" width="36" height="7" rx="2" fill="#B0C4DE"/><rect x="-10" y="-2" width="20" height="6" rx="2" fill="#FFE484" opacity=".7"/><circle cx="-15" cy="-18" r="5" fill="#111"/><circle cx="15" cy="-18" r="5" fill="#111"/><circle cx="-15" cy="18" r="5" fill="#111"/><circle cx="15" cy="18" r="5" fill="#111"/></g><g transform="translate(35,60)"><rect x="-4" y="-3" width="8" height="6" rx="1" fill="#f5c518" opacity=".8"/></g></svg>`
 };
+
+/* ایندکس آواتارها مستقل از ترتیب بازشدن است؛ انتخاب مخفی بعد از تغییر روز/استریک باقی می‌ماند. */
+function getSecretUnlocks() {
+  const raw = LS.get('arcade_secret_unlocks',{}), unlocked = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return unlocked;
+  for (const avatar of SECRET_AVATARS) if (Number.isFinite(Number(raw[avatar.id])) && Number(raw[avatar.id]) > 0) unlocked[avatar.id] = Number(raw[avatar.id]);
+  return unlocked;
+}
+function isAvatarUnlocked(index) {
+  if (!Number.isInteger(index) || !ALL_AVATARS[index]) return false;
+  return index < AVATARS.length || !!getSecretUnlocks()[ALL_AVATARS[index].id];
+}
+function checkSecretAvatars() {
+  const unlocked = getSecretUnlocks(), newlyUnlocked = [];
+  for (const avatar of SECRET_AVATARS) {
+    if (!unlocked[avatar.id] && avatar.condition()) { unlocked[avatar.id] = Date.now(); newlyUnlocked.push(avatar); }
+  }
+  if (!newlyUnlocked.length) return false;
+  LS.set('arcade_secret_unlocks',unlocked);
+  newlyUnlocked.forEach(avatar => showToast('آواتار مخفی باز شد: ' + avatar.name,'✨','long'));
+  if (document.getElementById('avatarModal').classList.contains('show')) renderAvatarPicker();
+  return true;
+}
+function renderAvatarPicker() {
+  const p = getProfile(), unlocked = getSecretUnlocks(), current = document.activeElement;
+  const focusIndex = current && current.dataset ? current.dataset.avatarIndex : null;
+  document.getElementById('avatarGrid').innerHTML = ALL_AVATARS.map((avatar,index) => {
+    const secret = index >= AVATARS.length, locked = secret && !unlocked[avatar.id];
+    if (locked) return `<button class="avatar-option secret locked" type="button" disabled aria-label="${esc('آواتار مخفی؛ ' + avatar.unlockText)}"><span class="pixel-avatar secret-locked" aria-hidden="true">؟</span><span class="secret-hint">${esc(avatar.unlockText)}</span></button>`;
+    return `<button class="avatar-option ${secret ? 'secret' : ''} ${index === p.avatar ? 'selected' : ''}" type="button" data-avatar-index="${index}" aria-label="${esc(avatar.name)}" aria-pressed="${index === p.avatar}"><span class="pixel-avatar" style="background:linear-gradient(135deg,${avatar.bg[0]},${avatar.bg[1]})">${avatar.svg}<span class="avatar-tick" aria-hidden="true">✓</span></span><span>${esc(avatar.name)}</span></button>`;
+  }).join('');
+  if (focusIndex !== null && document.getElementById('avatarModal').classList.contains('show')) {
+    const button = document.querySelector('#avatarGrid [data-avatar-index="' + Number(focusIndex) + '"]');
+    if (button) button.focus({ preventScroll: true });
+  }
+}
+
+/* ============================================================
+   Daily Quest — تولید قطعی با تاریخ محلی، پیشرفت و پاداش یک‌باره
+   ============================================================ */
+const QUEST_POOL = [
+  { type: 'playCount', min: 3, max: 8, xp: 80, make: n => 'امروز ' + faNum(n) + ' دست بازی کن' },
+  { type: 'specificGame', min: 1, max: 3, xp: 100, make: (n,game) => faNum(n) + ' بار ' + game.title + ' بازی کن' },
+  { type: 'scoreTarget', min: 500, max: 3000, xp: 120, make: (n,game) => 'در ' + game.title + ' به ' + faNum(n) + ' امتیاز برس' },
+  { type: 'variety', min: 3, max: 5, xp: 100, make: n => 'امروز ' + faNum(n) + ' بازی مختلف بازی کن' },
+  { type: 'timePlayed', min: 10, max: 30, xp: 90, make: n => faNum(n) + ' دقیقه مجموع بازی کن' }
+];
+function dateSeed(value) {
+  let seed = 2166136261;
+  for (const char of value) { seed ^= char.charCodeAt(0); seed = Math.imul(seed,16777619); }
+  return seed >>> 0;
+}
+function mulberry32(seed) {
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15,t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7,t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function validQuestState(raw, date = dateKey()) {
+  if (!raw || typeof raw !== 'object' || raw.date !== date || !Array.isArray(raw.quests) || raw.quests.length !== 3) return null;
+  const types = new Set(), ids = new Set(), quests = [];
+  for (const value of raw.quests) {
+    if (!value || !QUEST_POOL.some(item => item.type === value.type) || typeof value.id !== 'string' || !value.id || types.has(value.type) || ids.has(value.id)) return null;
+    if (!Number.isFinite(Number(value.target)) || Number(value.target) <= 0 || !Number.isFinite(Number(value.reward)) || Number(value.reward) < 0) return null;
+    if (['specificGame','scoreTarget'].includes(value.type) && !GAMES.some(game => game.id === value.gameId)) return null;
+    types.add(value.type); ids.add(value.id);
+    const target = Math.max(1,safeXP(value.target)), completed = value.completed === true;
+    const quest = { ...value, desc: typeof value.desc === 'string' ? value.desc.slice(0,220) : '', target, reward: safeXP(value.reward), completed, progress: completed ? target : Math.min(target,safeXP(value.progress)) };
+    if (quest.type === 'variety') quest.playedGames = [...new Set((Array.isArray(value.playedGames) ? value.playedGames : []).filter(id => GAMES.some(game => game.id === id)))];
+    quests.push(quest);
+  }
+  return { date, quests, allDoneBonusClaimed: raw.allDoneBonusClaimed === true };
+}
+function newDailyQuests(allowProvisional = false) {
+  const existing = validQuestState(LS.get('arcade_quests',null));
+  if (existing) return existing; // رفرش یا رندر مجدد هرگز مأموریت امروز را عوض نمی‌کند.
+  const available = GAMES.filter(game => game.available);
+  if (!available.length || (!filesChecked && !allowProvisional)) return null;
+  const today = dateKey(), random = mulberry32(dateSeed(today));
+  // با کمتر از سه بازی، مأموریت variety انتخاب نمی‌شود تا هدف غیرممکن نسازیم.
+  const pool = QUEST_POOL.filter(item => item.type !== 'variety' || available.length >= item.min).slice();
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(random() * (i + 1)); [pool[i],pool[j]] = [pool[j],pool[i]]; }
+  const quests = pool.slice(0,3).map((template,index) => {
+    const max = template.type === 'variety' ? Math.min(template.max,available.length) : template.max;
+    const target = template.min + Math.floor(random() * (max - template.min + 1));
+    const game = ['specificGame','scoreTarget'].includes(template.type) ? available[Math.floor(random() * available.length)] : null;
+    const quest = { id: 'q' + (index + 1), type: template.type, desc: template.make(target,game), target, progress: 0, reward: template.xp, completed: false };
+    if (game) quest.gameId = game.id;
+    if (template.type === 'variety') quest.playedGames = [];
+    return quest;
+  });
+  const state = { date: today, quests, allDoneBonusClaimed: false };
+  LS.set('arcade_quests',state); return state;
+}
+function getDailyQuests(allowProvisional = false) {
+  return validQuestState(LS.get('arcade_quests',null)) || newDailyQuests(allowProvisional);
+}
+function claimAllQuestsBonus(expectedDate = dateKey()) {
+  const state = validQuestState(LS.get('arcade_quests',null),expectedDate);
+  if (!state || state.date !== dateKey() || state.allDoneBonusClaimed || !state.quests.every(quest => quest.completed)) return false;
+  state.allDoneBonusClaimed = true;
+  LS.set('arcade_quests',state); // فلگ قبل از XP؛ از پاداش دوباره در رندر/بازگشت جلوگیری می‌کند.
+  addXP(100,'quest'); showToast('همهٔ مأموریت‌های امروز انجام شد! +۱۰۰ XP پاداش','🏅');
+  return true;
+}
+function completeQuest(quest, expectedDate = dateKey()) {
+  const state = validQuestState(LS.get('arcade_quests',null),expectedDate);
+  if (!state || expectedDate !== dateKey()) return false;
+  const current = state.quests.find(item => item.id === quest.id);
+  if (!current || current.completed || current.progress < current.target) return false;
+  current.completed = true; current.progress = current.target;
+  LS.set('arcade_quests',state);
+  quest.completed = true; quest.progress = current.target;
+  addXP(current.reward,'quest');
+  showToast('مأموریت انجام شد! +' + faNum(current.reward) + ' XP','🎯','short');
+  claimAllQuestsBonus(state.date); renderQuests(); return true;
+}
+function finishReadyQuests(state) {
+  LS.set('arcade_quests',state);
+  state.quests.filter(quest => !quest.completed && quest.progress >= quest.target).forEach(quest => completeQuest(quest,state.date));
+  claimAllQuestsBonus(state.date); renderQuests();
+}
+function trackQuestLaunch(game) {
+  const state = getDailyQuests(true);
+  if (!state) return;
+  for (const quest of state.quests) {
+    if (quest.completed) continue;
+    if (quest.type === 'playCount' || (quest.type === 'specificGame' && quest.gameId === game.id)) quest.progress++;
+    if (quest.type === 'variety') {
+      quest.playedGames = [...new Set([...(quest.playedGames || []),game.id])];
+      quest.progress = quest.playedGames.length;
+    }
+    quest.progress = Math.min(quest.target,quest.progress);
+  }
+  finishReadyQuests(state);
+}
+function trackQuestReturn(active, elapsed, score) {
+  const state = getDailyQuests(true);
+  if (!state) return;
+  // بازیِ عبورکرده از نیمه‌شب فقط زمان امروز را به مأموریت تازه اضافه می‌کند.
+  const midnight = new Date(); midnight.setHours(0,0,0,0);
+  const secondsToday = Math.max(0,Math.min(elapsed,Math.floor((Date.now() - midnight.getTime()) / 1000)));
+  for (const quest of state.quests) {
+    if (quest.completed) continue;
+    if (quest.type === 'timePlayed') quest.progress += Math.floor(secondsToday / 60);
+    if (quest.type === 'scoreTarget' && quest.gameId === active.id) quest.progress = Math.max(quest.progress,safeXP(score));
+    quest.progress = Math.min(quest.target,quest.progress);
+  }
+  finishReadyQuests(state);
+}
+function renderQuests() {
+  const state = getDailyQuests(), section = document.getElementById('questsSection'), list = document.getElementById('questsList');
+  if (!state) {
+    document.getElementById('questsCount').textContent = '۰ از ۳'; section.classList.remove('all-done');
+    list.innerHTML = '<p class="feature-empty">' + (filesChecked ? 'مأموریت‌ها با در دسترس قرار گرفتن اولین بازی آماده می‌شن.' : 'در حال آماده‌سازی مأموریت‌های امروز…') + '</p>';
+    document.getElementById('questsBonus').textContent = 'تکمیل هر سه مأموریت: ۱۰۰ XP پاداش بیشتر'; return;
+  }
+  const count = state.quests.filter(quest => quest.completed).length;
+  document.getElementById('questsCount').textContent = faNum(count) + ' از ۳';
+  section.classList.toggle('all-done',count === 3);
+  list.innerHTML = state.quests.map(quest => {
+    const percent = Math.min(100,quest.progress / quest.target * 100), label = faNum(quest.progress) + ' از ' + faNum(quest.target);
+    return `<div class="quest-item ${quest.completed ? 'done' : ''}" data-quest-id="${esc(quest.id)}"><div class="quest-check" aria-hidden="true">${quest.completed ? '✓' : ''}</div><div class="quest-desc">${esc(quest.desc)}${quest.completed ? '<span class="quest-completed-label" hidden> — انجام شد</span>' : ''}</div><div class="quest-meter"><div class="quest-progress-bar" role="progressbar" aria-label="${esc(quest.desc)}" aria-valuemin="0" aria-valuemax="${quest.target}" aria-valuenow="${quest.progress}" aria-valuetext="${esc(label)}"><div class="quest-progress-fill" style="width:${percent}%"></div></div><small class="quest-progress-text" dir="ltr">${faNum(quest.progress)} / ${faNum(quest.target)}</small></div><div class="quest-xp">+${faNum(quest.reward)} XP</div></div>`;
+  }).join('');
+  document.getElementById('questsBonus').textContent = state.allDoneBonusClaimed ? '🏅 پاداش ۱۰۰ XP تکمیل همهٔ مأموریت‌ها دریافت شد.' : 'تکمیل هر سه مأموریت: ۱۰۰ XP پاداش بیشتر';
+}
+
+/* ============================================================
+   Weekly Boss — هفتهٔ محلی از یکشنبه، هدف ثابت تا پایان هفته
+   ============================================================ */
+function getWeekKey(date = new Date()) {
+  const year = date.getFullYear(), onejan = new Date(year,0,1);
+  // همان شماره‌گذاری درخواست‌شده، بر حسب روز تقویمی (نه ساعت یا تغییر DST).
+  const days = (Date.UTC(year,date.getMonth(),date.getDate()) - Date.UTC(year,0,1)) / 86400000;
+  const week = Math.ceil((days + onejan.getDay() + 1) / 7);
+  return year + '-W' + String(week).padStart(2,'0');
+}
+function weeklyBossHistory() {
+  const raw = LS.get('arcade_weekly_bosses',{}), history = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return history;
+  Object.entries(raw).forEach(([key,value]) => {
+    if (!/^\d{4}-W\d{2}$/.test(key) || !value || !GAMES.some(game => game.id === value.gameId) || !Number.isFinite(Number(value.targetScore)) || Number(value.targetScore) <= 0) return;
+    history[key] = { ...value, targetScore: safeXP(value.targetScore), completed: value.completed === true, completedAt: Number(value.completedAt) > 0 ? Number(value.completedAt) : null, seen: value.seen === true };
+  });
+  return history;
+}
+function getWeeklyBoss(allowProvisional = false) {
+  const key = getWeekKey(), history = weeklyBossHistory();
+  if (history[key]) return history[key];
+  const available = GAMES.filter(game => game.available);
+  if (!available.length || (!filesChecked && !allowProvisional)) return null;
+  const seed = [...key].reduce((sum,char) => sum + char.charCodeAt(0),0), game = available[seed % available.length];
+  const boss = { gameId: game.id, targetScore: Math.min(Number.MAX_SAFE_INTEGER,Math.max(1000,getTop(game.id) * 2)), completed: false, completedAt: null, seen: false };
+  history[key] = boss; LS.set('arcade_weekly_bosses',history); return boss;
+}
+function defeatedBossCount() { return Object.values(weeklyBossHistory()).filter(boss => boss.completed).length; }
+function updateBossBadges() {
+  const count = defeatedBossCount(), title = faNum(count) + ' باس هفتگی شکست‌خورده';
+  ['pcBossBadge','smBossBadge','profileBossBadge'].forEach(id => {
+    const badge = document.getElementById(id);
+    if (!badge) return;
+    badge.hidden = count === 0;
+    badge.textContent = id === 'profileBossBadge' ? '👑 ' + title : '👑 ' + faNum(count);
+    badge.setAttribute('aria-label',title); badge.title = title;
+  });
+}
+function checkWeeklyBossReturn(active, score) {
+  const key = getWeekKey(), history = weeklyBossHistory(), boss = history[key];
+  if (!boss || boss.completed || boss.gameId !== active.id || score < boss.targetScore) return false;
+  boss.completed = true; boss.completedAt = Date.now(); history[key] = boss;
+  LS.set('arcade_weekly_bosses',history);
+  addXP(XP_REWARDS.weeklyBoss,'weeklyBoss');
+  showToast('👑 باس هفته رو شکست دادی! +۵۰۰ XP','🏆','long');
+  renderWeeklyBoss(); updateBossBadges(); return true;
+}
+function acceptWeeklyBoss() {
+  const boss = getWeeklyBoss(true);
+  if (!boss || boss.completed) return;
+  const game = GAMES.find(item => item.id === boss.gameId);
+  if (!game || !game.available) { showToast('بازی این چالش فعلاً در دسترس نیست.','🎮'); return; }
+  const history = weeklyBossHistory(); boss.seen = true; history[getWeekKey()] = boss;
+  LS.set('arcade_weekly_bosses',history); renderWeeklyBoss(); launch(game);
+}
+function renderWeeklyBoss() {
+  const boss = getWeeklyBoss(), el = document.getElementById('weeklyBoss');
+  if (!boss) { el.innerHTML = ''; el.classList.remove('completed'); return; }
+  const game = GAMES.find(item => item.id === boss.gameId);
+  if (!game) { el.innerHTML = ''; return; }
+  el.classList.toggle('completed',boss.completed);
+  el.innerHTML = `<div class="boss-layout"><div class="boss-cover" aria-hidden="true">${COVERS[game.cover] ? COVERS[game.cover]() : ''}</div><div class="boss-copy"><span class="boss-badge">${boss.completed ? '✓ باس شکست خورد' : '👑 BOSS هفته'}</span><h2 class="boss-title">${esc(game.title)}</h2><div class="boss-target">${boss.completed ? 'تکمیل شد! 🎉' : 'امتیاز هدف: ' + faNum(boss.targetScore.toLocaleString('en-US'))}</div><small class="boss-meta">${boss.completed ? 'یک پیروزی دیگر به نشان پروفایلت اضافه شد.' : 'رکورد فعلی: ' + faNum(getTop(game.id).toLocaleString('en-US')) + ' · یک چالش برای این هفته'}</small></div><div class="boss-side"><span class="boss-reward" dir="ltr">+۵۰۰ XP</span>${boss.completed ? '<span class="boss-complete">✓ پاداش دریافت شد</span>' : `<button class="gold-btn boss-action" id="bossAcceptBtn" type="button" ${game.available ? '' : 'disabled'}>${game.available ? (boss.seen ? 'ادامهٔ چالش' : 'بپذیر چالش') : 'فعلاً در دسترس نیست'}</button>`}</div></div>`;
+}
+
+/* ============================================================
+   Tournament — سه نوبت مستقل، ادامهٔ امن، تاریخچهٔ ۱۰تایی و کارت نتیجه
+   ============================================================ */
+function normalizeTournament(value, historyRecord = false) {
+  if (!value || typeof value !== 'object' || typeof value.id !== 'string' || !value.id || !Array.isArray(value.games) || value.games.length !== 3 || new Set(value.games).size !== 3) return null;
+  if (!value.games.every(id => GAMES.some(game => game.id === id)) || !Array.isArray(value.scores) || value.scores.length !== 3) return null;
+  if (!value.scores.every(score => score === null || (typeof score === 'number' && Number.isFinite(score) && score >= 0))) return null;
+  const scores = value.scores.map(score => score === null ? null : safeXP(score));
+  if (historyRecord && scores.some(score => score === null)) return null;
+  const currentIndex = Number.isInteger(value.currentIndex) && value.currentIndex >= 0 && value.currentIndex <= 2 ? value.currentIndex : Math.max(0,scores.findIndex(score => score === null));
+  const result = { id: value.id.slice(0,100), games: value.games.slice(), scores, currentIndex, startedAt: safeXP(value.startedAt) || safeXP(value.date) || Date.now() };
+  if (historyRecord) { result.total = Math.min(Number.MAX_SAFE_INTEGER,scores.reduce((sum,score) => sum + score,0)); result.date = safeXP(value.date) || result.startedAt; }
+  return result;
+}
+function getActiveTournament() { return normalizeTournament(LS.get('arcade_tournament_active',null)); }
+function getTournamentHistory() {
+  const raw = LS.get('arcade_tournaments',[]);
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  return raw.map(record => normalizeTournament(record,true)).filter(record => { if (!record || seen.has(record.id)) return false; seen.add(record.id); return true; }).slice(0,10);
+}
+let tournamentSelection = [], tournamentConfirmAction = null, displayedTournamentResult = null;
+let pendingTournamentResult = normalizeTournament(readSessionJSON('arcade_tournament_result_pending',null),true);
+function tournamentContextMatches(context, game) {
+  if (!context) return true;
+  const t = getActiveTournament();
+  return !!(t && t.id === context.tournamentId && t.currentIndex === context.tournamentIndex && t.games[t.currentIndex] === game.id && t.scores[t.currentIndex] === null);
+}
+function renderTournamentPicker() {
+  const available = GAMES.filter(game => game.available);
+  tournamentSelection = tournamentSelection.filter(id => available.some(game => game.id === id)).slice(0,3);
+  const container = document.getElementById('tournamentGamePicker'), focused = document.activeElement && document.activeElement.dataset.gameId;
+  container.innerHTML = available.length ? available.map(game => {
+    const order = tournamentSelection.indexOf(game.id), selected = order !== -1;
+    return `<button class="tournament-game ${selected ? 'selected' : ''}" type="button" data-game-id="${esc(game.id)}" aria-pressed="${selected}" aria-label="${esc(game.title)}"><span class="tgp-cover" aria-hidden="true">${COVERS[game.cover] ? COVERS[game.cover]() : ''}</span><span class="tgp-check" aria-hidden="true">${selected ? faNum(order + 1) : '✓'}</span><span class="tgp-name">${esc(game.title)}</span></button>`;
+  }).join('') : '<div class="feature-empty" style="grid-column:1/-1">هنوز بازی قابل انتخابی پیدا نشده.</div>';
+  document.getElementById('tournamentSelectionCount').textContent = faNum(tournamentSelection.length) + ' از ۳ بازی انتخاب شد';
+  document.getElementById('tournamentStartBtn').disabled = tournamentSelection.length !== 3 || available.length < 3 || launchInProgress;
+  document.getElementById('tournamentNote').textContent = available.length < 3 ? 'برای مسابقه، حداقل ۳ بازی باید در دسترس باشه؛ از منو بازی‌های جدید رو بررسی کن.' : 'پایان هر سه بازی: ۲۰۰ XP پاداش · شماره‌ها ترتیب بازی‌ها رو مشخص می‌کنن.';
+  if (focused && container.closest('.show')) {
+    const button = Array.from(container.querySelectorAll('[data-game-id]')).find(item => item.dataset.gameId === focused);
+    if (button) button.focus({ preventScroll: true });
+  }
+}
+function openTournamentConfirmation(action, isNew = false) {
+  tournamentConfirmAction = action;
+  document.getElementById('tournamentConfirmTitle').textContent = isNew ? 'مسابقهٔ تازه شروع کنیم؟' : 'از مسابقه انصراف می‌دی؟';
+  document.getElementById('tournamentConfirmText').textContent = isNew ? 'یک مسابقه در جریانه. با شروع مسابقهٔ جدید، پیشرفت همون مسابقه کنار گذاشته می‌شه؛ رکوردها و XP قبلی محفوظ می‌مونن.' : 'پیشرفت این مسابقه حذف می‌شه؛ رکوردها، تاریخچه و XP قبلی‌ات محفوظ می‌مونن.';
+  document.getElementById('tournamentConfirmYes').textContent = isNew ? 'بله، مسابقهٔ جدید' : 'بله، انصراف';
+  showModal('tournamentConfirmModal');
+}
+function openTournamentModal() {
+  const active = getActiveTournament();
+  if (active) {
+    openTournamentConfirmation(() => {
+      const current = getActiveTournament();
+      if (current && current.id !== active.id) { showToast('مسابقه در تب دیگری تغییر کرده؛ دوباره بررسی کن.','🏆'); return; }
+      if (current) LS.remove('arcade_tournament_active');
+      renderTournamentBanner(); openTournamentModal();
+    },true); return;
+  }
+  tournamentSelection = []; renderTournamentPicker(); showModal('tournamentModal');
+}
+function startSelectedTournament() {
+  if (launchInProgress || tournamentSelection.length !== 3 || !tournamentSelection.every(id => GAMES.some(game => game.id === id && game.available))) return;
+  if (getActiveTournament()) { showToast('یک مسابقه در جریانه؛ ابتدا ادامه بده یا انصراف بده.','🏆'); closeModal('tournamentModal'); renderTournamentBanner(); return; }
+  const tournament = { id: Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8), games: tournamentSelection.slice(), scores: [null,null,null], currentIndex: 0, startedAt: Date.now() };
+  LS.set('arcade_tournament_active',tournament); closeModal('tournamentModal'); renderTournamentBanner(); launchTournamentGame(0);
+}
+function launchTournamentGame(index) {
+  const t = getActiveTournament();
+  if (!t || launchInProgress || !Number.isInteger(index) || index !== t.currentIndex || !t.games[index]) return;
+  if (t.scores.every(score => score !== null)) { finalizeTournament(t); return; }
+  if (t.scores[index] !== null) return;
+  const game = GAMES.find(item => item.id === t.games[index]);
+  if (!game || !game.available) { showToast('بازی این نوبت فعلاً در دسترس نیست؛ مسابقه‌ات ذخیره شده.','🎮'); return; }
+  t.currentIndex = index; LS.set('arcade_tournament_active',t);
+  return launch(game,false,{ tournamentId: t.id, tournamentIndex: index });
+}
+function renderTournamentBanner() {
+  const t = getActiveTournament(), banner = document.getElementById('tournamentBanner');
+  banner.hidden = !t;
+  if (!t) { document.getElementById('tbGames').innerHTML = ''; return; }
+  document.getElementById('tbGames').innerHTML = t.games.map((id,index) => {
+    const game = GAMES.find(item => item.id === id), done = t.scores[index] !== null, current = !done && index === t.currentIndex;
+    return `<div class="tb-step ${done ? 'done' : current ? 'current' : ''}" ${current ? 'aria-current="step"' : ''}><span class="tb-step-number">${done ? '✓' : faNum(index + 1)}</span><div class="tb-step-body"><b>${esc(game.title)}</b><small>${done ? faNum(t.scores[index].toLocaleString('en-US')) + ' امتیاز' : current ? 'نوبت تو' : 'در ادامه'}</small></div></div>`;
+  }).join('');
+  const game = GAMES.find(item => item.id === t.games[t.currentIndex]), done = t.scores.every(score => score !== null), button = document.getElementById('tbContinueBtn');
+  button.disabled = launchInProgress || (!done && (!game || !game.available));
+  button.textContent = done ? 'مشاهدهٔ نتیجه' : launchInProgress ? 'در حال شروع…' : game && game.available ? 'ادامه بازی' : 'بازی در دسترس نیست';
+}
+function requestTournamentCancel() {
+  const tournament = getActiveTournament();
+  if (!tournament) return;
+  openTournamentConfirmation(() => {
+    const current = getActiveTournament();
+    if (current && current.id === tournament.id) { LS.remove('arcade_tournament_active'); showToast('از مسابقه انصراف دادی؛ رکوردها و XP محفوظ موندن.','🏆'); }
+    renderTournamentBanner();
+  });
+}
+function recordTournamentReturn(active, score) {
+  const t = getActiveTournament();
+  if (!t || active.mode === 'normal' || t.games[t.currentIndex] !== active.id) return false;
+  // نشست‌های قدیمی بدون mode سازگار می‌مانند؛ نشست جدید باید متعلق به همین مسابقه و همین نوبت باشد.
+  if (active.tournamentId && (active.tournamentId !== t.id || active.tournamentIndex !== t.currentIndex)) return false;
+  if (active.mode === 'tournament' && !active.tournamentId) return false;
+  const index = t.currentIndex;
+  if (t.scores[index] !== null) return false;
+  // قرارداد امتیاز فعلیِ فایل‌های بازی حفظ می‌شود: arcade_top_<gameId>.
+  t.scores[index] = safeXP(score);
+  if (index < 2) {
+    t.currentIndex = index + 1; LS.set('arcade_tournament_active',t);
+    showToast('بازی ' + faNum(index + 1) + ' از ۳ تمام شد! ادامه بده.','🏆');
+  } else { LS.set('arcade_tournament_active',t); finalizeTournament(t); }
+  renderTournamentBanner(); return true;
+}
+function finalizeTournament(value) {
+  const t = normalizeTournament(value), active = getActiveTournament(), history = getTournamentHistory();
+  if (!t || t.scores.some(score => score === null)) return false;
+  const already = history.find(record => record.id === t.id);
+  if (already) { if (active && active.id === t.id) LS.remove('arcade_tournament_active'); renderTournamentBanner(); return false; }
+  if (!active || active.id !== t.id) return false;
+  const total = Math.min(Number.MAX_SAFE_INTEGER,t.scores.reduce((sum,score) => sum + score,0));
+  const record = { id: t.id, games: t.games.slice(), scores: t.scores.slice(), total, date: Date.now() };
+  history.unshift(record); LS.set('arcade_tournaments',history.slice(0,10)); LS.remove('arcade_tournament_active');
+  pendingTournamentResult = normalizeTournament(record,true);
+  safeSessionSet('arcade_tournament_result_pending',JSON.stringify(pendingTournamentResult));
+  addXP(XP_REWARDS.tournament,'tournament');
+  showToast('مسابقه تمام شد! +۲۰۰ XP پاداش','🏆','long');
+  renderTournamentBanner(); flushTournamentResult(); return true;
+}
+function tournamentRank(record) {
+  const history = getTournamentHistory(), present = history.some(item => item.id === record.id);
+  return { rank: present ? 1 + history.filter(item => item.total > record.total).length : null, total: history.length };
+}
+function showTournamentResult(value, total) {
+  const result = normalizeTournament({ ...value, total, date: value.date || Date.now() },true);
+  if (!result) return;
+  pendingTournamentResult = result; safeSessionSet('arcade_tournament_result_pending',JSON.stringify(result)); flushTournamentResult();
+}
+function flushTournamentResult() {
+  if (!pendingTournamentResult || !feedbackReady || document.hidden || bootIsActive() || pendingLevelUp >= 2) return;
+  if (document.getElementById('tournamentResultModal').classList.contains('show')) return;
+  const record = pendingTournamentResult, rank = tournamentRank(record);
+  displayedTournamentResult = record;
+  document.getElementById('tournamentFinalScores').innerHTML = record.games.map((id,index) => {
+    const game = GAMES.find(item => item.id === id);
+    return `<div class="tournament-score-row"><span class="tournament-score-cover" aria-hidden="true">${COVERS[game.cover] ? COVERS[game.cover]() : ''}</span><span>${faNum(index + 1)}. ${esc(game.title)}</span><b>${faNum(record.scores[index].toLocaleString('en-US'))}</b></div>`;
+  }).join('');
+  document.getElementById('tournamentTotal').textContent = faNum(record.total.toLocaleString('en-US'));
+  document.getElementById('tournamentRank').textContent = rank.rank === null ? 'این نتیجه در فهرست ۱۰ مسابقهٔ اخیر نیست.' : 'رتبه در تاریخچه: ' + faNum(rank.rank) + ' از ' + faNum(rank.total);
+  showModal('tournamentResultModal');
+}
+function acknowledgeTournamentResult() { pendingTournamentResult = null; safeSessionRemove('arcade_tournament_result_pending'); }
+function resumePendingNavigation() {
+  if (!pendingNavigation || !feedbackReady || bootIsActive() || pendingLevelUp >= 2 || pendingTournamentResult) return;
+  const navigate = pendingNavigation; pendingNavigation = null; navigate();
+}
+function recoverTournament() {
+  const active = getActiveTournament();
+  if (active && active.scores.every(score => score !== null)) finalizeTournament(active);
+}
+
+/* ============================================================
+   Attract / Tilt / Parallax — یک RAF، یک تایمر idle، پاک‌سازی lifecycle
+   ============================================================ */
+const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const coarsePointerQuery = window.matchMedia('(pointer: coarse)');
+let attractTimer = null, attractActive = false, attractIndex = 0, attractInterval = null;
+let tiltFrame = null, tiltCard = null, tiltBounds = null, tiltPoint = null;
+let pxFrame = null, pxMouseX = 0, pxMouseY = 0;
+let parallaxEnabled = !reducedMotionQuery.matches && !coarsePointerQuery.matches;
+let visualBound = false, visualCleanups = [], attractScrollY = 0, autoScrollUntil = 0;
+function addVisualListener(target, name, listener, options) {
+  target.addEventListener(name,listener,options);
+  visualCleanups.push(() => target.removeEventListener(name,listener,options));
+}
+function addMediaListener(query, listener) {
+  if (query.addEventListener) { query.addEventListener('change',listener); visualCleanups.push(() => query.removeEventListener('change',listener)); }
+  else if (query.addListener) { query.addListener(listener); visualCleanups.push(() => query.removeListener(listener)); }
+}
+function resetTilt() {
+  if (tiltFrame !== null) cancelAnimationFrame(tiltFrame);
+  tiltFrame = null; tiltPoint = null; tiltBounds = null;
+  if (tiltCard) { tiltCard.style.transform = ''; tiltCard.classList.remove('tilting'); tiltCard = null; }
+  document.querySelectorAll('.card.tilting').forEach(card => { card.style.transform = ''; card.classList.remove('tilting'); });
+}
+function resetParallax() {
+  if (pxFrame !== null) cancelAnimationFrame(pxFrame);
+  pxFrame = null; pxMouseX = 0; pxMouseY = 0;
+  document.querySelectorAll('.p-layer').forEach(layer => { layer.style.transform = ''; });
+}
+function motionAllowed() {
+  return parallaxEnabled && !document.hidden && !attractActive && !bootIsActive() && !modalStack.length && !sideMenuOpen && !launchInProgress;
+}
+function clearAttractTimer() { if (attractTimer !== null) clearTimeout(attractTimer); attractTimer = null; }
+function armAttractTimer() {
+  clearAttractTimer();
+  if (!visualBound || reducedMotionQuery.matches || document.hidden || bootIsActive() || modalStack.length || sideMenuOpen || launchInProgress) return;
+  attractTimer = setTimeout(() => { attractTimer = null; enterAttractMode(); },30000);
+}
+function resetAttractTimer() {
+  clearAttractTimer();
+  if (attractActive) exitAttractMode(false);
+  armAttractTimer(); // بدون بازگشت بازگشتی reset -> exit -> reset و بدون تایمرِ گم‌شده.
+}
+function enterAttractMode() {
+  if (attractActive) return;
+  clearAttractTimer();
+  if (!visualBound || reducedMotionQuery.matches || document.hidden || bootIsActive() || modalStack.length || sideMenuOpen || launchInProgress || document.querySelector('.sort-wrap.open')) { armAttractTimer(); return; }
+  const cards = document.querySelectorAll('#grid .card:not(.soon)');
+  if (!cards.length) { armAttractTimer(); return; }
+  resetTilt(); resetParallax();
+  attractActive = true; attractIndex = 0; attractScrollY = window.scrollY;
+  document.body.classList.add('attract-mode');
+  cycleAttract();
+  attractInterval = setInterval(cycleAttract,4000);
+}
+function cycleAttract() {
+  if (!attractActive || document.hidden || reducedMotionQuery.matches || modalStack.length || sideMenuOpen || launchInProgress) { if (attractActive) exitAttractMode(false); return; }
+  const cards = Array.from(document.querySelectorAll('#grid .card:not(.soon)'));
+  if (!cards.length) { exitAttractMode(); return; }
+  attractIndex %= cards.length;
+  cards.forEach((card,index) => card.classList.toggle('attract-focus',index === attractIndex));
+  const card = cards[attractIndex], rect = card.getBoundingClientRect();
+  // وقتی کارت‌ها پایین Hero هستند، دمو واقعاً دیده می‌شود؛ اسکرولِ خودکار، ورودی کاربر محسوب نمی‌شود.
+  if (rect.top < 130 || rect.bottom > window.innerHeight - 90) {
+    autoScrollUntil = performance.now() + 1000;
+    const top = Math.max(0,window.scrollY + rect.top - Math.max(135,(window.innerHeight - rect.height) / 2));
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+  attractIndex = (attractIndex + 1) % cards.length;
+}
+function exitAttractMode(rearm = true, restoreScroll = true) {
+  const wasActive = attractActive;
+  attractActive = false; document.body.classList.remove('attract-mode');
+  document.querySelectorAll('.card.attract-focus').forEach(card => card.classList.remove('attract-focus'));
+  if (attractInterval !== null) clearInterval(attractInterval);
+  attractInterval = null;
+  if (wasActive && restoreScroll) {
+    autoScrollUntil = performance.now() + 150;
+    window.scrollTo({ top: attractScrollY, behavior: 'instant' });
+  }
+  if (rearm) armAttractTimer();
+}
+function pauseVisualEffects() {
+  clearAttractTimer(); exitAttractMode(false); resetTilt(); resetParallax();
+}
+function overlayVisualState(locked) {
+  if (locked) pauseVisualEffects();
+  else if (visualBound) resetAttractTimer();
+}
+function onVisualMouseMove(event) {
+  const waking = attractActive;
+  resetAttractTimer();
+  if (waking || !motionAllowed()) return;
+  const card = event.target instanceof Element ? event.target.closest('#grid .card:not(.soon)') : null;
+  if (!card) resetTilt();
+  else {
+    if (tiltCard !== card) { resetTilt(); tiltCard = card; tiltBounds = card.getBoundingClientRect(); }
+    tiltPoint = { x: event.clientX, y: event.clientY };
+    if (tiltFrame === null) tiltFrame = requestAnimationFrame(() => {
+      tiltFrame = null;
+      if (!motionAllowed() || !tiltCard || !tiltCard.isConnected || !tiltPoint || !tiltBounds || !tiltBounds.width || !tiltBounds.height) { resetTilt(); return; }
+      const nx = Math.max(-1,Math.min(1,(tiltPoint.x - tiltBounds.left) / tiltBounds.width * 2 - 1));
+      const ny = Math.max(-1,Math.min(1,(tiltPoint.y - tiltBounds.top) / tiltBounds.height * 2 - 1));
+      tiltCard.classList.add('tilting');
+      tiltCard.style.transform = 'perspective(800px) rotateX(' + (-ny * 8).toFixed(2) + 'deg) rotateY(' + (nx * 8).toFixed(2) + 'deg) translateY(-3px)';
+    });
+  }
+  pxMouseX = Math.max(-1,Math.min(1,(event.clientX / Math.max(1,window.innerWidth) - .5) * 2));
+  pxMouseY = Math.max(-1,Math.min(1,(event.clientY / Math.max(1,window.innerHeight) - .5) * 2));
+  if (pxFrame === null) pxFrame = requestAnimationFrame(() => {
+    pxFrame = null;
+    if (!motionAllowed()) return;
+    document.querySelectorAll('.p-layer').forEach((layer,index) => { const depth = [8,15,25][index]; layer.style.transform = 'translate(' + (pxMouseX * depth).toFixed(2) + 'px,' + (pxMouseY * depth).toFixed(2) + 'px)'; });
+  });
+}
+function onVisualScroll() {
+  resetTilt();
+  if (performance.now() < autoScrollUntil) return;
+  resetAttractTimer();
+}
+function syncMotionPreference() {
+  parallaxEnabled = !reducedMotionQuery.matches && !coarsePointerQuery.matches;
+  pauseVisualEffects(); armAttractTimer();
+}
+function initVisualEffects() {
+  if (visualBound) return;
+  visualBound = true; parallaxEnabled = !reducedMotionQuery.matches && !coarsePointerQuery.matches;
+  addVisualListener(document,'mousemove',onVisualMouseMove,{ passive: true });
+  ['pointerdown','touchstart','touchmove','wheel','click'].forEach(name => addVisualListener(document,name,resetAttractTimer,{ passive: true, capture: true }));
+  addVisualListener(document,'keydown',resetAttractTimer,{ passive: true, capture: true });
+  addVisualListener(document,'scroll',onVisualScroll,{ passive: true, capture: true });
+  addVisualListener(document,'mouseleave',() => { resetTilt(); resetParallax(); },{ passive: true });
+  addVisualListener(window,'resize',() => { resetTilt(); resetParallax(); resetAttractTimer(); },{ passive: true });
+  addVisualListener(window,'blur',pauseVisualEffects);
+  addVisualListener(window,'focus',resetAttractTimer);
+  addMediaListener(reducedMotionQuery,syncMotionPreference); addMediaListener(coarsePointerQuery,syncMotionPreference);
+  resetAttractTimer();
+}
+function destroyVisualEffects() {
+  visualBound = false; clearAttractTimer(); exitAttractMode(false,false); resetTilt(); resetParallax();
+  visualCleanups.forEach(cleanup => cleanup()); visualCleanups = [];
+}
+
+/* ساعت روز/هفته، رویدادهای واگذارشده و پاک‌سازی در رفت‌وبرگشت BFCache. */
+let featureClock = null, featureDate = dateKey(), featureWeek = getWeekKey();
+const audioClosers = new Map();
+function scheduleAudioClose(ctx, delay) {
+  const timer = setTimeout(() => { audioClosers.delete(ctx); if (ctx.state !== 'closed') ctx.close().catch(() => {}); },delay);
+  audioClosers.set(ctx,timer);
+}
+function closeFeatureAudio() {
+  audioClosers.forEach((timer,ctx) => { clearTimeout(timer); if (ctx.state !== 'closed') ctx.close().catch(() => {}); }); audioClosers.clear();
+}
+function pauseXPFeedback() {
+  xpFeedbackTimers.forEach(timers => timers.forEach(timer => clearTimeout(timer))); xpFeedbackTimers.clear();
+  visibleXPFeedback.clear(); document.getElementById('xpToastStack').replaceChildren(); persistXPFeedback();
+}
+function tickFeatureClock() {
+  if (document.hidden) return;
+  updateGOTDTimer();
+  const today = dateKey(), week = getWeekKey();
+  if (today !== featureDate) {
+    featureDate = today; gotdKey = today; renderGOTD(); renderGrid(); renderQuests(); checkSecretAvatars();
+  }
+  if (week !== featureWeek) { featureWeek = week; renderWeeklyBoss(); updateBossBadges(); }
+}
+function startFeatureClock() {
+  if (featureClock !== null) clearInterval(featureClock);
+  tickFeatureClock(); featureClock = setInterval(tickFeatureClock,1000);
+}
+function stopFeatureClock() { if (featureClock !== null) clearInterval(featureClock); featureClock = null; }
+function bindArcadeFeatures() {
+  document.getElementById('startTournamentBtn').addEventListener('click',openTournamentModal);
+  document.getElementById('tournamentStartBtn').addEventListener('click',startSelectedTournament);
+  document.getElementById('tournamentGamePicker').addEventListener('click',event => {
+    const button = event.target.closest('[data-game-id]');
+    if (!button) return;
+    const id = button.dataset.gameId;
+    if (!GAMES.some(game => game.id === id && game.available)) return;
+    const index = tournamentSelection.indexOf(id);
+    if (index !== -1) tournamentSelection.splice(index,1);
+    else if (tournamentSelection.length < 3) tournamentSelection.push(id);
+    else { showToast('فقط ۳ بازی انتخاب کن؛ برای تغییر، یکی رو از انتخاب خارج کن.','🏆'); return; }
+    renderTournamentPicker();
+  });
+  document.getElementById('tbContinueBtn').addEventListener('click',() => { const t = getActiveTournament(); if (t) launchTournamentGame(t.currentIndex); });
+  document.getElementById('tbCancelBtn').addEventListener('click',requestTournamentCancel);
+  document.getElementById('tournamentConfirmYes').addEventListener('click',() => {
+    const action = tournamentConfirmAction; tournamentConfirmAction = null; closeModal('tournamentConfirmModal'); if (action) action();
+  });
+  document.getElementById('tournamentShareBtn').addEventListener('click',() => { if (displayedTournamentResult) makeShareCard(null,displayedTournamentResult); });
+  document.getElementById('tournamentNewBtn').addEventListener('click',() => {
+    pendingNavigation = null; launchInProgress = false; closeModal('tournamentResultModal'); openTournamentModal();
+  });
+  document.getElementById('weeklyBoss').addEventListener('click',event => { if (event.target.closest('#bossAcceptBtn')) acceptWeeklyBoss(); });
+  window.addEventListener('storage',event => {
+    if (!event.key || event.key === 'arcade_quests') renderQuests();
+    if (!event.key || event.key === 'arcade_secret_unlocks') {
+      updateProfileUI(); updateHeaderProfile();
+      if (document.getElementById('avatarModal').classList.contains('show')) renderAvatarPicker();
+    }
+    if (!event.key || event.key === 'arcade_weekly_bosses') { renderWeeklyBoss(); updateProfileUI(); updateHeaderProfile(); }
+    if (!event.key || event.key === 'arcade_tournament_active' || event.key === 'arcade_tournaments') renderTournamentBanner();
+  });
+  window.addEventListener('pagehide',() => {
+    stopFeatureClock(); destroyVisualEffects(); pauseHubToasts(); pauseXPFeedback(); closeFeatureAudio();
+  });
+}
 
 /* ============================================================
    Toast (شیشه) — بالاتر از bottom nav
    ============================================================ */
-function showToast(text, icon) {
-  const el = document.createElement('div');
-  el.className = 'hub-toast lg-glass';
-  el.setAttribute('role', 'status');
-  el.innerHTML = `<span class="ico">${esc(icon || '✨')}</span><span>${esc(text)}</span>`;
-  document.body.appendChild(el);
-  setTimeout(() => {
-    el.classList.add('hide');
-    setTimeout(() => el.remove(), 350);
-  }, 3500);
+/* Toastها پشت Boot یا هنگام رفتن به بازی گم نمی‌شوند؛ نمایش صف، XP جدید نمی‌دهد. */
+let hubToastQueue = readSessionJSON('arcade_hub_toasts',[]);
+if (!Array.isArray(hubToastQueue)) hubToastQueue = [];
+hubToastQueue = hubToastQueue.filter(item => item && typeof item.text === 'string' && item.at > Date.now() - 86400000).slice(0,60);
+let hubToastElement = null, hubToastHideTimer = null, hubToastRemoveTimer = null;
+function persistHubToasts() {
+  if (hubToastQueue.length) safeSessionSet('arcade_hub_toasts',JSON.stringify(hubToastQueue));
+  else safeSessionRemove('arcade_hub_toasts');
+}
+function showToast(text, icon, sound = '') {
+  if (hubToastQueue.length < 60) hubToastQueue.push({ text: String(text).slice(0,400), icon: String(icon || '✨'), sound, at: Date.now() });
+  persistHubToasts(); flushHubToasts();
+}
+function flushHubToasts() {
+  if (!feedbackReady || document.hidden || bootIsActive() || hubToastElement || !hubToastQueue.length) return;
+  const notice = hubToastQueue[0], el = document.createElement('div');
+  el.className = 'hub-toast lg-glass'; el.setAttribute('role','status');
+  el.innerHTML = `<span class="ico">${esc(notice.icon || '✨')}</span><span>${esc(notice.text)}</span>`;
+  hubToastElement = el; document.body.appendChild(el);
+  if (pendingLevelUp < 2) { if (notice.sound === 'long') levelUpJingle(); else if (notice.sound === 'short') jingle(); }
+  hubToastHideTimer = setTimeout(() => { hubToastHideTimer = null; el.classList.add('hide'); },3500);
+  hubToastRemoveTimer = setTimeout(() => {
+    hubToastRemoveTimer = null; el.remove(); hubToastElement = null; hubToastQueue.shift(); persistHubToasts(); flushHubToasts();
+  },3850);
+}
+function pauseHubToasts() {
+  if (hubToastHideTimer !== null) clearTimeout(hubToastHideTimer);
+  if (hubToastRemoveTimer !== null) clearTimeout(hubToastRemoveTimer);
+  hubToastHideTimer = null; hubToastRemoveTimer = null;
+  if (hubToastElement) hubToastElement.remove(); hubToastElement = null; persistHubToasts();
 }
 
 /* ============================================================
@@ -1483,6 +2358,8 @@ function getVisibleGames() {
 }
 
 function renderGrid() {
+  resetTilt();
+  if (attractActive) exitAttractMode();
   const grid = document.getElementById('grid');
   const gs = getVisibleGames();
   const gotdId = getGameOfTheDay()?.id || null;
@@ -1534,30 +2411,37 @@ function updateStats(){
   document.getElementById('statBest').textContent = faNum(best);
 }
 
-function renderAll() { updateStats(); renderRecent(); renderGOTD(); updateAchievementUI(false); renderGrid(); updateProfileUI(); updateHeaderProfile(); }
+function renderAll() {
+  updateStats(); renderRecent(); renderGOTD(); updateAchievementUI(false); renderGrid();
+  renderQuests(); renderWeeklyBoss(); renderTournamentBanner(); updateProfileUI(); updateHeaderProfile();
+  if (document.getElementById('tournamentModal').classList.contains('show')) renderTournamentPicker();
+}
 
-async function launch(g, forceGotd) {
+async function launch(g, forceGotd, tournamentContext = null) {
   if (!g || !g.available || launchInProgress) return;
   launchInProgress = true;
+  pauseVisualEffects();
   try {
     await reconcileReturn();
+    if (!g.available || !tournamentContextMatches(tournamentContext,g)) { launchInProgress = false; renderTournamentBanner(); resetAttractTimer(); return; }
+    if (pendingTournamentResult) { launchInProgress = false; flushTournamentResult(); return; }
     const dayGame = getGameOfTheDay(), isGotd = !!forceGotd || !!(dayGame && dayGame.id === g.id);
-    trackLaunch(g,isGotd);
+    trackLaunch(g,isGotd,tournamentContext);
     LS.set('arcade_playcount_' + g.id,getPlayCount(g.id) + 1);
     const last = getLast().filter(id => id !== g.id); last.unshift(g.id);
     LS.set('arcade_last',last.slice(0,6)); LS.set('arcade_plays',getPlays() + 1);
     if (isGotd) LS.set('arcade_gotd_active',{ id: g.id, date: dateKey(), multiplier: 2 });
     else LS.remove('arcade_gotd_active');
     const navigate = () => {
+      if (!tournamentContextMatches(tournamentContext,g)) { launchInProgress = false; renderTournamentBanner(); resetAttractTimer(); return; }
       const active = LS.get('arcade_active_session',null);
       if (active && active.id === g.id && active.owner === hubSessionId) { active.started = Date.now(); LS.set('arcade_active_session',active); }
       location.href = g.file + (isGotd ? (g.file.includes('?') ? '&' : '?') + 'gotd=1' : '');
     };
     // هنگام لول‌آپ، «ادامه» بازی انتخاب‌شده را باز می‌کند؛ پاداش‌ها دوباره محاسبه نمی‌شوند.
-    if (pendingLevelUp >= 2) { pendingNavigation = navigate; flushLevelUp(); }
-    else navigate();
+    pendingNavigation = navigate; renderTournamentBanner(); flushLevelUp(); resumePendingNavigation();
   } catch(e) {
-    launchInProgress = false; pendingNavigation = null; showToast('باز کردن بازی انجام نشد؛ دوباره تلاش کن.','⚠️');
+    launchInProgress = false; pendingNavigation = null; renderTournamentBanner(); resetAttractTimer(); showToast('باز کردن بازی انجام نشد؛ دوباره تلاش کن.','⚠️');
   }
 }
 
@@ -1590,7 +2474,7 @@ function dateKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1)
 function achievements(){const value=LS.get('arcade_achievements',{});return value && typeof value==='object' && !Array.isArray(value) ? Object.fromEntries(Object.entries(value).filter(([id])=>ACHIEVEMENTS.some(a=>a.id===id))) : {}}
 let audioUnlocked=false;document.addEventListener('pointerdown',()=>{audioUnlocked=true},{once:true});document.addEventListener('keydown',()=>{audioUnlocked=true},{once:true});
 function soundEnabled(){try{return localStorage.getItem('arcade_sound')!=='0'}catch(e){return true}}
-function jingle(){if(!audioUnlocked||!soundEnabled())return;try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C();[523,659,784].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.05,ctx.currentTime+i*.09);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.09+.16);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.09);o.stop(ctx.currentTime+i*.09+.17)});setTimeout(()=>{if(ctx.state!=='closed')ctx.close().catch(()=>{})},700)}catch(e){}}
+function jingle(){if(!audioUnlocked||!soundEnabled())return;try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C();[523,659,784].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.05,ctx.currentTime+i*.09);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.09+.16);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.09);o.stop(ctx.currentTime+i*.09+.17)});scheduleAudioClose(ctx,700)}catch(e){}}
 function unlockAchievement(id) {
   const a = ACHIEVEMENTS.find(x => x.id === id), unlocked = achievements();
   if (!a || unlocked[id]) return false;
@@ -1650,6 +2534,11 @@ function reconcileReturn() {
     saveStats(st);
     if (score > baseline) addXP(XP_REWARDS.newHighScore,'newHighScore');
     checkAchievements();
+    trackQuestReturn(active,elapsed,score);
+    checkWeeklyBossReturn(active,score);
+    recordTournamentReturn(active,score);
+    checkSecretAvatars();
+    renderQuests(); renderWeeklyBoss(); renderTournamentBanner(); updateProfileUI(); updateHeaderProfile();
   };
   const run = async () => {
     if (navigator.locks && typeof navigator.locks.request === 'function') {
@@ -1660,10 +2549,11 @@ function reconcileReturn() {
   reconcilePromise = run().finally(() => { reconcilePromise = null; });
   return reconcilePromise;
 }
-function trackLaunch(g, gotd = false) {
+function trackLaunch(g, gotd = false, tournamentContext = null) {
   const st = getStats(), today = dateKey(), yesterdayDate = new Date();
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
   const yesterday = dateKey(yesterdayDate), firstGame = (st.playsPerGame[g.id] || 0) === 0 && getPlayCount(g.id) === 0;
+  getDailyQuests(true); getWeeklyBoss(true);
   const dailyVisit = LS.get('arcade_last_daily_visit',null) !== today;
   const dayGame = getGameOfTheDay(), isGotd = gotd || !!(dayGame && dayGame.id === g.id);
   st.totalPlays++;
@@ -1676,20 +2566,20 @@ function trackLaunch(g, gotd = false) {
   st.playTimestamps = st.playTimestamps.filter(t => Date.now() - t <= 300000);
   st.playTimestamps.push(Date.now());
   saveStats(st);
-  LS.set('arcade_active_session',{ id: g.id, started: Date.now(), owner: hubSessionId, highScoreBefore: getTop(g.id) });
+  LS.set('arcade_active_session',{ id: g.id, started: Date.now(), owner: hubSessionId, highScoreBefore: getTop(g.id), questDate: today, mode: tournamentContext ? 'tournament' : 'normal', ...(tournamentContext || {}) });
   if (dailyVisit) LS.set('arcade_last_daily_visit',today);
   if (firstGame) addXP(XP_REWARDS.firstGame,'firstGame');
   addXP(XP_REWARDS.perPlay,'perPlay');
   if (isGotd) addXP(XP_REWARDS.gotdBonus,'gotdBonus');
   if (dailyVisit) addXP(XP_REWARDS.dailyVisit,'dailyVisit');
-  checkAchievements();
+  checkAchievements(); trackQuestLaunch(g); checkSecretAvatars(); renderWeeklyBoss();
 }
 
 /* بازی روز */
 function getGameOfTheDay(){const a=GAMES.filter(g=>g.available);if(!a.length)return null;const today=new Date().toDateString(),seed=[...today].reduce((x,c)=>x+c.charCodeAt(0),0);return a[seed%a.length]}
 let gotdKey=dateKey();function renderGOTD(){const g=getGameOfTheDay(),el=document.getElementById('gameOfDay');if(!g){el.innerHTML='';return}el.innerHTML=`<div class="gotd"><div class="gotd-main"><div class="gotd-cover">${COVERS[g.cover]?COVERS[g.cover]():''}</div><div><div class="gotd-badge">⭐ بازی روز · ×۲</div><h3>${esc(g.title)}</h3><p>${esc(g.genre)} · ${esc(g.sub)}<br>امروز رکوردت رو دوبرابر کن.</p></div></div><div class="gotd-side"><div class="gotd-timer" id="gotdTimer"></div><button class="gold-btn" id="gotdPlay">بازی کن (×۲)</button></div></div>`;document.getElementById('gotdPlay').onclick=()=>launch(g,true);updateGOTDTimer()}
 function updateGOTDTimer(){const el=document.getElementById('gotdTimer');if(!el)return;const n=new Date(),end=new Date(n);end.setHours(24,0,0,0);let x=Math.max(0,Math.floor((end-n)/1000)),h=Math.floor(x/3600),m=Math.floor(x%3600/60),s=x%60;el.textContent='تا پایان امروز: '+faNum(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'))}
-setInterval(()=>{updateGOTDTimer();if(dateKey()!==gotdKey){gotdKey=dateKey();renderGOTD();renderGrid()}},60000);
+// تایمر مشترک startFeatureClock شمارش معکوس و مرز روز/هفته را به‌روز می‌کند.
 
 /* صفحه آمار */
 function fmtTime(sec){sec=Number(sec)||0;const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60);return (h?faNum(h)+' ساعت ':'')+faNum(m)+' د'}
@@ -1699,12 +2589,12 @@ function openStats(){const st=getStats(),u=achievements(),c=document.getElementB
 const avatarImageCache = Object.create(null);
 const avatarImagePending = Object.create(null);
 function getAvatarImage(avatarIdx) {
-  avatarIdx = Number.isInteger(avatarIdx) && AVATARS[avatarIdx] ? avatarIdx : 0;
+  avatarIdx = Number.isInteger(avatarIdx) && ALL_AVATARS[avatarIdx] ? avatarIdx : 0;
   if (avatarImageCache[avatarIdx]) return Promise.resolve(avatarImageCache[avatarIdx]);
   if (avatarImagePending[avatarIdx]) return avatarImagePending[avatarIdx];
   avatarImagePending[avatarIdx] = new Promise(resolve => {
     // a.svg خودش ریشهٔ SVG دارد؛ از SVG تو‌در‌تو و viewBox نادرست پرهیز می‌شود.
-    const svgStr = AVATARS[avatarIdx].svg.replace('<svg ','<svg width="128" height="128" ');
+    const svgStr = ALL_AVATARS[avatarIdx].svg.replace('<svg ','<svg width="128" height="128" ');
     const img = new Image();
     let url = '', blobURL = false;
     const finish = result => {
@@ -1723,7 +2613,7 @@ function getAvatarImage(avatarIdx) {
   return avatarImagePending[avatarIdx];
 }
 function drawAvatar(ctx, img, avatarIdx, x, y, size) {
-  const a = AVATARS[avatarIdx] || AVATARS[0];
+  const a = ALL_AVATARS[avatarIdx] || ALL_AVATARS[0];
   ctx.save();
   const grad = ctx.createLinearGradient(x - size/2,y - size/2,x + size/2,y + size/2);
   grad.addColorStop(0,a.bg[0]); grad.addColorStop(1,a.bg[1]); ctx.fillStyle = grad;
@@ -1763,9 +2653,10 @@ async function copyShareText(text) {
   return copied;
 }
 let shareBuildId = 0;
-async function makeShareCard(game) {
+async function makeShareCard(game, tournament = null) {
+  tournament = tournament ? normalizeTournament(tournament,true) : null;
   const buildId = ++shareBuildId;
-  document.getElementById('shareTitle').textContent = game ? '✨ کارت رکورد' : '✨ کارت پروفایل';
+  document.getElementById('shareTitle').textContent = tournament ? '🏆 کارت مسابقه' : game ? '✨ کارت رکورد' : '✨ کارت پروفایل';
   document.getElementById('shareContent').innerHTML = '<div class="share-loading" role="status">در حال ساخت کارت…</div>';
   showModal('shareModal');
   try {
@@ -1795,8 +2686,22 @@ async function makeShareCard(game) {
     x.strokeStyle = 'rgba(245,197,24,.28)'; x.lineWidth = 1; x.stroke();
     x.fillStyle = '#f5c518'; x.fillText(levelText,540,368,830);
     x.font = '500 20px Vazirmatn, sans-serif'; x.fillStyle = '#8b95a8';
-    x.fillText(faNum(profile.xp.toLocaleString('en-US')) + ' XP · مجموع تجربه',540,416);
-    if (game) {
+    const crownCount = defeatedBossCount();
+    x.fillText(faNum(profile.xp.toLocaleString('en-US')) + ' XP · مجموع تجربه' + (crownCount ? ' · ' + faNum(crownCount) + ' باس شکست‌خورده' : ''),540,416,920);
+    if (tournament) {
+      x.fillStyle = '#f0f3f8'; x.font = '900 40px Vazirmatn, sans-serif'; x.fillText('مسابقهٔ آرکید من',540,481);
+      x.fillStyle = '#f5c518'; x.font = '900 72px Vazirmatn, sans-serif'; x.fillText(faNum(tournament.total.toLocaleString('en-US')),540,581,900);
+      x.fillStyle = '#8b95a8'; x.font = '500 27px Vazirmatn, sans-serif'; x.fillText('مجموع امتیاز در ۳ بازی',540,630);
+      const rank = tournamentRank(tournament);
+      x.fillStyle = '#f5c518'; x.font = '700 24px Vazirmatn, sans-serif';
+      x.fillText(rank.rank === null ? 'یک مسابقه، سه چالش' : 'رتبه در تاریخچه: ' + faNum(rank.rank) + ' از ' + faNum(rank.total),540,684);
+      tournament.games.forEach((id,index) => {
+        const gameInfo = GAMES.find(item => item.id === id), y = 754 + index * 56;
+        x.font = '600 26px Vazirmatn, sans-serif'; x.fillStyle = '#f0f3f8'; x.textAlign = 'right'; x.direction = 'rtl'; x.fillText(faNum(index + 1) + '. ' + gameInfo.title,900,y,550);
+        x.fillStyle = '#f5c518'; x.textAlign = 'left'; x.direction = 'ltr'; x.fillText(faNum(tournament.scores[index].toLocaleString('en-US')),180,y,220);
+      });
+      x.textAlign = 'center';
+    } else if (game) {
       const score = getTop(game.id);
       x.fillStyle = '#f0f3f8'; x.font = '900 52px Vazirmatn, sans-serif'; x.fillText(game.title,540,515,900);
       x.fillStyle = '#f5c518'; x.font = '900 120px Vazirmatn, sans-serif'; x.fillText(faNum(score.toLocaleString('en-US')),540,692,900);
@@ -1818,17 +2723,17 @@ async function makeShareCard(game) {
     x.direction = 'ltr'; x.textAlign = 'center'; x.fillStyle = '#8b95a8'; x.font = '500 22px Vazirmatn, sans-serif';
     x.fillText('amiralirastegar05-commits.github.io/Arkid',540,968,920);
     x.textAlign = 'right'; x.fillStyle = '#f5c518'; x.font = '900 22px Vazirmatn, sans-serif'; x.fillText('AliGraph',1004,1022);
-    const url = cv.toDataURL('image/png'), name = game ? 'arcade-' + game.id + '.png' : 'arcade-profile.png', blob = await canvasBlob(cv);
+    const url = cv.toDataURL('image/png'), name = tournament ? 'arcade-tournament-' + tournament.id.replace(/[^a-zA-Z0-9_-]/g,'') + '.png' : game ? 'arcade-' + game.id + '.png' : 'arcade-profile.png', blob = await canvasBlob(cv);
     if (buildId !== shareBuildId || !document.getElementById('shareModal').classList.contains('show')) return;
     const file = blob && typeof File === 'function' ? new File([blob],name,{ type: 'image/png' }) : null;
     const shareURL = new URL(/^https?:$/.test(location.protocol) ? location.href : 'https://amiralirastegar05-commits.github.io/Arkid/');
     if (game) { shareURL.searchParams.set('share',game.id); shareURL.searchParams.set('score',String(getTop(game.id))); }
     else { shareURL.searchParams.delete('share'); shareURL.searchParams.delete('score'); }
     shareURL.hash = '';
-    document.getElementById('shareContent').innerHTML = `<img class="share-preview" src="${url}" alt="${esc('کارت ' + (game ? 'رکورد ' + game.title : 'پروفایل') + ' · ' + profile.name + ' · ' + levelText)}"><div class="share-actions"><button class="gold-btn" id="downloadShare" type="button">دانلود PNG</button><button class="gold-btn" id="nativeShare" type="button">اشتراک‌گذاری</button></div>`;
+    document.getElementById('shareContent').innerHTML = `<img class="share-preview" src="${url}" alt="${esc('کارت ' + (tournament ? 'مسابقه' : game ? 'رکورد ' + game.title : 'پروفایل') + ' · ' + profile.name + ' · ' + levelText)}"><div class="share-actions"><button class="gold-btn" id="downloadShare" type="button">دانلود PNG</button><button class="gold-btn" id="nativeShare" type="button">اشتراک‌گذاری</button></div>`;
     document.getElementById('downloadShare').onclick = () => { const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
     document.getElementById('nativeShare').onclick = async () => {
-      const title = game ? 'رکورد من در آرکید!' : 'پروفایل من در آرکید!', text = game ? profile.name + ' در ' + game.title + ' رکورد ' + faNum(getTop(game.id)) + ' زد!' : profile.name + ' · ' + levelText + ' · این آمار آرکید منه!';
+      const title = tournament ? 'مسابقهٔ من در آرکید!' : game ? 'رکورد من در آرکید!' : 'پروفایل من در آرکید!', text = tournament ? profile.name + ' در مسابقهٔ ۳ بازی آرکید ' + faNum(tournament.total.toLocaleString('en-US')) + ' امتیاز جمع کرد!' : game ? profile.name + ' در ' + game.title + ' رکورد ' + faNum(getTop(game.id)) + ' زد!' : profile.name + ' · ' + levelText + ' · این آمار آرکید منه!';
       try {
         let canShareFile = false;
         try { canShareFile = !!(file && navigator.canShare && navigator.canShare({ files: [file] })); } catch(e) {}
@@ -1846,7 +2751,7 @@ async function makeShareCard(game) {
 function smartShareBanner(){const q=new URLSearchParams(location.search),id=q.get('share'),score=parseInt(q.get('score')||'0',10),g=GAMES.find(x=>x.id===id);if(!g||!score)return;const wrap=document.createElement('div');wrap.className='share-banner';wrap.innerHTML=`<div class="share-banner-inner"><span>🔥 دوستت رکورد ${faNum(score.toLocaleString('en-US'))} در ${esc(g.title)} زده! تو چقدر می‌تونی؟</span><button class="gold-btn">منم می‌خوام!</button></div>`;document.querySelector('main').prepend(wrap);wrap.querySelector('button').onclick=()=>launch(g)}
 
 /* Boot Screen */
-function bootBeep(){if(!audioUnlocked||!soundEnabled())return;try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C();[880,1320].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='square';o.frequency.value=f;g.gain.value=.035;o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.1);o.stop(ctx.currentTime+i*.1+.1)});setTimeout(()=>{if(ctx.state!=='closed')ctx.close().catch(()=>{})},500)}catch(e){}}
+function bootBeep(){if(!audioUnlocked||!soundEnabled())return;try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C();[880,1320].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='square';o.frequency.value=f;g.gain.value=.035;o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.1);o.stop(ctx.currentTime+i*.1+.1)});scheduleAudioClose(ctx,500)}catch(e){}}
 function initBoot() {
   const boot = document.getElementById('bootScreen');
   if (safeSessionGet('arcade_booted') === '1') { boot.remove(); enableRewardFeedback(); return; }
@@ -1900,15 +2805,17 @@ async function refreshGames() {
 /* بازگشت عادی و BFCache هر دو آمار و XP را یک‌بار جمع‌بندی می‌کنند. */
 let lastAutoCheck = 0;
 document.addEventListener('visibilitychange',() => {
-  if (document.hidden) return;
-  if (!launchInProgress) reconcileReturn().then(() => { updateStats(); updateProfileUI(); updateHeaderProfile(); renderRecent(); renderGrid(); });
-  flushXPFeedback(); flushLevelUp();
+  if (document.hidden) { stopFeatureClock(); pauseVisualEffects(); pauseHubToasts(); pauseXPFeedback(); closeFeatureAudio(); return; }
+  startFeatureClock(); resetAttractTimer();
+  if (!launchInProgress) reconcileReturn().then(() => { renderAll(); flushTournamentResult(); });
+  flushXPFeedback(); flushLevelUp(); flushHubToasts(); flushTournamentResult();
   if (filesChecked && Date.now() - lastAutoCheck > 45000) { lastAutoCheck = Date.now(); checkGameFiles({ silent: true }); }
 });
 window.addEventListener('pageshow',event => {
   if (!event.persisted) return;
   launchInProgress = false; pendingNavigation = null;
-  reconcileReturn().then(() => { renderAll(); flushXPFeedback(); flushLevelUp(); });
+  initVisualEffects(); startFeatureClock();
+  reconcileReturn().then(() => { renderAll(); flushXPFeedback(); flushLevelUp(); flushHubToasts(); flushTournamentResult(); });
 });
 
 /* PWA: نصب فقط هنگامی نشان داده می‌شود که مرورگر واقعاً prompt بدهد. */
@@ -2080,18 +2987,21 @@ document.addEventListener('keydown',event => {
 
 /* اتصال یک‌بارهٔ کنترل‌ها؛ هیچ ارجاعی به دکمه‌های حذف‌شدهٔ هدر باقی نمانده است. */
 bindProfileControls();
+bindArcadeFeatures();
 /* ============================================================
    شروع
    ============================================================ */
 saveProfile(getProfile());
 updateProfileUI(); updateHeaderProfile();
 initBoot();
+checkSecretAvatars(); recoverTournament();
 smartShareBanner();
-renderAll();
-reconcileReturn().then(() => { checkAchievements(); renderAll(); });
 checkGameFiles({ silent: false });
+renderAll();
+reconcileReturn().then(() => { checkAchievements(); checkSecretAvatars(); renderAll(); flushTournamentResult(); });
+initVisualEffects(); startFeatureClock();
 
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4ffc7538bf2cd05',t:'MTc5MjkxNjE4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
