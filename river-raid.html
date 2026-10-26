@@ -480,16 +480,23 @@ main {
   border-radius: 6px;
   background: rgba(255, 255, 255, .12);
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255, 90, 60, .35), 0 0 14px rgba(255, 60, 40, .25);
+  box-shadow: 0 0 0 1px rgba(255, 140, 60, .4), 0 0 14px rgba(255, 120, 40, .25);
+  transition: box-shadow .25s ease;
 }
 #bossBar.show { display: block; }
+#bossBar.phase2 {
+  box-shadow: 0 0 0 1px rgba(255, 45, 45, .75), 0 0 18px rgba(255, 23, 68, .5);
+}
 #bossFill {
   display: block;
   height: 100%;
   width: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, #ff3b30, #ff9a3c);
-  transition: width .18s ease;
+  background: linear-gradient(90deg, #ff7043, #ffca28);
+  transition: width .18s ease, background .25s ease;
+}
+#bossFill.phase2 {
+  background: linear-gradient(90deg, #b71c1c, #ff1744);
 }
 
 /* --- دکمه‌های بالا: بستن و مکث --- */
@@ -2064,6 +2071,7 @@ main {
       depotAcc: 0, depotGap: 820,
       bridgeAcc: 0, bridgeGap: 2400,
       powerAcc: 0, powerGap: 1250,
+      bossMinionAcc: 0, bossMinionGap: 5,
       bubbleAcc: 0,
       shakeT: 0, shakeDur: 0.001, shakeMag: 0,
       flash: 0, slowmo: 0,
@@ -2088,7 +2096,7 @@ main {
       bubbles:  pool(26,  () => ({ x: 0, y: 0, r: 1, t: 0, life: 1 })),
       rain:     pool(90,  () => ({ x: 0, y: 0, v: 0, l: 0 })),
       clouds:   [],
-      boss: { active: false, x: 0, y: 0, w: 220, h: 84, t: 0, dying: 0, parts: [], hpTotal: 0, maxHpTotal: 1 },
+      boss: { active: false, x: 0, y: 0, w: 220, h: 84, t: 0, dying: 0, hp: 0, maxHp: 1, hitT: 0, phase2: false, parts: [], hpTotal: 0, maxHpTotal: 1 },
       player: { x: 200, y: 560, dead: false, invuln: 0, respawn: 0, shield: 0, triple: 0, homing: 0, magnet: 0 }
     };
     for (let i = 0; i < 8; i++) {
@@ -2219,15 +2227,22 @@ main {
       fuelFill.classList.toggle('low', f < 28);
       fuelPct.textContent = faNum(fp) + '٪';
     }
-    /* نوار سلامت باس */
-    const showBoss = wl.state === 'BOSS' && wl.boss.active;
+    /* نوار سلامت باس (بر پایهٔ HP بدنه؛ فقط در وضعیت فعال و پیش از انفجار نهایی) */
+    const bs = wl.boss;
+    const showBoss = wl.state === 'BOSS' && bs.active && bs.dying <= 0;
     if (hudCache.bossShown !== showBoss) {
       hudCache.bossShown = showBoss;
       bossBar.classList.toggle('show', showBoss);
     }
     if (showBoss) {
-      const pct = clamp(wl.boss.hpTotal / wl.boss.maxHpTotal, 0, 1) * 100;
+      const pct = clamp(bs.hp / Math.max(1, bs.maxHp), 0, 1) * 100;
       if (hudCache.bossHp !== pct) { hudCache.bossHp = pct; bossFill.style.width = pct + '%'; }
+      const p2 = bs.phase2 || bs.hp <= bs.maxHp * 0.5;
+      if (hudCache.bossP2 !== p2) {
+        hudCache.bossP2 = p2;
+        bossFill.classList.toggle('phase2', p2);
+        bossBar.classList.toggle('phase2', p2);
+      }
     }
   }
 
@@ -2380,11 +2395,11 @@ main {
            roll < 0.66 ? 'turret' : roll < 0.76 ? 'mine' : roll < 0.88 ? 'bomber' : 'sub';
   }
 
-  function spawnEnemy(wl) {
+  function spawnEnemy(wl, forcedType) {
     const y = -60;
     const wy = wl.dist - y;
     const e = riverAt(wl, wy);
-    const type = pickEnemyType(wl);
+    const type = forcedType || pickEnemyType(wl);
     const st = ENEMY_STATS[type];
     const o = wl.enemies.obtain(); if (!o) return;
 
@@ -2465,15 +2480,16 @@ main {
   }
 
   /* ============================================================
-     باس‌فایت — ناو جنگی با ۳ نقطه ضعف (بخش ۲-۴)
+     باس‌فایت — ناو جنگی با ۳ نقطه ضعف + HP بدنه (بخش ۲-۴)
      ============================================================ */
   function spawnBoss(wl) {
     const b = wl.boss;
-    b.active = true; b.t = 0; b.dying = 0;
+    b.active = true; b.t = 0; b.dying = 0; b.hitT = 0; b.phase2 = false;
     b.w = clamp(wl.W * 0.56, 170, 250);
     b.h = 84;
     b.x = wl.W * 0.5;
     b.y = -160;
+    b.maxHp = b.hp = 18 + Math.floor(wl.level * 4);
     const hp = 3 + Math.floor(wl.level * 1.1);
     b.parts = [
       { dx: -b.w * 0.31, dy: 8,   r: 13, hp: hp,     maxHp: hp,     kind: 'turret', cd: rr(0.8, 1.5), alive: true, ang: 0 },
@@ -2482,10 +2498,51 @@ main {
     ];
     b.hpTotal = b.parts.reduce((s, p) => s + p.hp, 0);
     b.maxHpTotal = b.hpTotal;
+    wl.bossMinionAcc = 0;
+    wl.bossMinionGap = rr(4.5, 6.5);
     wl.state = 'BOSS';
     Snd.bossHit();
     shake(wl, 5, 0.4);
     floatText(wl, wl.W * 0.5, wl.H * 0.42, '⚠ ناو جنگی نزدیک می‌شود!', '#ff8a65', 19);
+    updateHUD(wl);
+  }
+
+  /* شروع توالی مرگ ناو — فقط یک‌بار اجرا می‌شود */
+  function startBossDeath(wl) {
+    const b = wl.boss;
+    if (!b.active || b.dying > 0) return;
+    const allPartsDead = b.parts.length > 0 && b.parts.every(p => !p.alive);
+    const precisionBonus = allPartsDead && b.hp > 0;
+    b.hp = 0;
+    b.hpTotal = 0;
+    b.dying = 2;          /* ۲ ثانیه انفجار زنجیره‌ای */
+    Snd.explode(true);
+    shake(wl, 12, 0.6);
+    vibrate([100, 40, 100, 40, 200]);
+    wl.score += 1000;
+    floatText(wl, b.x, b.y - b.h * 0.5, 'ناو نابود شد! +۱۰۰۰', '#ffd54a', 20);
+    /* پاداش دقت: نابودی همهٔ نقاط ضعف پیش از تمام شدن HP بدنه */
+    if (precisionBonus) {
+      wl.score += 500;
+      floatText(wl, b.x, b.y - b.h * 0.5 - 26, 'پاداش دقت! +۵۰۰', '#35c6f4', 16);
+      const sp = wl.powers.obtain();
+      if (sp) {
+        sp.x = clamp(b.x, 26, wl.W - 26);
+        sp.y = Math.max(24, b.y);
+        sp.type = 'shield';
+        sp.t = 0;
+      }
+    }
+    if (wl.state !== 'DEMO') {
+      if (wl.score > 5000) unlockAchv('score5000');
+      stats.bossesKilled = (stats.bossesKilled || 0) + 1;
+      LS.set(STATS_KEY, stats);
+      try {
+        const prev = parseInt(localStorage.getItem('arcade_bosses_river-raid') || '0', 10) || 0;
+        localStorage.setItem('arcade_bosses_river-raid', String(prev + 1));
+      } catch (e) {}
+    }
+    clearPool(wl.ebullets);
     updateHUD(wl);
   }
 
@@ -2503,7 +2560,13 @@ main {
   function updateBoss(wl, dt, wdt) {
     const b = wl.boss;
     if (!b.active) return;
+
+    if (b.dying <= 0 && (b.hp <= 0 || b.parts.every(p => !p.alive))) {
+      startBossDeath(wl);
+    }
+
     b.t += wdt;
+    if (b.hitT > 0) b.hitT = Math.max(0, b.hitT - dt);
 
     if (b.dying > 0) {
       /* مرحلهٔ انفجارهای زنجیره‌ای */
@@ -2514,6 +2577,15 @@ main {
       return;
     }
 
+    /* مرحلهٔ دوم باس: وقتی HP بدنه به نصف رسید، سرعت شلیک برجک‌ها ×۱.۵ و نوار قرمز */
+    if (!b.phase2 && b.hp <= b.maxHp * 0.5) {
+      b.phase2 = true;
+      shake(wl, 5, 0.28);
+      if (wl.state !== 'DEMO') Snd.alarm();
+      floatText(wl, b.x, b.y - b.h * 0.55, '⚠ فاز تهاجمی ناو!', '#ff5252', 16);
+      updateHUD(wl);
+    }
+
     /* ورود تدریجی و شناور ماندن در بالای صفحه */
     const e = riverAt(wl, wl.dist - Math.max(60, b.y));
     b.y = lerp(b.y, 150, Math.min(1, wdt * 0.9));
@@ -2521,8 +2593,14 @@ main {
     /* بدنه همیشه داخل کادر بماند */
     if (b.w < wl.W - 10) b.x = clamp(b.x, b.w * 0.5 + 4, wl.W - b.w * 0.5 - 4);
 
+    /* دود بدنهٔ آسیب‌دیده (با Math.random/mrr تا seed روزانه قطعی بماند) */
+    if (b.hp < b.maxHp && Math.random() < (b.phase2 ? 0.22 : 0.08)) {
+      smokePuff(wl, b.x + mrr(-b.w * 0.35, b.w * 0.35), b.y + mrr(-b.h * 0.22, b.h * 0.22));
+    }
+
     /* الگوی حمله: شلیک برجک‌ها به سمت بازیکن */
     const p = wl.player;
+    const rageMul = b.phase2 ? 1.5 : 1;
     let total = 0;
     for (let i = 0; i < b.parts.length; i++) {
       const pt = b.parts[i];
@@ -2533,7 +2611,7 @@ main {
       if (b.y > 40 && !p.dead) {
         pt.cd -= wdt;
         if (pt.cd <= 0) {
-          pt.cd = rr(1.15, 1.9) / (diffMul() * (1 + 0.05 * wl.level));
+          pt.cd = rr(1.15, 1.9) / (diffMul() * (1 + 0.05 * wl.level) * rageMul);
           if (pt.kind === 'core') {
             /* شلیک سه‌تایی پخش‌شونده از هستهٔ مرکزی */
             for (let k = -1; k <= 1; k++) {
@@ -2546,7 +2624,7 @@ main {
           Snd.shoot();
         }
       }
-      if (pt.hp < pt.maxHp && rnd() < 0.12) smokePuff(wl, px, py);
+      if (pt.hp < pt.maxHp && Math.random() < 0.12) smokePuff(wl, px, py);
     }
     b.hpTotal = total;
 
@@ -2558,7 +2636,7 @@ main {
 
   function damageBossPart(wl, pt, px, py, dmg) {
     if (!pt.alive) return false;
-    pt.hp -= dmg;
+    pt.hp = Math.max(0, pt.hp - dmg);
     sparks(wl, px, py);
     if (pt.hp <= 0) {
       pt.alive = false;
@@ -2571,6 +2649,9 @@ main {
     } else {
       Snd.bossHit();
       vibrate(28);
+    }
+    if (wl.boss && wl.boss.parts) {
+      wl.boss.hpTotal = wl.boss.parts.reduce((s, p) => s + (p.alive ? p.hp : 0), 0);
     }
     return true;
   }
@@ -2750,6 +2831,19 @@ main {
         const px = bs.x + pt.dx, py = bs.y + pt.dy;
         if (Math.hypot(px - x, py - y) < R + pt.r) damageBossPart(wl, pt, px, py, 2);
       }
+      const dxB = Math.max(0, Math.abs(x - bs.x) - bs.w * 0.5);
+      const dyB = Math.max(0, Math.abs(y - bs.y) - bs.h * 0.5);
+      if (Math.hypot(dxB, dyB) < R) {
+        bs.hp = Math.max(0, bs.hp - 2);
+        bs.hitT = 0.16;
+        sparks(wl, clamp(x, bs.x - bs.w * 0.45, bs.x + bs.w * 0.45), clamp(y, bs.y - bs.h * 0.4, bs.y + bs.h * 0.4));
+        Snd.bossHit();
+      }
+      if (bs.dying <= 0 && (bs.hp <= 0 || bs.parts.every(p => !p.alive))) {
+        startBossDeath(wl);
+      } else {
+        updateHUD(wl);
+      }
     }
   }
 
@@ -2799,6 +2893,14 @@ main {
         wl.bridgeAcc = 0;
         wl.bridgeGap = rr(2300, 3100);
         spawnBridge(wl);
+      }
+    } else if (wl.boss.active && wl.boss.dying <= 0) {
+      /* در طول باس‌فایت دشمنان کوچک (فقط بالون و کشتی) اسپاون می‌شوند تا صفحه خالی نماند */
+      wl.bossMinionAcc += wdt;
+      if (wl.bossMinionAcc >= wl.bossMinionGap) {
+        wl.bossMinionAcc = 0;
+        wl.bossMinionGap = rr(4.5, 6.5);
+        spawnEnemy(wl, rnd() < 0.5 ? 'balloon' : 'ship');
       }
     }
     wl.depotAcc += wl.speed * wdt;
@@ -2936,13 +3038,14 @@ main {
 
       if (!consumed && wl.boss.active && wl.boss.dying <= 0) {
         const bs = wl.boss;
-        /* اول نقاط ضعف، بعد بدنه (جرقه) */
+        /* اول نقاط ضعف، بعد بدنه */
         for (let j = 0; j < bs.parts.length; j++) {
           const pt = bs.parts[j];
           if (!pt.alive) continue;
           const px = bs.x + pt.dx, py = bs.y + pt.dy;
           if (Math.abs(b.x - px) < pt.r + 4 && Math.abs(b.y - py) < pt.r + 7) {
             damageBossPart(wl, pt, px, py, 1);
+            if (bs.dying <= 0 && bs.parts.every(p => !p.alive)) startBossDeath(wl);
             consumed = true;
             break;
           }
@@ -2950,7 +3053,13 @@ main {
         if (!consumed &&
             b.x > bs.x - bs.w * 0.5 && b.x < bs.x + bs.w * 0.5 &&
             b.y > bs.y - bs.h * 0.5 && b.y < bs.y + bs.h * 0.5) {
+          bs.hp = Math.max(0, bs.hp - 1);
+          bs.hitT = 0.09;
           sparks(wl, b.x, b.y);
+          shake(wl, 2, 0.1);
+          if (!isDemo) Snd.bossHit();
+          if (bs.hp === 0 && bs.dying <= 0) startBossDeath(wl);
+          else updateHUD(wl);
           consumed = true;
         }
       }
@@ -3343,6 +3452,7 @@ main {
 
     /* --- باس --- */
     if (st === 'BOSS') updateBoss(wl, dt, wdt);
+    if (wl.state === 'BOSS' && !wl.boss.active) levelComplete(wl);
 
     /* --- پیشرفت مرحله با مسافت (باگ ۵-۳) + شروع باس‌فایت --- */
     if (st === 'PLAYING' && wl.levelDist >= LEVEL_LEN && !wl.boss.active) spawnBoss(wl);
@@ -3373,7 +3483,9 @@ main {
     wl.state = 'GAMEOVER';
     Snd.engineStop();
     Snd.musicStop();
-    bossBar.classList.remove('show');
+    bossBar.classList.remove('show', 'phase2');
+    bossFill.classList.remove('phase2');
+    hudCache.bossShown = hudCache.bossP2 = false;
     introOverlay.classList.remove('show');
 
     finalScoreEl.textContent = faNum(wl.score);
@@ -3422,12 +3534,21 @@ main {
     wl.depotAcc = 0; wl.depotGap = 820;
     wl.bridgeAcc = 0; wl.bridgeGap = 2400;
     wl.powerAcc = 0; wl.powerGap = 1250;
+    wl.bossMinionAcc = 0; wl.bossMinionGap = 5;
     wl.bubbleAcc = 0;
     wl.shakeT = 0; wl.shakeMag = 0; wl.flash = 0; wl.slowmo = 0;
     wl.endTimer = 0; wl.endReason = ''; wl.outTimer = 0; wl.alarmAcc = 0;
     wl.dynMul = 1;
     wl.weapon = 'gun'; wl.fireCd = 0;
     wl.boss.active = false;
+    wl.boss.hp = 0;
+    wl.boss.maxHp = 1;
+    wl.boss.dying = 0;
+    wl.boss.hitT = 0;
+    wl.boss.phase2 = false;
+    wl.boss.hpTotal = 0;
+    wl.boss.maxHpTotal = 1;
+    wl.boss.parts = [];
 
     /* seed برای چالش روزانه (بخش ۵-۱۰) */
     if (wl.mode === 'daily') { wl.seed = dailySeed(); gameRNG = mulberry32(wl.seed); }
@@ -3461,7 +3582,9 @@ main {
     drag.active = false;
 
     hudCache.score = hudCache.level = hudCache.lives = hudCache.bombs = hudCache.time = hudCache.fuel = undefined;
-    hudCache.bossHp = hudCache.bossShown = hudCache.weapon = undefined;
+    hudCache.bossHp = hudCache.bossShown = hudCache.bossP2 = hudCache.weapon = undefined;
+    bossBar.classList.remove('show', 'phase2');
+    bossFill.classList.remove('phase2');
     timeItem.hidden = wl.mode !== 'time';   /* تایمر فقط در حمله زمانی */
 
     Snd.engineStart();
@@ -3489,7 +3612,9 @@ main {
     gameOverEl.classList.remove('show');
     pauseOverlay.classList.remove('show');
     introOverlay.classList.remove('show');
-    bossBar.classList.remove('show');
+    bossBar.classList.remove('show', 'phase2');
+    bossFill.classList.remove('phase2');
+    hudCache.bossShown = hudCache.bossP2 = false;
     nameModal.classList.remove('show');
     Snd.engineStop();
     Snd.musicStop();
@@ -3835,6 +3960,10 @@ main {
 
   function shapeBoss(c, b) {
     const w = b.w, h = b.h;
+    const hpPct = b.maxHp > 0 ? clamp(b.hp / b.maxHp, 0, 1) : 1;
+    const dmg = 1 - hpPct;
+    const shade = 1 - dmg * 0.42;
+    const hitFlash = b.hitT > 0;
     /* سایهٔ نرم روی آب */
     const sh = c.createRadialGradient(4, h * 0.5 + 10, 4, 4, h * 0.5 + 10, w * 0.55);
     sh.addColorStop(0, 'rgba(0,0,0,.38)');
@@ -3847,7 +3976,7 @@ main {
     c.arc(0, 0, w * 0.55, 0, TAU);
     c.fill();
     c.restore();
-    /* بدنهٔ ناو */
+    /* بدنهٔ ناو (تیره‌تر شدن تدریجی با کاهش HP بدنه + فلش برخورد) */
     c.beginPath();
     c.moveTo(-w * 0.5, h * 0.18);
     c.lineTo(-w * 0.42, -h * 0.3);
@@ -3856,15 +3985,49 @@ main {
     c.lineTo(w * 0.36, h * 0.44);
     c.lineTo(-w * 0.36, h * 0.44);
     c.closePath();
-    c.fillStyle = '#6b7480'; c.fill();
-    c.strokeStyle = '#343b44'; c.lineWidth = 2; c.stroke();
+    c.fillStyle = hitFlash
+      ? '#a4786c'
+      : 'rgb(' + Math.round(107 * shade) + ',' + Math.round(116 * shade) + ',' + Math.round(128 * shade) + ')';
+    c.fill();
+    c.strokeStyle = b.phase2 ? '#612525' : '#343b44';
+    c.lineWidth = 2;
+    c.stroke();
     /* عرشه */
-    c.fillStyle = '#8b949f';
+    c.fillStyle = hitFlash
+      ? '#bf9285'
+      : 'rgb(' + Math.round(139 * shade) + ',' + Math.round(148 * shade) + ',' + Math.round(159 * shade) + ')';
     c.fillRect(-w * 0.4, -h * 0.1, w * 0.8, h * 0.16);
     c.fillStyle = '#525a64';
     c.fillRect(-w * 0.4, h * 0.06, w * 0.8, 3);
+    /* ترک‌ها و آثار سوختگی بدنه هنگام آسیب */
+    if (b.hp < b.maxHp) {
+      c.strokeStyle = 'rgba(20, 22, 26, .75)';
+      c.lineWidth = 1.6;
+      c.beginPath();
+      c.moveTo(-w * 0.22, -h * 0.22);
+      c.lineTo(-w * 0.16, -h * 0.05);
+      c.lineTo(-w * 0.2, h * 0.12);
+      if (hpPct <= 0.5) {
+        c.moveTo(w * 0.15, -h * 0.2);
+        c.lineTo(w * 0.22, 0);
+        c.lineTo(w * 0.14, h * 0.24);
+      }
+      c.stroke();
+      if (Math.random() < 0.18 + dmg * 0.45) {
+        c.fillStyle = 'rgba(42, 45, 52, ' + (0.28 + Math.random() * 0.3).toFixed(2) + ')';
+        c.beginPath();
+        c.arc(mrr(-w * 0.36, w * 0.36), mrr(-h * 0.22, h * 0.26), mrr(3, 7.5), 0, TAU);
+        c.fill();
+      }
+      if (Math.random() < 0.14 + dmg * 0.42) {
+        c.fillStyle = Math.random() < 0.5 ? '#ffd54a' : '#ff6b35';
+        c.beginPath();
+        c.arc(mrr(-w * 0.38, w * 0.38), mrr(-h * 0.2, h * 0.3), mrr(1.4, 3.6), 0, TAU);
+        c.fill();
+      }
+    }
     /* ساختار فرماندهی */
-    c.fillStyle = '#aeb8c3';
+    c.fillStyle = 'rgb(' + Math.round(174 * shade) + ',' + Math.round(184 * shade) + ',' + Math.round(195 * shade) + ')';
     c.fillRect(-w * 0.11, -h * 0.44, w * 0.22, h * 0.2);
     c.fillStyle = '#7d8792';
     c.fillRect(-w * 0.07, -h * 0.52, w * 0.14, h * 0.1);
@@ -3873,10 +4036,18 @@ main {
     c.beginPath(); c.moveTo(0, -h * 0.52); c.lineTo(0, -h * 0.72); c.stroke();
     c.save();
     c.translate(0, -h * 0.72);
-    c.rotate(b.t * 2.4);
-    c.fillStyle = '#c6d0da';
+    c.rotate(b.t * (b.phase2 ? 4.0 : 2.4));
+    c.fillStyle = b.phase2 ? '#ff8a80' : '#c6d0da';
     c.fillRect(-9, -1.6, 18, 3.2);
     c.restore();
+    /* نوار سلامت کوچک بالای ناو */
+    if (b.dying <= 0 && b.maxHp > 0) {
+      const bw = Math.min(96, w * 0.46), bh = 4, bx = -bw * 0.5, by = -h * 0.86;
+      c.fillStyle = 'rgba(0, 0, 0, .58)';
+      c.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+      c.fillStyle = hpPct <= 0.5 ? '#ff2e43' : '#ff9a3c';
+      c.fillRect(bx, by, bw * hpPct, bh);
+    }
     /* لوله‌های توپ */
     c.fillStyle = '#454d57';
     c.fillRect(-w * 0.3, -h * 0.16, w * 0.1, 5);
