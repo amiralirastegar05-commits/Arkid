@@ -1276,6 +1276,11 @@ body.attract-mode .banners-section { opacity: .35; }
   .banner-slide a:hover,.shop-item:hover,.points-pill:hover,.earn-btn:hover { transform: none; }
 }
 
+
+/* ============ آنلاین اختیاری: Auth + Leaderboard (هم‌تم با هاب) ============ */
+.online-status{width:100%;margin-top:14px;padding:10px 12px;border:1px solid var(--border-subtle);border-radius:12px;background:rgba(255,255,255,.03);font-size:11px;color:var(--text-secondary);line-height:1.8}.online-status b{color:var(--gold)}
+.auth-card{width:min(460px,92vw)!important;text-align:right!important}.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:16px 0}.auth-tab{padding:10px;border:1px solid var(--border-subtle);border-radius:10px;background:rgba(255,255,255,.035);color:var(--text-secondary);font:700 12px inherit;cursor:pointer}.auth-tab.active{background:var(--gold);border-color:var(--gold);color:var(--text-inverse)}.auth-form{display:grid;gap:10px}.auth-form label{font-size:11px;color:var(--text-secondary)}.auth-input{width:100%;padding:11px 12px;border:1px solid var(--border-normal);border-radius:11px;background:var(--surface);color:var(--text-primary);outline:none;font:500 13px inherit;direction:ltr;text-align:left}.auth-input:focus{border-color:rgba(245,197,24,.55);box-shadow:0 0 0 3px var(--gold-dim)}.auth-message{min-height:22px;margin-top:10px;font-size:11px;color:var(--text-secondary);line-height:1.7}.auth-message.ok{color:#86efac}.auth-message.err{color:#fca5a5}.auth-submit{width:100%;min-height:42px;margin-top:4px}.online-leaderboard{margin-top:24px;padding-top:20px;border-top:1px solid var(--border-subtle)}.leaderboard-game{margin:0 0 14px;padding:12px;border:1px solid var(--border-subtle);border-radius:14px;background:rgba(255,255,255,.025)}.leaderboard-game h4{font-size:12px;margin-bottom:8px;color:var(--gold)}.leaderboard-row{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:7px 4px;border-bottom:1px dashed rgba(255,255,255,.06);font-size:11px}.leaderboard-row:last-child{border-bottom:0}.leaderboard-row b{color:var(--gold);font-family:monospace}.leaderboard-note{font-size:10px;color:var(--text-tertiary);margin-bottom:10px}.auth-logout{margin-top:8px}
+
 </style>
 </head>
 <body>
@@ -1527,9 +1532,32 @@ body.attract-mode .banners-section { opacity: .35; }
         <button class="subtle-btn" id="profileStatsBtn" type="button">📊 آمار کامل</button>
         <button class="subtle-btn" id="profileAchievementsBtn" type="button">🏆 دستاوردها</button>
         <button class="gold-btn" id="profileShareBtn" type="button">📤 اشتراک پروفایل</button>
+        <button class="gold-btn" id="profileAuthBtn" type="button">☁️ ثبت‌نام / ورود با ایمیل</button>
       </div>
+      <div class="online-status" id="profileOnlineStatus">حالت آفلاین · اطلاعات روی همین دستگاه ذخیره می‌شود.</div>
       <div class="profile-joined" id="profileJoined"></div>
     </div>
+  </div>
+</div>
+
+<!-- ============ ورود / ثبت‌نام آنلاین (اختیاری) ============ -->
+<div class="about-modal" id="authModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass auth-card" role="dialog" aria-modal="true" aria-labelledby="authHeading" tabindex="-1">
+    <button class="about-close" data-close="authModal" type="button" aria-label="بستن">✕</button>
+    <h2 class="modal-title" id="authHeading">☁️ حساب آنلاین آرکید</h2>
+    <p class="modal-sub">اختیاری است؛ بدون حساب هم بازی و localStorage همیشه کار می‌کند.</p>
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab active" id="authLoginTab" type="button" role="tab" aria-selected="true">ورود</button>
+      <button class="auth-tab" id="authSignupTab" type="button" role="tab" aria-selected="false">ثبت‌نام</button>
+    </div>
+    <form class="auth-form" id="authForm">
+      <label for="authEmail">ایمیل</label><input class="auth-input" id="authEmail" type="email" autocomplete="email" required>
+      <label for="authPassword">رمز عبور</label><input class="auth-input" id="authPassword" type="password" minlength="6" autocomplete="current-password" required>
+      <button class="gold-btn auth-submit" id="authSubmit" type="submit">ورود</button>
+    </form>
+    <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
+    <button class="subtle-btn auth-logout" id="authLogoutBtn" type="button" hidden>خروج از حساب آنلاین</button>
   </div>
 </div>
 
@@ -1675,9 +1703,23 @@ body.attract-mode .banners-section { opacity: .35; }
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
 'use strict';
+
+/* ---------- Supabase اختیاری: فقط anon key؛ هرگز service_role را اینجا نگذارید ---------- */
+const SUPABASE_URL = 'https://vrxwolwpkxbsinmrgddx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_-5LvnPqgv5roubcs38BhvQ_ro5Kimhh';
+const SUPABASE_CONFIGURED = SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_ANON_KEY';
+let supabase = null;
+try {
+  if (SUPABASE_CONFIGURED && window.supabase && typeof window.supabase.createClient === 'function') {
+    supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  }
+} catch(e) { supabase = null; }
+let onlineUser = null, authMode = 'login';
+
 
 /* ---------- ابزارهای کمکی ---------- */
 const faNum = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -2102,6 +2144,94 @@ function finishNameEdit(save, restoreFocus = false) {
   updateProfileUI(); updateHeaderProfile();
   if (restoreFocus) document.getElementById('profileNameBtn').focus();
 }
+
+async function getOnlineUser() {
+  if (!supabase) { onlineUser = null; return null; }
+  try { const { data } = await supabase.auth.getUser(); onlineUser = data && data.user ? data.user : null; }
+  catch(e) { onlineUser = null; }
+  updateOnlineProfileStatus(); return onlineUser;
+}
+function updateOnlineProfileStatus() {
+  const status = document.getElementById('profileOnlineStatus'), btn = document.getElementById('profileAuthBtn');
+  if (!status || !btn) return;
+  if (!SUPABASE_CONFIGURED || !supabase) { status.textContent = 'حالت آفلاین · برای فعال‌سازی آنلاین، SUPABASE_URL و SUPABASE_ANON_KEY را جایگزین کن.'; btn.textContent = '☁️ ثبت‌نام / ورود با ایمیل'; return; }
+  if (onlineUser) { status.innerHTML = '<b>آنلاین</b> · ' + esc(onlineUser.email || 'حساب متصل') + ' · امتیازها برای لیدربورد هم ارسال می‌شوند.'; btn.textContent = '☁️ مدیریت حساب آنلاین'; }
+  else { status.textContent = 'حالت آفلاین · اطلاعات محلی محفوظ است؛ برای لیدربورد آنلاین وارد شو.'; btn.textContent = '☁️ ثبت‌نام / ورود با ایمیل'; }
+}
+function setAuthMode(mode) {
+  authMode = mode === 'signup' ? 'signup' : 'login';
+  document.getElementById('authLoginTab').classList.toggle('active',authMode === 'login');
+  document.getElementById('authSignupTab').classList.toggle('active',authMode === 'signup');
+  document.getElementById('authLoginTab').setAttribute('aria-selected',String(authMode === 'login'));
+  document.getElementById('authSignupTab').setAttribute('aria-selected',String(authMode === 'signup'));
+  document.getElementById('authSubmit').textContent = authMode === 'login' ? 'ورود' : 'ثبت‌نام';
+  document.getElementById('authPassword').autocomplete = authMode === 'login' ? 'current-password' : 'new-password';
+  const msg=document.getElementById('authMessage'); msg.textContent=''; msg.className='auth-message';
+}
+async function openAuthModal() {
+  await getOnlineUser(); setAuthMode('login');
+  document.getElementById('authLogoutBtn').hidden = !onlineUser;
+  document.getElementById('authForm').hidden = !!onlineUser;
+  document.querySelector('.auth-tabs').hidden = !!onlineUser;
+  const msg=document.getElementById('authMessage');
+  if (onlineUser) { msg.textContent='با ' + (onlineUser.email || 'این حساب') + ' وارد شده‌ای.'; msg.className='auth-message ok'; }
+  showModal('authModal');
+}
+async function mergeOnlineProfile(user) {
+  if (!supabase || !user) return;
+  try {
+    const local = getProfile(), localPoints = getPoints();
+    const { data: remote, error } = await supabase.from('profiles').select('id,username,avatar,xp,points,level').eq('id',user.id).maybeSingle();
+    if (error) throw error;
+    if (remote) {
+      const mergedXP = Math.max(local.xp,safeXP(remote.xp));
+      const mergedPoints = Math.max(localPoints,safeXP(remote.points));
+      const remoteAvatar = Number(remote.avatar);
+      local.xp = mergedXP;
+      if (local.name === 'بازیکن' && remote.username) local.name = cleanProfileName(remote.username);
+      if (Number.isInteger(remoteAvatar) && remoteAvatar >= 0 && remoteAvatar < ALL_AVATARS.length && isAvatarUnlocked(remoteAvatar)) local.avatar = remoteAvatar;
+      saveProfile(local);
+      if (mergedPoints > localPoints) LS.set('arcade_points',mergedPoints);
+    }
+    const current = getProfile();
+    await supabase.from('profiles').upsert({ id:user.id, username:current.name, avatar:current.avatar, xp:current.xp, points:getPoints(), level:current.level });
+    updateProfileUI(); updateHeaderProfile(); updatePointsUI();
+  } catch(e) { /* شبکه/RLS: localStorage منبع اصلی باقی می‌ماند */ }
+}
+async function submitOnlineScore(gameId,score) {
+  if (!supabase || !onlineUser || !gameId) return;
+  try { await supabase.from('scores').insert({ user_id:onlineUser.id, game_id:gameId, score:safeXP(score) }); }
+  catch(e) { /* fallback بی‌صدا */ }
+}
+function localLeaderboardHTML(game) {
+  const score = safeXP(getStats().scoresPerGame[game.id] || getTop(game.id));
+  return score ? `<div class="leaderboard-row"><span>۱</span><span>${esc(getProfile().name)} · محلی</span><b>${faNum(score)}</b></div>` : '<div class="leaderboard-note">هنوز رکورد محلی ثبت نشده.</div>';
+}
+async function loadOnlineLeaderboards() {
+  const root=document.getElementById('onlineLeaderboards'); if(!root) return;
+  const user=await getOnlineUser();
+  const games=GAMES.filter(g=>g.available);
+  if (!user || !supabase) {
+    root.innerHTML='<div class="leaderboard-note">لیدربورد محلی (برای جدول آنلاین وارد حساب شو)</div>'+games.map(g=>`<div class="leaderboard-game"><h4>🎮 ${esc(g.title)}</h4>${localLeaderboardHTML(g)}</div>`).join(''); return;
+  }
+  root.innerHTML='<div class="leaderboard-note">در حال دریافت ۱۰ امتیاز برتر…</div>';
+  const blocks=[];
+  for (const game of games) {
+    try {
+      const { data, error } = await supabase.from('scores').select('score, created_at, profiles(username)').eq('game_id',game.id).order('score',{ascending:false}).limit(10);
+      if (error) throw error;
+      const rows=(data||[]).map((row,i)=>`<div class="leaderboard-row"><span>${faNum(i+1)}</span><span dir="auto">${esc((row.profiles && row.profiles.username) || 'بازیکن')}</span><b>${faNum(safeXP(row.score))}</b></div>`).join('') || '<div class="leaderboard-note">هنوز امتیاز آنلاینی ثبت نشده.</div>';
+      blocks.push(`<div class="leaderboard-game"><h4>🎮 ${esc(game.title)}</h4>${rows}</div>`);
+    } catch(e) { blocks.push(`<div class="leaderboard-game"><h4>🎮 ${esc(game.title)}</h4>${localLeaderboardHTML(game)}</div>`); }
+  }
+  root.innerHTML=blocks.join('');
+}
+async function initOnlineFeatures() {
+  if (!supabase) { updateOnlineProfileStatus(); return; }
+  const user=await getOnlineUser(); if(user) await mergeOnlineProfile(user);
+  try { supabase.auth.onAuthStateChange((_event,session)=>{ onlineUser=session && session.user ? session.user : null; updateOnlineProfileStatus(); if(onlineUser) setTimeout(()=>mergeOnlineProfile(onlineUser),0); }); } catch(e) {}
+}
+
 function bindProfileControls() {
   document.getElementById('profileChip').addEventListener('click',openProfileModal);
   document.getElementById('changeAvatarBtn').addEventListener('click',openAvatarModal);
@@ -2126,6 +2256,32 @@ function bindProfileControls() {
   document.getElementById('profileStatsBtn').addEventListener('click',openStats);
   document.getElementById('profileAchievementsBtn').addEventListener('click',openAchievements);
   document.getElementById('profileShareBtn').addEventListener('click',() => makeShareCard(null));
+  document.getElementById('profileAuthBtn').addEventListener('click',openAuthModal);
+  document.getElementById('authLoginTab').addEventListener('click',()=>setAuthMode('login'));
+  document.getElementById('authSignupTab').addEventListener('click',()=>setAuthMode('signup'));
+  document.getElementById('authForm').addEventListener('submit',async event => {
+    event.preventDefault();
+    const email=document.getElementById('authEmail').value.trim(), password=document.getElementById('authPassword').value, msg=document.getElementById('authMessage'), submit=document.getElementById('authSubmit');
+    if (!supabase) { msg.textContent='ابتدا مقادیر Supabase را در بالای اسکریپت تنظیم کن.'; msg.className='auth-message err'; return; }
+    if (password.length < 6) { msg.textContent='رمز عبور باید حداقل ۶ کاراکتر باشد.'; msg.className='auth-message err'; return; }
+    submit.disabled=true; msg.textContent='در حال اتصال…'; msg.className='auth-message';
+    try {
+      if (authMode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({ email,password }); if(error) throw error;
+        onlineUser=data && data.session ? data.session.user : null;
+        msg.textContent='لینک تأیید به ایمیل شما ارسال شد'; msg.className='auth-message ok';
+        if (onlineUser) await mergeOnlineProfile(onlineUser);
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email,password }); if(error) throw error;
+        onlineUser=data.user; await mergeOnlineProfile(onlineUser);
+        msg.textContent='ورود موفق بود؛ پروفایل محلی و آنلاین ادغام شدند.'; msg.className='auth-message ok';
+        document.getElementById('authForm').hidden=true; document.querySelector('.auth-tabs').hidden=true; document.getElementById('authLogoutBtn').hidden=false;
+      }
+      updateOnlineProfileStatus();
+    } catch(e) { msg.textContent='اتصال آنلاین انجام نشد؛ بازی آفلاین بدون تغییر ادامه دارد.'; msg.className='auth-message err'; }
+    finally { submit.disabled=false; }
+  });
+  document.getElementById('authLogoutBtn').addEventListener('click',async()=>{ try{if(supabase) await supabase.auth.signOut();}catch(e){} onlineUser=null; updateOnlineProfileStatus(); closeModal('authModal'); showToast('از حساب آنلاین خارج شدی؛ داده‌های محلی سر جایشان هستند.','☁️'); });
   document.getElementById('levelUpContinue').addEventListener('click',continueAfterLevelUp);
   document.getElementById('menuToggle').addEventListener('click',() => sideMenuOpen ? closeSideMenu() : openSideMenu());
   document.getElementById('smClose').addEventListener('click',() => closeSideMenu());
@@ -3623,7 +3779,7 @@ if (!hubSessionId) { hubSessionId = Date.now().toString(36) + '-' + Math.random(
 let reconcilePromise = null;
 function reconcileReturn() {
   if (reconcilePromise) return reconcilePromise;
-  const reconcile = () => {
+  const reconcile = async () => {
     const active = LS.get('arcade_active_session',null);
     if (!active || !active.id || (active.owner && active.owner !== hubSessionId)) return;
     if (!GAMES.some(g => g.id === active.id)) { LS.remove('arcade_active_session'); return; }
@@ -3642,12 +3798,13 @@ function reconcileReturn() {
     recordTournamentReturn(active,score);
     checkSecretAvatars();
     renderQuests(); renderWeeklyBoss(); renderTournamentBanner(); updateProfileUI(); updateHeaderProfile();
+    await submitOnlineScore(active.id,score);
   };
   const run = async () => {
     if (navigator.locks && typeof navigator.locks.request === 'function') {
       try { await navigator.locks.request('arcade-hub-reconcile',reconcile); return; } catch(e) { /* fallback برای محیط‌های محدود */ }
     }
-    reconcile();
+    await reconcile();
   };
   reconcilePromise = run().finally(() => { reconcilePromise = null; });
   return reconcilePromise;
@@ -3693,7 +3850,7 @@ function updateGOTDTimer(){const el=document.getElementById('gotdTimer');if(!el)
 
 /* صفحه آمار */
 function fmtTime(sec){sec=Number(sec)||0;const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60);return (h?faNum(h)+' ساعت ':'')+faNum(m)+' د'}
-function openStats(){const st=getStats(),u=achievements(),c=document.getElementById('statsContent');if(!st.totalPlays){c.innerHTML=statsProfileHTML()+'<div style="text-align:center;padding:80px 10px;color:var(--text-secondary)">🎮 اولین بازی‌ات رو انجام بده؛ آمار از همون‌جا شروع می‌شه.</div>';showModal('statsModal');return}const activeDays=new Set(st.playDates||[]).size,max=Math.max(1,...Object.values(st.playsPerGame));let days='';for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=dateKey(d),n=Number((st.playsByDate||{})[k]||0),lv=n>=6?'l3':n>=3?'l2':n>=1?'l1':'';days+=`<div class="day-cell ${lv}" title="${esc(k)} · ${faNum(n)} بازی"></div>`}const bars=GAMES.filter(g=>(st.playsPerGame[g.id]||0)>0).sort((a,b)=>st.playsPerGame[b.id]-st.playsPerGame[a.id]).map(g=>`<div class="bar-row"><span>${esc(g.title)}</span><div class="bar-track"><div class="bar-fill" style="width:${st.playsPerGame[g.id]/max*100}%"></div></div><b>${faNum(st.playsPerGame[g.id])}</b></div>`).join('');const scores=GAMES.filter(g=>Number(st.scoresPerGame[g.id]||getTop(g.id))>0).map(g=>`<div class="score-row"><span>🎮 ${esc(g.title)}</span><b>${faNum(st.scoresPerGame[g.id]||getTop(g.id))} ⭐</b></div>`).join('')||'<div class="modal-sub">هنوز رکوردی ثبت نشده.</div>';c.innerHTML=statsProfileHTML()+`<div class="stats-cards"><div class="stats-big"><b>${faNum(st.totalPlays)}</b><span>مجموع بازی</span></div><div class="stats-big"><b>${faNum(st.totalScore.toLocaleString('en-US'))}</b><span>مجموع امتیاز</span></div><div class="stats-big"><b>${fmtTime(st.totalTime)}</b><span>مجموع زمان</span></div><div class="stats-big"><b>${faNum(activeDays)}</b><span>روزهای فعال</span></div></div><section class="stats-section"><h3>پرطرفدارترین بازی‌ها</h3><div class="bar-list">${bars}</div></section><section class="stats-section"><h3>فعالیت ۳۰ روز اخیر</h3><div class="activity-grid">${days}</div></section><section class="stats-section"><h3>بهترین امتیاز هر بازی</h3><div class="score-list">${scores}</div></section><section class="stats-section"><h3>پیشرفت دستاوردها · ${faNum(Object.keys(u).length)} از ${faNum(ACHIEVEMENTS.length)}</h3><div class="progress"><div class="progress-fill" style="width:${Object.keys(u).length/ACHIEVEMENTS.length*100}%"></div></div><div class="ach-mini">${ACHIEVEMENTS.map(a=>`<span class="${u[a.id]?'':'off'}" title="${esc(a.name)}">${a.icon}</span>`).join('')}</div></section><div class="share-actions"><button class="gold-btn" id="shareProfileBtn">اشتراک‌گذاری پروفایل</button><button class="gold-btn" id="aboutFromStats">درباره آرکید</button></div>`;showModal('statsModal');document.getElementById('shareProfileBtn').onclick=()=>makeShareCard(null);document.getElementById('aboutFromStats').onclick=()=>{openAboutModal()}}
+function openStats(){const st=getStats(),u=achievements(),c=document.getElementById('statsContent');if(!st.totalPlays){c.innerHTML=statsProfileHTML()+'<div style="text-align:center;padding:50px 10px;color:var(--text-secondary)">🎮 اولین بازی‌ات رو انجام بده؛ آمار از همون‌جا شروع می‌شه.</div><section class="stats-section online-leaderboard"><h3>🌐 لیدربورد آنلاین</h3><div id="onlineLeaderboards"></div></section>';showModal('statsModal');loadOnlineLeaderboards();return}const activeDays=new Set(st.playDates||[]).size,max=Math.max(1,...Object.values(st.playsPerGame));let days='';for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=dateKey(d),n=Number((st.playsByDate||{})[k]||0),lv=n>=6?'l3':n>=3?'l2':n>=1?'l1':'';days+=`<div class="day-cell ${lv}" title="${esc(k)} · ${faNum(n)} بازی"></div>`}const bars=GAMES.filter(g=>(st.playsPerGame[g.id]||0)>0).sort((a,b)=>st.playsPerGame[b.id]-st.playsPerGame[a.id]).map(g=>`<div class="bar-row"><span>${esc(g.title)}</span><div class="bar-track"><div class="bar-fill" style="width:${st.playsPerGame[g.id]/max*100}%"></div></div><b>${faNum(st.playsPerGame[g.id])}</b></div>`).join('');const scores=GAMES.filter(g=>Number(st.scoresPerGame[g.id]||getTop(g.id))>0).map(g=>`<div class="score-row"><span>🎮 ${esc(g.title)}</span><b>${faNum(st.scoresPerGame[g.id]||getTop(g.id))} ⭐</b></div>`).join('')||'<div class="modal-sub">هنوز رکوردی ثبت نشده.</div>';c.innerHTML=statsProfileHTML()+`<div class="stats-cards"><div class="stats-big"><b>${faNum(st.totalPlays)}</b><span>مجموع بازی</span></div><div class="stats-big"><b>${faNum(st.totalScore.toLocaleString('en-US'))}</b><span>مجموع امتیاز</span></div><div class="stats-big"><b>${fmtTime(st.totalTime)}</b><span>مجموع زمان</span></div><div class="stats-big"><b>${faNum(activeDays)}</b><span>روزهای فعال</span></div></div><section class="stats-section"><h3>پرطرفدارترین بازی‌ها</h3><div class="bar-list">${bars}</div></section><section class="stats-section"><h3>فعالیت ۳۰ روز اخیر</h3><div class="activity-grid">${days}</div></section><section class="stats-section"><h3>بهترین امتیاز هر بازی</h3><div class="score-list">${scores}</div></section><section class="stats-section"><h3>پیشرفت دستاوردها · ${faNum(Object.keys(u).length)} از ${faNum(ACHIEVEMENTS.length)}</h3><div class="progress"><div class="progress-fill" style="width:${Object.keys(u).length/ACHIEVEMENTS.length*100}%"></div></div><div class="ach-mini">${ACHIEVEMENTS.map(a=>`<span class="${u[a.id]?'':'off'}" title="${esc(a.name)}">${a.icon}</span>`).join('')}</div></section><section class="stats-section online-leaderboard"><h3>🌐 لیدربورد آنلاین</h3><div id="onlineLeaderboards"><div class="leaderboard-note">در حال آماده‌سازی…</div></div></section><div class="share-actions"><button class="gold-btn" id="shareProfileBtn">اشتراک‌گذاری پروفایل</button><button class="gold-btn" id="aboutFromStats">درباره آرکید</button></div>`;showModal('statsModal');loadOnlineLeaderboards();document.getElementById('shareProfileBtn').onclick=()=>makeShareCard(null);document.getElementById('aboutFromStats').onclick=()=>{openAboutModal()}}
 
 /* ساخت کارت PNG با همان کاراکتر پیکسلی؛ همهٔ دارایی‌ها در همین فایل‌اند. */
 const avatarImageCache = Object.create(null);
@@ -4099,6 +4256,7 @@ document.addEventListener('keydown',event => {
 bindProfileControls();
 bindArcadeFeatures();
 bindEconomyControls();
+initOnlineFeatures();
 /* ============================================================
    شروع
    ============================================================ */
