@@ -1276,6 +1276,569 @@ body.attract-mode .banners-section { opacity: .35; }
   .banner-slide a:hover,.shop-item:hover,.points-pill:hover,.earn-btn:hover { transform: none; }
 }
 
+/* ============================================================
+   پنل توسعه‌دهنده (مخفی) — Liquid Glass + Gold Accent
+   ============================================================ */
+.sm-footer { user-select: none; -webkit-user-select: none; }
+
+#devAuthModal .about-card {
+  width: min(410px, 92vw);
+  padding: 28px 24px 24px;
+  text-align: right;
+  border-color: rgba(245, 197, 24, .32);
+}
+#devAuthModal .about-card.dev-shake {
+  animation: devShake .5s cubic-bezier(.36, .07, .19, .97) both !important;
+}
+@keyframes devShake {
+  0%, 100% { transform: translateX(0); }
+  15%, 55% { transform: translateX(-8px); }
+  35%, 75% { transform: translateX(8px); }
+  90% { transform: translateX(-4px); }
+}
+.dev-auth-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-inline-end: 32px;
+  margin-bottom: 6px;
+}
+.dev-auth-head span { font-size: 22px; line-height: 1; }
+.dev-auth-head h2 {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--gold);
+  margin: 0;
+}
+.dev-auth-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.dev-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-normal);
+  background: rgba(5, 7, 12, .55);
+  color: var(--text-primary);
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.dev-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(245, 197, 24, .14);
+}
+.dev-input.is-invalid {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .18);
+}
+.dev-input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.dev-auth-msg {
+  min-height: 22px;
+  margin: 10px 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fca5a5;
+  line-height: 1.7;
+}
+.dev-auth-msg.locked {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(220, 38, 38, .45);
+  background: rgba(220, 38, 38, .12);
+}
+.dev-auth-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+.dev-auth-actions .gold-btn,
+.dev-auth-actions .subtle-btn {
+  flex: 1;
+  min-height: 40px;
+}
+
+#devPanelModal .about-card {
+  width: min(820px, 94vw);
+  height: auto;
+  max-height: 90vh;
+  max-height: 90dvh;
+  padding: 26px 24px 24px;
+  text-align: right;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-color: rgba(245, 197, 24, .35);
+}
+.dev-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-inline-end: 36px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(245, 197, 24, .22);
+}
+.dev-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.dev-title-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: var(--gold-dim);
+  border: 1px solid rgba(245, 197, 24, .38);
+  font-size: 18px;
+  flex: 0 0 auto;
+}
+.dev-header .modal-title {
+  color: var(--gold);
+  font-size: 22px;
+  margin: 0;
+}
+.dev-sub-tag {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-tertiary);
+  display: block;
+  margin-top: 2px;
+}
+.dev-warn-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 13px;
+  border: 1px solid rgba(245, 197, 24, .55);
+  background: linear-gradient(135deg, rgba(245, 197, 24, .16), rgba(245, 197, 24, .06));
+  color: var(--gold-light);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.8;
+}
+.dev-warn-banner[hidden] { display: none !important; }
+
+.dev-section {
+  padding: 16px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, .03);
+}
+.dev-section:last-child { margin-bottom: 0; }
+.dev-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.dev-section-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+.dev-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(245, 197, 24, .28);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.dev-profile-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.dev-profile-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.dev-profile-main .pixel-avatar {
+  width: 52px;
+  height: 52px;
+}
+.dev-profile-meta { min-width: 0; }
+.dev-profile-meta b {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.dev-profile-meta small {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--gold);
+  line-height: 1.7;
+}
+.dev-profile-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dev-mini-stat {
+  padding: 7px 11px;
+  border-radius: 11px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(5, 7, 12, .45);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.dev-mini-stat b {
+  color: var(--gold-light);
+  font-weight: 900;
+  margin-inline-start: 4px;
+}
+.dev-lock-btn {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 197, 24, .35);
+  background: rgba(245, 197, 24, .1);
+  color: var(--gold-light);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.dev-lock-btn:hover {
+  background: rgba(245, 197, 24, .2);
+  border-color: var(--gold);
+}
+
+.dev-control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.dev-control-grid .dev-section { margin-bottom: 0; }
+.dev-inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 10px;
+}
+.dev-inline-form .dev-input { flex: 1; min-width: 0; }
+.dev-inline-form .gold-btn { white-space: nowrap; padding-inline: 16px; }
+.dev-quick-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.dev-quick-row .subtle-btn {
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  direction: ltr;
+}
+.dev-quick-row .subtle-btn.is-minus {
+  border-color: rgba(220, 38, 38, .35);
+  color: #fca5a5;
+}
+.dev-quick-row .subtle-btn.is-minus:hover {
+  background: rgba(220, 38, 38, .14);
+  border-color: #dc2626;
+}
+.dev-note {
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  line-height: 1.7;
+}
+
+.dev-scores-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.dev-score-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(5, 7, 12, .38);
+}
+.dev-score-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dev-score-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-primary);
+  min-width: 0;
+}
+.dev-score-name small {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  direction: ltr;
+  text-align: right;
+}
+.dev-score-cur {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.dev-score-controls {
+  display: flex;
+  gap: 6px;
+}
+.dev-score-controls .dev-input {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+.dev-score-controls .subtle-btn {
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  border-color: rgba(245, 197, 24, .32);
+  color: var(--gold-light);
+}
+.dev-score-controls .subtle-btn:hover {
+  background: var(--gold-dim);
+  border-color: var(--gold);
+}
+
+.dev-backup-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 197, 24, .28);
+  background: rgba(245, 197, 24, .06);
+}
+.dev-backup-bar span {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.dev-reset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.dev-danger-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(220, 38, 38, .48);
+  background: rgba(220, 38, 38, .12);
+  color: #fca5a5;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background .18s, border-color .18s, color .18s;
+}
+.dev-danger-btn:hover {
+  background: rgba(220, 38, 38, .24);
+  border-color: #dc2626;
+  color: #fff;
+}
+.dev-danger-btn.is-full {
+  grid-column: 1 / -1;
+  background: rgba(220, 38, 38, .2);
+  border-color: #dc2626;
+  color: #fecaca;
+}
+.dev-danger-btn.is-full:hover {
+  background: #dc2626;
+  color: #fff;
+}
+.dev-danger-solid {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: filter .18s;
+}
+.dev-danger-solid:hover { filter: brightness(1.1); }
+
+.dev-import-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.dev-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.dev-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.dev-file-name {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  direction: ltr;
+  overflow-wrap: anywhere;
+  flex: 1;
+  min-width: 140px;
+}
+
+#devConfirmModal .about-card {
+  width: min(460px, 92vw);
+  padding: 26px 22px 22px;
+  text-align: right;
+  border-color: rgba(220, 38, 38, .45);
+}
+.dev-confirm-title {
+  font-size: 19px;
+  font-weight: 900;
+  color: #fca5a5;
+  padding-inline-end: 32px;
+  margin-bottom: 8px;
+}
+.dev-confirm-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  margin-bottom: 12px;
+}
+.dev-keys-preview {
+  max-height: 140px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(5, 7, 12, .6);
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--gold-light);
+  line-height: 1.7;
+  direction: ltr;
+  text-align: left;
+}
+.dev-keys-preview[hidden] { display: none !important; }
+.dev-autobackup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: 11px;
+  border: 1px solid rgba(245, 197, 24, .25);
+  background: rgba(245, 197, 24, .06);
+  font-size: 11.5px;
+  color: var(--text-primary);
+}
+.dev-autobackup-row[hidden] { display: none !important; }
+.dev-autobackup-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.dev-autobackup-row input[type="checkbox"] {
+  accent-color: var(--gold);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.dev-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+.dev-confirm-actions button {
+  flex: 1;
+  min-height: 40px;
+}
+
+.dev-lock-btn:focus-visible,
+.dev-danger-btn:focus-visible,
+.dev-danger-solid:focus-visible,
+.dev-file-input:focus-visible + .subtle-btn {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  #devPanelModal .about-card {
+    width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0;
+    padding: max(22px, env(safe-area-inset-top, 0px)) 16px max(24px, env(safe-area-inset-bottom, 0px));
+  }
+  .dev-control-grid,
+  .dev-scores-list,
+  .dev-reset-grid {
+    grid-template-columns: 1fr;
+  }
+  .dev-profile-strip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dev-profile-stats {
+    justify-content: space-between;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1675,9 +2238,193 @@ body.attract-mode .banners-section { opacity: .35; }
   </div>
 </div>
 
+<!-- ============ مودال‌های مخفی پنل توسعه‌دهنده ============ -->
+<div class="about-modal" id="devAuthModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" id="devAuthCard" role="dialog" aria-modal="true" aria-labelledby="devAuthTitle" tabindex="-1">
+    <button class="about-close" data-close="devAuthModal" type="button" aria-label="بستن">✕</button>
+    <div class="dev-auth-head">
+      <span aria-hidden="true">🔧</span>
+      <h2 id="devAuthTitle">ورود توسعه‌دهنده</h2>
+    </div>
+    <p class="dev-auth-sub">برای دسترسی به ابزارهای مدیریت وضعیت هاب، رمز توسعه‌دهنده را وارد کنید.</p>
+    <input class="dev-input" id="devAuthInput" type="password" dir="ltr" autocomplete="off" spellcheck="false" placeholder="Developer Password" aria-label="رمز توسعه‌دهنده">
+    <div class="dev-auth-msg" id="devAuthMsg" role="alert" aria-live="polite"></div>
+    <div class="dev-auth-actions">
+      <button class="gold-btn" id="devAuthSubmit" type="button">تأیید</button>
+      <button class="subtle-btn" data-close="devAuthModal" type="button">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<div class="about-modal wide-modal" id="devPanelModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="devPanelTitle" tabindex="-1">
+    <button class="about-close" data-close="devPanelModal" type="button" aria-label="بستن">✕</button>
+    <div class="dev-header">
+      <div class="dev-title-wrap">
+        <div class="dev-title-ico" aria-hidden="true">🔧</div>
+        <div>
+          <h2 class="modal-title" id="devPanelTitle">پنل توسعه‌دهنده</h2>
+          <span class="dev-sub-tag">قفل خودکار پس از ۵ دقیقه بی‌کاری · ثبت لاگ تغییرات در Console</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dev-warn-banner" id="devTournamentWarn" role="status" hidden>
+      ⚠️ یک مسابقه فعاله — تغییر XP ممکنه state رو خراب کنه
+    </div>
+
+    <!-- ۱. اطلاعات بالا -->
+    <section class="dev-section" aria-label="خلاصه وضعیت بازیکن">
+      <div class="dev-profile-strip">
+        <div class="dev-profile-main">
+          <div class="pixel-avatar" id="devProfileAvatar" role="img" aria-label="آواتار فعلی"></div>
+          <div class="dev-profile-meta">
+            <b id="devProfileName">بازیکن</b>
+            <small id="devProfileLevel">لول ۱</small>
+          </div>
+        </div>
+        <div class="dev-profile-stats">
+          <div class="dev-mini-stat">تجربه:<b id="devSummaryXP">۰</b></div>
+          <div class="dev-mini-stat">امتیاز:<b id="devSummaryPoints">۰</b></div>
+          <button class="dev-lock-btn" id="devLockBtn" type="button" title="بستن پنل و پاک‌سازی نشست">🔒 قفل</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="dev-control-grid">
+      <!-- ۲. کنترل XP -->
+      <section class="dev-section" aria-labelledby="devXPSecTitle">
+        <div class="dev-section-head">
+          <h3 class="dev-section-title" id="devXPSecTitle">⭐ کنترل XP و لول</h3>
+          <span class="dev-stat-pill" id="devXPBadge">۰ XP · لول ۱</span>
+        </div>
+        <div class="dev-inline-form">
+          <input class="dev-input" id="devXPInput" type="number" min="0" step="1" dir="ltr" placeholder="XP دقیق (مثلاً 2500)" aria-label="مقدار دقیق XP">
+          <button class="gold-btn" id="devXPSetBtn" type="button">ثبت</button>
+        </div>
+        <div class="dev-quick-row">
+          <button class="subtle-btn" type="button" data-dev-xp-delta="100">+۱۰۰</button>
+          <button class="subtle-btn" type="button" data-dev-xp-delta="1000">+۱۰۰۰</button>
+          <button class="subtle-btn" type="button" data-dev-xp-delta="10000">+۱۰۰۰۰</button>
+          <button class="subtle-btn is-minus" type="button" data-dev-xp-delta="-100">-۱۰۰</button>
+        </div>
+        <p class="dev-note" id="devXPBoostNote">افزایش‌ها از طریق addXP اعمال می‌شوند تا بوست XP و ارتقای لول هم تست‌پذیر باشند.</p>
+      </section>
+
+      <!-- ۳. کنترل امتیاز -->
+      <section class="dev-section" aria-labelledby="devPointsSecTitle">
+        <div class="dev-section-head">
+          <h3 class="dev-section-title" id="devPointsSecTitle">💰 کنترل امتیاز (Points)</h3>
+          <span class="dev-stat-pill" id="devPointsBadge">۰ امتیاز</span>
+        </div>
+        <div class="dev-inline-form">
+          <input class="dev-input" id="devPointsInput" type="number" min="0" step="1" dir="ltr" placeholder="امتیاز دقیق (مثلاً 5000)" aria-label="مقدار دقیق امتیاز">
+          <button class="gold-btn" id="devPointsSetBtn" type="button">ثبت</button>
+        </div>
+        <div class="dev-quick-row">
+          <button class="subtle-btn" type="button" data-dev-pts-delta="100">+۱۰۰</button>
+          <button class="subtle-btn" type="button" data-dev-pts-delta="1000">+۱۰۰۰</button>
+          <button class="subtle-btn" type="button" data-dev-pts-delta="10000">+۱۰۰۰۰</button>
+          <button class="subtle-btn is-minus" type="button" data-dev-pts-delta="-100">-۱۰۰</button>
+        </div>
+        <p class="dev-note">تغییرات با setPoints اعمال شده و موجودی هدر و فروشگاه بلافاصله به‌روز می‌شود.</p>
+      </section>
+    </div>
+
+    <!-- ۴. تنظیم رکورد بازی‌ها -->
+    <section class="dev-section" aria-labelledby="devScoresSecTitle">
+      <div class="dev-section-head">
+        <h3 class="dev-section-title" id="devScoresSecTitle">🏆 تنظیم رکورد بازی‌ها</h3>
+        <span class="dev-stat-pill" id="devGamesCountBadge">۰ بازی</span>
+      </div>
+      <div class="dev-scores-list" id="devScoresList"></div>
+    </section>
+
+    <!-- ۵. بکاپ و ریست‌ها -->
+    <section class="dev-section" aria-labelledby="devResetSecTitle">
+      <div class="dev-section-head">
+        <h3 class="dev-section-title" id="devResetSecTitle">🗑️ بکاپ و ریست داده‌ها</h3>
+      </div>
+      <div class="dev-backup-bar">
+        <span>پیشنهاد ایمنی: پیش از هرگونه ریست، یک نسخه کامل از تمام داده‌های localStorage دانلود کنید.</span>
+        <button class="gold-btn" id="devDownloadBackupBtn" type="button">📥 دانلود بکاپ</button>
+      </div>
+      <div class="dev-reset-grid">
+        <button class="dev-danger-btn" type="button" data-dev-reset="points">
+          <span>ریست امتیازها</span>
+          <small dir="ltr">arcade_points = 0</small>
+        </button>
+        <button class="dev-danger-btn" type="button" data-dev-reset="xp">
+          <span>ریست XP و لول</span>
+          <small dir="ltr">arcade_profile.xp = 0</small>
+        </button>
+        <button class="dev-danger-btn" type="button" data-dev-reset="achievements">
+          <span>ریست دستاوردها</span>
+          <small dir="ltr">arcade_achievements</small>
+        </button>
+        <button class="dev-danger-btn" type="button" data-dev-reset="stats">
+          <span>ریست آمار</span>
+          <small dir="ltr">arcade_stats</small>
+        </button>
+        <button class="dev-danger-btn is-full" type="button" data-dev-reset="all">
+          <span>⚠️ ریست کامل (حذف تمام کلیدهای arcade_*)</span>
+          <small dir="ltr">arcade_*</small>
+        </button>
+      </div>
+    </section>
+
+    <!-- ۶. بازیابی (Import) بکاپ -->
+    <section class="dev-section" aria-labelledby="devImportSecTitle">
+      <div class="dev-section-head">
+        <h3 class="dev-section-title" id="devImportSecTitle">📤 بازیابی بکاپ (Import JSON)</h3>
+      </div>
+      <div class="dev-import-row">
+        <label class="dev-file-label" for="devImportInput">
+          <input class="dev-file-input" id="devImportInput" type="file" accept=".json,application/json">
+          <span class="subtle-btn">انتخاب فایل JSON</span>
+        </label>
+        <span class="dev-file-name" id="devImportFileName">فایلی انتخاب نشده است</span>
+        <button class="gold-btn" id="devImportBtn" type="button" disabled>بازنویسی و Reload</button>
+      </div>
+      <p class="dev-note">با تأیید عملیات بازیابی، محتوای فعلی localStorage با فایل بکاپ جایگزین شده و صفحه مجدداً بارگذاری می‌شود.</p>
+    </section>
+  </div>
+</div>
+
+<div class="about-modal" id="devConfirmModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="devConfirmTitle" tabindex="-1">
+    <button class="about-close" data-close="devConfirmModal" type="button" aria-label="بستن">✕</button>
+    <h2 class="dev-confirm-title" id="devConfirmTitle">تأیید عملیات</h2>
+    <p class="dev-confirm-desc" id="devConfirmDesc"></p>
+    <div class="dev-keys-preview" id="devConfirmKeys" hidden></div>
+    <div class="dev-autobackup-row" id="devAutoBackupRow">
+      <label for="devAutoBackupCheck">
+        <input type="checkbox" id="devAutoBackupCheck" checked>
+        <span>دانلود خودکار بکاپ قبل از اجرای ریست</span>
+      </label>
+      <button class="subtle-btn" id="devConfirmBackupNowBtn" type="button">📥 دانلود بکاپ</button>
+    </div>
+    <div class="dev-confirm-actions">
+      <button class="dev-danger-solid" id="devConfirmAccept" type="button">تأیید نهایی</button>
+      <button class="subtle-btn" data-close="devConfirmModal" type="button">انصراف</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 'use strict';
+
+/* ============================================================
+   تنظیمات پنل توسعه‌دهنده (مخفی)
+   رمز پیش‌فرض: arcade-dev-1404
+   هش SHA-256:  6e3175d09b2f07558af6af4ab0b84ff458992c434ac9dce016bea5b8408b62f4
+   برای تغییر رمز، هش SHA-256 رمز دلخواه خود را جایگزین ثابت زیر کنید.
+   ============================================================ */
+const DEV_PASSWORD_HASH = '6e3175d09b2f07558af6af4ab0b84ff458992c434ac9dce016bea5b8408b62f4';
 
 /* ---------- ابزارهای کمکی ---------- */
 const faNum = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -4099,6 +4846,957 @@ document.addEventListener('keydown',event => {
 bindProfileControls();
 bindArcadeFeatures();
 bindEconomyControls();
+
+/* ============================================================
+   پنل توسعه‌دهنده (مخفی) — فقط با ۷ کلیک سریع + رمز SHA-256
+   ============================================================ */
+const DEV_TAP_GAP_MS = 600;
+const DEV_TAP_RESET_MS = 3000;
+const DEV_LOCKOUT_MS = 30000;
+const DEV_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+
+/* لیست کامل کلیدهای ثابت arcade_* در هاب */
+const ARCADE_KNOWN_STATIC_KEYS = [
+  'arcade_profile',
+  'arcade_points',
+  'arcade_points_history',
+  'arcade_inventory',
+  'arcade_equipped',
+  'arcade_xp_boost',
+  'arcade_streak_freezes',
+  'arcade_earn_claimed',
+  'arcade_daily_streak_hub',
+  'arcade_achievements',
+  'arcade_stats',
+  'arcade_plays',
+  'arcade_last',
+  'arcade_quests',
+  'arcade_weekly_bosses',
+  'arcade_secret_unlocks',
+  'arcade_tournament_active',
+  'arcade_tournaments',
+  'arcade_active_session',
+  'arcade_last_reconcile',
+  'arcade_last_daily_visit',
+  'arcade_gotd_active',
+  'arcade_sound',
+  'arcade_streak7_given',
+  'arcade_streak30_given',
+  'arcade_streak7_points_given',
+  'arcade_streak30_points_given'
+];
+/* پیشوندهای کلیدهای پویا به ازای هر بازی (arcade_top_<id> و ...) */
+const ARCADE_GAME_KEY_PREFIXES = [
+  'arcade_top_',
+  'arcade_playcount_',
+  'arcade_added_',
+  'arcade_bosses_'
+];
+/* کلیدهای موقت نشست در sessionStorage */
+const ARCADE_SESSION_KEYS = [
+  'arcade_xp_feedback',
+  'arcade_pending_level',
+  'arcade_hub_toasts',
+  'arcade_points_feedback',
+  'arcade_channel_pending',
+  'arcade_tournament_result_pending'
+];
+
+let devTapCount = 0;
+let devLastTapAt = 0;
+let devTapResetTimer = null;
+let devUnlocked = false;
+let devWrongAttempts = 0;
+let devLockUntil = Number(safeSessionGet('arcade_dev_lock_until') || 0) || 0;
+let devLockTimer = null;
+let devShakeTimer = null;
+let devAuthBusy = false;
+let devIdleTimer = null;
+let devLastActivityPing = 0;
+let devPendingConfirm = null;
+let devPendingImport = null;
+
+function devLog(action, oldValue, newValue) {
+  console.log('[DEV]', action, oldValue, newValue);
+}
+
+async function devSha256Hex(input) {
+  const bytes = new TextEncoder().encode(String(input));
+  if (window.crypto && window.crypto.subtle && typeof window.crypto.subtle.digest === 'function') {
+    const buf = await window.crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+  }
+  /* Fallback استاندارد SHA-256 برای محیط‌های فاقد Secure Context (مانند شبکه محلی HTTP) */
+  const K = [
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+  ];
+  const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const bitLen = bytes.length * 8;
+  const padLen = ((bytes.length + 9 + 63) >> 6) << 6;
+  const padded = new Uint8Array(padLen);
+  padded.set(bytes);
+  padded[bytes.length] = 0x80;
+  const dv = new DataView(padded.buffer);
+  dv.setUint32(padLen - 8, Math.floor(bitLen / 0x100000000), false);
+  dv.setUint32(padLen - 4, bitLen >>> 0, false);
+  const W = new Uint32Array(64);
+  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let i = 0; i < padLen; i += 64) {
+    for (let t = 0; t < 16; t++) W[t] = dv.getUint32(i + t * 4, false);
+    for (let t = 16; t < 64; t++) {
+      const s0 = rotr(W[t - 15], 7) ^ rotr(W[t - 15], 18) ^ (W[t - 15] >>> 3);
+      const s1 = rotr(W[t - 2], 17) ^ rotr(W[t - 2], 19) ^ (W[t - 2] >>> 10);
+      W[t] = (W[t - 16] + s0 + W[t - 7] + s1) >>> 0;
+    }
+    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+    for (let t = 0; t < 64; t++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (h + S1 + ch + K[t] + W[t]) >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (S0 + maj) >>> 0;
+      h = g; g = f; f = e; e = (d + temp1) >>> 0;
+      d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+    }
+    H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0; H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+    H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0; H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+  }
+  return H.map(x => x.toString(16).padStart(8, '0')).join('');
+}
+
+function devTimingSafeEqual(a, b) {
+  const sa = String(a).toLowerCase();
+  const sb = String(b).toLowerCase();
+  if (sa.length !== sb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < sa.length; i++) diff |= sa.charCodeAt(i) ^ sb.charCodeAt(i);
+  return diff === 0;
+}
+
+function parseDevNonNegInt(raw) {
+  const normalized = String(raw == null ? '' : raw)
+    .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[,٬_\s]/g, '')
+    .trim();
+  if (!/^\d+$/.test(normalized)) return null;
+  const num = Number(normalized);
+  if (!Number.isFinite(num) || num < 0) return null;
+  return safeXP(num);
+}
+
+function clearDevIdleTimer() {
+  if (devIdleTimer !== null) {
+    clearTimeout(devIdleTimer);
+    devIdleTimer = null;
+  }
+}
+
+function armDevIdleTimer() {
+  clearDevIdleTimer();
+  if (!devUnlocked) return;
+  devIdleTimer = setTimeout(() => {
+    if (!devUnlocked) return;
+    lockDevSession('autoCloseIdle5m');
+    showToast('پنل توسعه‌دهنده پس از ۵ دقیقه بی‌کاری خودکار قفل شد', '🔒');
+  }, DEV_IDLE_TIMEOUT_MS);
+}
+
+function pingDevActivity() {
+  if (!devUnlocked) return;
+  const now = Date.now();
+  if (now - devLastActivityPing < 1000) return;
+  devLastActivityPing = now;
+  armDevIdleTimer();
+}
+
+function lockDevSession(reason) {
+  const panelModal = document.getElementById('devPanelModal');
+  const confirmModal = document.getElementById('devConfirmModal');
+  const wasUnlocked = devUnlocked;
+  devUnlocked = false;
+  clearDevIdleTimer();
+  devPendingConfirm = null;
+  devPendingImport = null;
+
+  const xpInp = document.getElementById('devXPInput');
+  const ptsInp = document.getElementById('devPointsInput');
+  const fileInp = document.getElementById('devImportInput');
+  const fileLbl = document.getElementById('devImportFileName');
+  const impBtn = document.getElementById('devImportBtn');
+  if (xpInp) xpInp.value = '';
+  if (ptsInp) ptsInp.value = '';
+  if (fileInp) fileInp.value = '';
+  if (fileLbl) fileLbl.textContent = 'فایلی انتخاب نشده است';
+  if (impBtn) impBtn.disabled = true;
+
+  if (confirmModal && confirmModal.classList.contains('show')) closeModal('devConfirmModal', false);
+  if (panelModal && panelModal.classList.contains('show')) closeModal('devPanelModal');
+  if (wasUnlocked) devLog(reason || 'lockSession', true, false);
+}
+
+function syncDevLockCountdown() {
+  const input = document.getElementById('devAuthInput');
+  const submit = document.getElementById('devAuthSubmit');
+  const msg = document.getElementById('devAuthMsg');
+  if (!input || !submit || !msg) return false;
+
+  const rem = devLockUntil - Date.now();
+  if (rem > 0) {
+    const secs = Math.max(1, Math.ceil(rem / 1000));
+    input.disabled = true;
+    submit.disabled = true;
+    msg.classList.add('locked');
+    msg.textContent = 'رمز اشتباه — پنل تا ' + faNum(secs) + ' ثانیه دیگر قفل است.';
+    if (devLockTimer === null) {
+      devLockTimer = setInterval(() => {
+        if (Date.now() >= devLockUntil) {
+          clearInterval(devLockTimer);
+          devLockTimer = null;
+          devLockUntil = 0;
+          devWrongAttempts = 0;
+          safeSessionRemove('arcade_dev_lock_until');
+          input.disabled = false;
+          submit.disabled = false;
+          input.classList.remove('is-invalid');
+          msg.classList.remove('locked');
+          msg.textContent = '';
+          const authModal = document.getElementById('devAuthModal');
+          if (authModal && authModal.classList.contains('show')) input.focus();
+        } else {
+          const left = Math.max(1, Math.ceil((devLockUntil - Date.now()) / 1000));
+          msg.textContent = 'رمز اشتباه — پنل تا ' + faNum(left) + ' ثانیه دیگر قفل است.';
+        }
+      }, 250);
+    }
+    return true;
+  }
+
+  if (devLockTimer !== null) {
+    clearInterval(devLockTimer);
+    devLockTimer = null;
+  }
+  devLockUntil = 0;
+  safeSessionRemove('arcade_dev_lock_until');
+  input.disabled = false;
+  submit.disabled = false;
+  msg.classList.remove('locked');
+  return false;
+}
+
+function triggerDevAuthShake() {
+  const card = document.getElementById('devAuthCard');
+  const input = document.getElementById('devAuthInput');
+  if (input) input.classList.add('is-invalid');
+  if (!card) return;
+  card.classList.remove('dev-shake');
+  void card.offsetWidth;
+  card.classList.add('dev-shake');
+  if (devShakeTimer !== null) clearTimeout(devShakeTimer);
+  devShakeTimer = setTimeout(() => {
+    card.classList.remove('dev-shake');
+    devShakeTimer = null;
+  }, 500);
+}
+
+function openDevAuthModal() {
+  if (devUnlocked) lockDevSession('reAuthRequired');
+  const input = document.getElementById('devAuthInput');
+  const msg = document.getElementById('devAuthMsg');
+  const card = document.getElementById('devAuthCard');
+  if (card) card.classList.remove('dev-shake');
+  if (input) {
+    input.value = '';
+    input.classList.remove('is-invalid');
+  }
+  if (msg && Date.now() >= devLockUntil) {
+    msg.classList.remove('locked');
+    msg.textContent = '';
+  }
+  syncDevLockCountdown();
+  showModal('devAuthModal');
+  if (input && !input.disabled) setTimeout(() => input.focus(), 20);
+}
+
+async function submitDevPassword() {
+  if (devAuthBusy) return;
+  if (syncDevLockCountdown()) return;
+  const input = document.getElementById('devAuthInput');
+  const msg = document.getElementById('devAuthMsg');
+  if (!input || !msg) return;
+
+  devAuthBusy = true;
+  try {
+    const candidateHash = await devSha256Hex(input.value);
+    if (devTimingSafeEqual(candidateHash, DEV_PASSWORD_HASH)) {
+      devWrongAttempts = 0;
+      devLockUntil = 0;
+      safeSessionRemove('arcade_dev_lock_until');
+      input.value = '';
+      input.classList.remove('is-invalid');
+      msg.classList.remove('locked');
+      msg.textContent = '';
+      devUnlocked = true;
+      devLog('unlockPanel', 'locked', 'unlocked');
+      closeModal('devAuthModal', false);
+      openDevPanelModal();
+      return;
+    }
+
+    devWrongAttempts += 1;
+    devLog('wrongPassword', devWrongAttempts - 1, devWrongAttempts);
+    triggerDevAuthShake();
+
+    if (devWrongAttempts >= 3) {
+      devWrongAttempts = 0;
+      devLockUntil = Date.now() + DEV_LOCKOUT_MS;
+      safeSessionSet('arcade_dev_lock_until', String(devLockUntil));
+      devLog('passwordLockout30s', false, new Date(devLockUntil).toISOString());
+      syncDevLockCountdown();
+    } else {
+      msg.textContent = 'رمز اشتباه (' + faNum(devWrongAttempts) + ' از ۳)';
+      input.select();
+    }
+  } finally {
+    devAuthBusy = false;
+  }
+}
+
+function renderDevPanel() {
+  if (!devUnlocked) return;
+  const p = getProfile();
+  const pts = getPoints();
+  const activeTournament = LS.get('arcade_tournament_active', null);
+  const boost = getActiveXPBoost();
+
+  const warnEl = document.getElementById('devTournamentWarn');
+  if (warnEl) warnEl.hidden = !activeTournament;
+
+  paintAvatar(document.getElementById('devProfileAvatar'), p.avatar);
+  const nameEl = document.getElementById('devProfileName');
+  const lvlEl = document.getElementById('devProfileLevel');
+  const sumXP = document.getElementById('devSummaryXP');
+  const sumPts = document.getElementById('devSummaryPoints');
+  const xpBadge = document.getElementById('devXPBadge');
+  const ptsBadge = document.getElementById('devPointsBadge');
+  const boostNote = document.getElementById('devXPBoostNote');
+  const gamesBadge = document.getElementById('devGamesCountBadge');
+  const scoresList = document.getElementById('devScoresList');
+
+  if (nameEl) nameEl.textContent = p.name;
+  if (lvlEl) lvlEl.textContent = profileLevelLabel(p, true);
+  if (sumXP) sumXP.textContent = faNum(p.xp.toLocaleString('en-US'));
+  if (sumPts) sumPts.textContent = faNum(pts.toLocaleString('en-US'));
+  if (xpBadge) xpBadge.textContent = faNum(p.xp.toLocaleString('en-US')) + ' XP · لول ' + faNum(p.level);
+  if (ptsBadge) ptsBadge.textContent = faNum(pts.toLocaleString('en-US')) + ' امتیاز';
+  if (boostNote) {
+    boostNote.textContent = boost
+      ? '⚡ بوست XP فعال (' + faNum(boost.multiplier) + '×) — دکمه‌های + از addXP و ثبت مستقیم از saveProfile استفاده می‌کنند.'
+      : 'افزایش‌ها از طریق addXP و ثبت مستقیم یا کاهش از طریق saveProfile اعمال می‌شوند.';
+  }
+  if (gamesBadge) gamesBadge.textContent = faNum(GAMES.length) + ' بازی';
+
+  if (scoresList) {
+    scoresList.innerHTML = GAMES.map(g => {
+      const top = getTop(g.id);
+      return '<div class="dev-score-item" data-dev-game="' + esc(g.id) + '">' +
+        '<div class="dev-score-top">' +
+          '<div class="dev-score-name">' + esc(g.title) + '<small>' + esc(g.id) + '</small></div>' +
+          '<span class="dev-score-cur">رکورد: ' + faNum(top.toLocaleString('en-US')) + '</span>' +
+        '</div>' +
+        '<div class="dev-score-controls">' +
+          '<input class="dev-input" type="number" min="0" step="1" dir="ltr" value="' + top + '" data-dev-score-input="' + esc(g.id) + '" aria-label="رکورد ' + esc(g.title) + '">' +
+          '<button class="subtle-btn" type="button" data-dev-score-save="' + esc(g.id) + '">ثبت</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  applyCosmetics();
+}
+
+function openDevPanelModal() {
+  if (!devUnlocked) return;
+  devLastActivityPing = Date.now();
+  armDevIdleTimer();
+  renderDevPanel();
+  showModal('devPanelModal');
+}
+
+function devApplyDirectXP(targetXP, actionLabel) {
+  if (!devUnlocked) return;
+  const p = getProfile();
+  const oldState = { xp: p.xp, level: p.level };
+  p.xp = safeXP(targetXP);
+  saveProfile(p);
+  const updated = getProfile();
+  if (updated.level < pendingLevelUp || updated.level < 2) {
+    pendingLevelUp = 0;
+    safeSessionRemove('arcade_pending_level');
+  }
+  checkSecretAvatars();
+  updateProfileUI();
+  updateHeaderProfile();
+  renderAll();
+  renderDevPanel();
+  devLog(actionLabel, oldState, { xp: updated.xp, level: updated.level });
+}
+
+function devApplyDeltaXP(delta) {
+  if (!devUnlocked) return;
+  const pBefore = getProfile();
+  const oldState = { xp: pBefore.xp, level: pBefore.level };
+  if (delta > 0) {
+    addXP(delta, 'devPanel');
+    updateProfileUI();
+    updateHeaderProfile();
+    renderAll();
+    renderDevPanel();
+    const pAfter = getProfile();
+    devLog('xpDelta:+' + delta, oldState, { xp: pAfter.xp, level: pAfter.level });
+  } else if (delta < 0) {
+    const nextXP = Math.max(0, pBefore.xp + delta);
+    devApplyDirectXP(nextXP, 'xpDelta:' + delta);
+  }
+}
+
+function devApplyPoints(nextVal, actionLabel) {
+  if (!devUnlocked) return;
+  const oldPts = getPoints();
+  const cleanPts = safeXP(nextVal);
+  setPoints(cleanPts);
+  if (cleanPts !== oldPts) logPoints(cleanPts - oldPts, 'پنل توسعه‌دهنده');
+  updatePointsUI();
+  renderAll();
+  renderDevPanel();
+  devLog(actionLabel, oldPts, cleanPts);
+}
+
+function devSetGameTopScore(gameId, rawValue) {
+  if (!devUnlocked) return;
+  const game = GAMES.find(g => g.id === gameId);
+  if (!game) return;
+  const val = parseDevNonNegInt(rawValue);
+  if (val === null) {
+    showToast('لطفاً یک عدد صحیح و نامنفی وارد کنید', '⚠️');
+    return;
+  }
+  const oldTop = getTop(gameId);
+  LS.set('arcade_top_' + gameId, val);
+
+  /* همگام‌سازی رکورد در arcade_stats در صورت وجود آمار قبلی تا پنجره آمار و دستاوردها ناسازگار نشوند */
+  const rawStats = LS.get('arcade_stats', null);
+  if (rawStats && typeof rawStats === 'object') {
+    const st = getStats();
+    const prevRecorded = safeXP(st.scoresPerGame[gameId] || 0);
+    if (val > 0) st.scoresPerGame[gameId] = val;
+    else delete st.scoresPerGame[gameId];
+    st.totalScore = safeXP(Math.max(0, st.totalScore - prevRecorded + val));
+    saveStats(st);
+  }
+
+  checkAchievements();
+  checkSecretAvatars();
+  renderGrid();
+  updateStats();
+  renderRecent();
+  renderWeeklyBoss();
+  renderDevPanel();
+  devLog('setTopScore:' + gameId, oldTop, val);
+  showToast('رکورد «' + game.title + '» به ' + faNum(val.toLocaleString('en-US')) + ' تغییر یافت', '🏆');
+}
+
+function collectStorageSnapshot() {
+  const entries = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k !== null) entries[k] = localStorage.getItem(k);
+    }
+  } catch (e) {}
+  localMemory.forEach((v, k) => {
+    if (!(k in entries)) entries[k] = v;
+  });
+  return entries;
+}
+
+function downloadDevBackup(reasonTag) {
+  const entries = collectStorageSnapshot();
+  const now = new Date();
+  const pad2 = n => String(n).padStart(2, '0');
+  const stamp = now.getFullYear() + '-' + pad2(now.getMonth() + 1) + '-' + pad2(now.getDate()) + '_' +
+    pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds());
+  const payload = {
+    __arcadeBackup: true,
+    version: '1.0',
+    exportedAt: now.toISOString(),
+    reason: reasonTag || 'manual',
+    keyCount: Object.keys(entries).length,
+    storage: entries
+  };
+  const json = JSON.stringify(payload, null, 2);
+  try {
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'arcade-backup-' + stamp + '.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  } catch (e) {}
+  devLog('downloadBackup', reasonTag || 'manual', { keyCount: payload.keyCount });
+  return payload;
+}
+
+function collectAllArcadeKeys() {
+  const allKnown = new Set(ARCADE_KNOWN_STATIC_KEYS);
+  GAMES.forEach(g => {
+    ARCADE_GAME_KEY_PREFIXES.forEach(prefix => allKnown.add(prefix + g.id));
+  });
+  const existing = new Set();
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('arcade_')) {
+        existing.add(k);
+        allKnown.add(k);
+      }
+    }
+  } catch (e) {}
+  localMemory.forEach((_, k) => {
+    if (k && k.startsWith('arcade_')) {
+      existing.add(k);
+      allKnown.add(k);
+    }
+  });
+  return {
+    existing: Array.from(existing).sort(),
+    allKnown: Array.from(allKnown).sort()
+  };
+}
+
+function openDevResetConfirm(resetType) {
+  if (!devUnlocked) return;
+  const titleEl = document.getElementById('devConfirmTitle');
+  const descEl = document.getElementById('devConfirmDesc');
+  const keysEl = document.getElementById('devConfirmKeys');
+  const autoRow = document.getElementById('devAutoBackupRow');
+  const autoCheck = document.getElementById('devAutoBackupCheck');
+  const acceptBtn = document.getElementById('devConfirmAccept');
+  if (!titleEl || !descEl || !keysEl || !autoRow || !acceptBtn) return;
+
+  autoRow.hidden = false;
+  if (autoCheck) autoCheck.checked = true;
+  keysEl.hidden = true;
+  keysEl.textContent = '';
+
+  const configs = {
+    points: {
+      title: '⚠️ ریست امتیازها',
+      desc: 'آیا مطمئن هستید؟ موجودی امتیاز شما (arcade_points) صفر می‌شود و سایر بخش‌ها دست‌نخورده باقی می‌مانند.',
+      btn: 'بله، امتیازها صفر شود'
+    },
+    xp: {
+      title: '⚠️ ریست XP و لول',
+      desc: 'آیا مطمئن هستید؟ مقدار XP پروفایل (arcade_profile.xp) به صفر و لول به ۱ برمی‌گردد (نام و آواتار حفظ می‌شوند).',
+      btn: 'بله، XP ریست شود'
+    },
+    achievements: {
+      title: '⚠️ ریست دستاوردها',
+      desc: 'آیا مطمئن هستید؟ کلید arcade_achievements پاک شده و تمام دستاوردهای بازشده قفل می‌شوند.',
+      btn: 'بله، دستاوردها پاک شود'
+    },
+    stats: {
+      title: '⚠️ ریست آمار',
+      desc: 'آیا مطمئن هستید؟ کلید arcade_stats شامل زمان بازی، استریک روزانه و تاریخچه فعالیت پاک می‌شود.',
+      btn: 'بله، آمار پاک شود'
+    },
+    all: {
+      title: '🚨 ریست کامل (حذف همه کلیدهای arcade_*)',
+      desc: 'این عملیات تمام داده‌های هاب و رکوردهای arcade_* را به طور کامل پاک می‌کند:',
+      btn: 'بله، ریست کامل انجام شود'
+    }
+  };
+  const cfg = configs[resetType];
+  if (!cfg) return;
+
+  titleEl.textContent = cfg.title;
+  descEl.textContent = cfg.desc;
+  acceptBtn.textContent = cfg.btn;
+
+  if (resetType === 'all') {
+    const { existing, allKnown } = collectAllArcadeKeys();
+    const displayList = existing.length ? existing : allKnown;
+    keysEl.hidden = false;
+    keysEl.textContent = (existing.length ? 'کلیدهای موجود برای حذف (' + existing.length + '):\n' : 'کلیدهای هدف (' + allKnown.length + '):\n') + displayList.join('\n');
+  }
+
+  devPendingConfirm = { kind: 'reset', resetType };
+  showModal('devConfirmModal');
+}
+
+function executeDevReset(resetType, shouldBackup) {
+  if (!devUnlocked) return;
+  if (shouldBackup) downloadDevBackup('pre-reset-' + resetType);
+
+  if (resetType === 'points') {
+    const oldVal = getPoints();
+    setPoints(0);
+    pointsFeedback = [];
+    pausePointsFeedback();
+    safeSessionRemove('arcade_points_feedback');
+    updatePointsUI();
+    renderAll();
+    renderDevPanel();
+    devLog('resetPoints', oldVal, 0);
+    showToast('امتیازها صفر شد', '🗑️');
+  } else if (resetType === 'xp') {
+    const p = getProfile();
+    const oldVal = { xp: p.xp, level: p.level };
+    p.xp = 0;
+    saveProfile(p);
+    pendingLevelUp = 0;
+    safeSessionRemove('arcade_pending_level');
+    pendingXPFeedback = [];
+    pauseXPFeedback();
+    safeSessionRemove('arcade_xp_feedback');
+    updateProfileUI();
+    updateHeaderProfile();
+    renderAll();
+    renderDevPanel();
+    devLog('resetXP', oldVal, { xp: 0, level: 1 });
+    showToast('XP و لول به حالت اولیه بازگشت', '🗑️');
+  } else if (resetType === 'achievements') {
+    const oldVal = LS.get('arcade_achievements', {});
+    LS.remove('arcade_achievements');
+    updateAchievementUI(false);
+    renderAll();
+    renderDevPanel();
+    devLog('resetAchievements', oldVal, {});
+    showToast('دستاوردها ریست شدند', '🗑️');
+  } else if (resetType === 'stats') {
+    const oldVal = LS.get('arcade_stats', null);
+    LS.remove('arcade_stats');
+    updateStats();
+    updateProfileUI();
+    updateHeaderProfile();
+    renderAll();
+    renderDevPanel();
+    devLog('resetStats', oldVal, null);
+    showToast('آمار کلی پاک شد', '🗑️');
+  } else if (resetType === 'all') {
+    const { existing, allKnown } = collectAllArcadeKeys();
+    const removedSnapshot = {};
+    existing.forEach(k => { removedSnapshot[k] = LS.get(k, null); });
+    const unionKeys = Array.from(new Set(existing.concat(allKnown)));
+    unionKeys.forEach(k => LS.remove(k));
+    ARCADE_SESSION_KEYS.forEach(k => safeSessionRemove(k));
+
+    /* پاک‌سازی کش‌های درون‌حافظه‌ای برای جلوگیری از هرگونه ناسازگاری بدون نیاز به رفرش */
+    pendingXPFeedback = [];
+    pauseXPFeedback();
+    pendingLevelUp = 0;
+    pointsFeedback = [];
+    pausePointsFeedback();
+    channelPending = {};
+    pendingTournamentResult = null;
+    displayedTournamentResult = null;
+    tournamentSelection = [];
+
+    saveProfile(getProfile());
+    getDailyQuests(true);
+    getWeeklyBoss(true);
+    updatePointsUI();
+    applyCosmetics();
+    updateProfileUI();
+    updateHeaderProfile();
+    renderAll();
+    renderDevPanel();
+    devLog('resetAll', { count: existing.length, keys: existing, prev: removedSnapshot }, null);
+    showToast('ریست کامل تمام کلیدهای arcade_* انجام شد', '🗑️');
+  }
+}
+
+function handleDevFileSelection(file) {
+  const nameEl = document.getElementById('devImportFileName');
+  const importBtn = document.getElementById('devImportBtn');
+  devPendingImport = null;
+  if (importBtn) importBtn.disabled = true;
+  if (!file) {
+    if (nameEl) nameEl.textContent = 'فایلی انتخاب نشده است';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || ''));
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('ساختار JSON معتبر نیست');
+      }
+      const rawMap = (parsed.__arcadeBackup && parsed.storage && typeof parsed.storage === 'object' && !Array.isArray(parsed.storage))
+        ? parsed.storage
+        : parsed;
+      const keys = Object.keys(rawMap);
+      devPendingImport = { fileName: file.name, entries: rawMap, keyCount: keys.length };
+      if (nameEl) nameEl.textContent = file.name + ' (' + faNum(keys.length) + ' کلید)';
+      if (importBtn) importBtn.disabled = false;
+    } catch (err) {
+      devPendingImport = null;
+      if (nameEl) nameEl.textContent = 'خطا: فایل JSON معتبر نیست';
+      showToast('فایل انتخاب‌شده یک JSON بکاپ معتبر نیست', '⚠️');
+    }
+  };
+  reader.onerror = () => {
+    devPendingImport = null;
+    if (nameEl) nameEl.textContent = 'خطا در خواندن فایل';
+    showToast('امکان خواندن فایل بکاپ وجود نداشت', '⚠️');
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function openDevImportConfirm() {
+  if (!devUnlocked || !devPendingImport) return;
+  const titleEl = document.getElementById('devConfirmTitle');
+  const descEl = document.getElementById('devConfirmDesc');
+  const keysEl = document.getElementById('devConfirmKeys');
+  const autoRow = document.getElementById('devAutoBackupRow');
+  const acceptBtn = document.getElementById('devConfirmAccept');
+  if (!titleEl || !descEl || !keysEl || !autoRow || !acceptBtn) return;
+
+  titleEl.textContent = '📤 تأیید بازیابی بکاپ و بارگذاری مجدد';
+  descEl.textContent = 'تمام محتوای فعلی localStorage پاک شده و ' + faNum(devPendingImport.keyCount) + ' کلید از فایل «' + devPendingImport.fileName + '» جایگزین آن می‌شود، سپس صفحه Reload خواهد شد.';
+  keysEl.hidden = false;
+  keysEl.textContent = Object.keys(devPendingImport.entries).slice(0, 60).join('\n') || '(بکاپ خالی)';
+  autoRow.hidden = true;
+  acceptBtn.textContent = 'تأیید و بازنویسی کامل';
+
+  devPendingConfirm = { kind: 'import' };
+  showModal('devConfirmModal');
+}
+
+function executeDevImport() {
+  if (!devUnlocked || !devPendingImport) return;
+  const oldSnapshot = collectStorageSnapshot();
+  const entries = devPendingImport.entries;
+  devLog('importBackup', { oldKeyCount: Object.keys(oldSnapshot).length }, { fileName: devPendingImport.fileName, newKeyCount: devPendingImport.keyCount });
+
+  try { localStorage.clear(); } catch (e) {}
+  localMemory.clear();
+  ARCADE_SESSION_KEYS.forEach(k => safeSessionRemove(k));
+
+  Object.keys(entries).forEach(k => {
+    const val = entries[k];
+    if (val === null || val === undefined) return;
+    const serialized = typeof val === 'string' ? val : JSON.stringify(val);
+    try { localStorage.setItem(k, serialized); }
+    catch (e) { localMemory.set(k, serialized); }
+  });
+
+  window.location.reload();
+}
+
+function bindDevPanel() {
+  XP_REASON_LABELS.devPanel = 'پنل توسعه‌دهنده';
+  const smFooter = document.querySelector('#sideMenu .sm-footer');
+  if (smFooter) {
+    smFooter.addEventListener('click', () => {
+      const now = Date.now();
+      if (devTapResetTimer !== null) {
+        clearTimeout(devTapResetTimer);
+        devTapResetTimer = null;
+      }
+      if (devTapCount > 0 && (now - devLastTapAt) >= DEV_TAP_GAP_MS) {
+        /* فاصله کلیک کندتر از ۶۰۰ms بود: شمارنده قبلی ریست و از ۱ شروع می‌شود */
+        devTapCount = 1;
+      } else {
+        devTapCount += 1;
+      }
+      devLastTapAt = now;
+
+      if (devTapCount >= 7) {
+        devTapCount = 0;
+        devLastTapAt = 0;
+        openDevAuthModal();
+        return;
+      }
+
+      devTapResetTimer = setTimeout(() => {
+        devTapCount = 0;
+        devLastTapAt = 0;
+        devTapResetTimer = null;
+      }, DEV_TAP_RESET_MS);
+    });
+  }
+
+  const authSubmit = document.getElementById('devAuthSubmit');
+  const authInput = document.getElementById('devAuthInput');
+  if (authSubmit) authSubmit.addEventListener('click', submitDevPassword);
+  if (authInput) {
+    authInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitDevPassword();
+      }
+    });
+    authInput.addEventListener('input', () => {
+      authInput.classList.remove('is-invalid');
+    });
+  }
+
+  /* نظارت بدون دست‌کاری modalStack: هر روشی که پنل را ببندد (Esc، کلیک بیرون، ✕ یا قفل)، نشست پاک می‌شود */
+  const devPanelModal = document.getElementById('devPanelModal');
+  if (devPanelModal && typeof MutationObserver === 'function') {
+    const obs = new MutationObserver(() => {
+      if (!devPanelModal.classList.contains('show') && devUnlocked) {
+        lockDevSession('panelClosed');
+      }
+    });
+    obs.observe(devPanelModal, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  ['pointerdown', 'keydown', 'wheel', 'touchstart', 'input', 'mousemove'].forEach(evtName => {
+    document.addEventListener(evtName, pingDevActivity, { passive: true });
+  });
+
+  const lockBtn = document.getElementById('devLockBtn');
+  if (lockBtn) lockBtn.addEventListener('click', () => lockDevSession('lockButton'));
+
+  /* کنترل‌های XP */
+  const xpInput = document.getElementById('devXPInput');
+  const xpSetBtn = document.getElementById('devXPSetBtn');
+  const triggerSetXP = () => {
+    if (!xpInput) return;
+    const val = parseDevNonNegInt(xpInput.value);
+    if (val === null) {
+      showToast('مقدار XP معتبر نیست', '⚠️');
+      return;
+    }
+    devApplyDirectXP(val, 'setXP');
+    xpInput.value = '';
+    showToast('XP روی ' + faNum(val.toLocaleString('en-US')) + ' تنظیم شد', '⭐');
+  };
+  if (xpSetBtn) xpSetBtn.addEventListener('click', triggerSetXP);
+  if (xpInput) xpInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); triggerSetXP(); } });
+
+  document.querySelectorAll('[data-dev-xp-delta]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = Number(btn.getAttribute('data-dev-xp-delta'));
+      if (Number.isFinite(delta) && delta !== 0) devApplyDeltaXP(delta);
+    });
+  });
+
+  /* کنترل‌های Points */
+  const ptsInput = document.getElementById('devPointsInput');
+  const ptsSetBtn = document.getElementById('devPointsSetBtn');
+  const triggerSetPoints = () => {
+    if (!ptsInput) return;
+    const val = parseDevNonNegInt(ptsInput.value);
+    if (val === null) {
+      showToast('مقدار امتیاز معتبر نیست', '⚠️');
+      return;
+    }
+    devApplyPoints(val, 'setPoints');
+    ptsInput.value = '';
+    showToast('امتیاز روی ' + faNum(val.toLocaleString('en-US')) + ' تنظیم شد', '💰');
+  };
+  if (ptsSetBtn) ptsSetBtn.addEventListener('click', triggerSetPoints);
+  if (ptsInput) ptsInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); triggerSetPoints(); } });
+
+  document.querySelectorAll('[data-dev-pts-delta]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = Number(btn.getAttribute('data-dev-pts-delta'));
+      if (!Number.isFinite(delta) || delta === 0) return;
+      const next = Math.max(0, getPoints() + delta);
+      devApplyPoints(next, 'pointsDelta:' + (delta > 0 ? '+' + delta : delta));
+    });
+  });
+
+  /* تنظیم رکورد بازی‌ها (Event Delegation) */
+  const scoresList = document.getElementById('devScoresList');
+  if (scoresList) {
+    scoresList.addEventListener('click', e => {
+      const saveBtn = e.target.closest('[data-dev-score-save]');
+      if (!saveBtn) return;
+      const gameId = saveBtn.getAttribute('data-dev-score-save');
+      const inp = scoresList.querySelector('[data-dev-score-input="' + gameId + '"]');
+      if (inp) devSetGameTopScore(gameId, inp.value);
+    });
+    scoresList.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const inp = e.target.closest('[data-dev-score-input]');
+      if (!inp) return;
+      e.preventDefault();
+      devSetGameTopScore(inp.getAttribute('data-dev-score-input'), inp.value);
+    });
+  }
+
+  /* بکاپ و ریست‌ها */
+  const backupBtn = document.getElementById('devDownloadBackupBtn');
+  if (backupBtn) {
+    backupBtn.addEventListener('click', () => {
+      if (!devUnlocked) return;
+      downloadDevBackup('manualButton');
+      showToast('فایل بکاپ JSON دانلود شد', '📥');
+    });
+  }
+  const confirmBackupBtn = document.getElementById('devConfirmBackupNowBtn');
+  if (confirmBackupBtn) {
+    confirmBackupBtn.addEventListener('click', () => {
+      if (!devUnlocked) return;
+      downloadDevBackup('confirmModalButton');
+      showToast('فایل بکاپ JSON دانلود شد', '📥');
+    });
+  }
+
+  document.querySelectorAll('[data-dev-reset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openDevResetConfirm(btn.getAttribute('data-dev-reset'));
+    });
+  });
+
+  const confirmAccept = document.getElementById('devConfirmAccept');
+  if (confirmAccept) {
+    confirmAccept.addEventListener('click', () => {
+      if (!devUnlocked || !devPendingConfirm) return;
+      const task = devPendingConfirm;
+      devPendingConfirm = null;
+      if (task.kind === 'reset') {
+        const autoCheck = document.getElementById('devAutoBackupCheck');
+        const shouldBackup = !!(autoCheck && autoCheck.checked);
+        closeModal('devConfirmModal');
+        executeDevReset(task.resetType, shouldBackup);
+      } else if (task.kind === 'import') {
+        closeModal('devConfirmModal', false);
+        executeDevImport();
+      }
+    });
+  }
+
+  /* آپلود و بازیابی بکاپ */
+  const importInput = document.getElementById('devImportInput');
+  const importBtn = document.getElementById('devImportBtn');
+  if (importInput) {
+    importInput.addEventListener('change', () => {
+      const file = importInput.files && importInput.files[0] ? importInput.files[0] : null;
+      handleDevFileSelection(file);
+    });
+  }
+  if (importBtn) {
+    importBtn.addEventListener('click', openDevImportConfirm);
+  }
+}
+
+bindDevPanel();
 /* ============================================================
    شروع
    ============================================================ */
