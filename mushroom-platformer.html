@@ -197,6 +197,8 @@ main {
 #gameWrap[data-controls="tilt"] #dpad, #gameWrap[data-controls="keys"] #dpad, #gameWrap[data-controls="keys"] #jumpBtn { display: none; }
 @media (hover: hover) and (pointer: fine) { #dpad, #jumpBtn { display: none; } }
 /* ★ فیکس باگ: جلوگیری از انتخاب متن — روی صفحهٔ لمسی، انتخاب متن کل دکمه‌ها و ناحیهٔ بازی غیرفعال */
+/* ★ فیکس باگ: جلوگیری از انتخاب متن — کل لایهٔ بازی (از مرحلهٔ ۲ به بعد هم) */
+#gameWrap, #gameWrap * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 @media (pointer: coarse) {
   #dpad, #dpad *, #jumpBtn, #jumpBtn * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 }
@@ -433,7 +435,7 @@ main {
     <a class="credit-link" href="./index.html">← بازگشت به آرکید</a>
 
     <nav class="mode-row" aria-label="حالت بازی">
-      <button class="mode-chip sel" data-mode="adventure" type="button"><b>ماجراجویی</b><small>۵ مرحله</small></button>
+      <button class="mode-chip sel" data-mode="adventure" type="button"><b>ماجراجویی</b><small>۳۰ مرحله</small></button>
       <button class="mode-chip" data-mode="speed" type="button"><b>سرعت</b><small>سریع‌ترین زمان</small></button>
       <button class="mode-chip" data-mode="survival" type="button"><b>بقا</b><small>یک جان</small></button>
       <button class="mode-chip" data-mode="daily" type="button"><b>چالش روزانه</b><small>مرحلهٔ امروز</small></button>
@@ -627,6 +629,7 @@ main {
      کمکی‌های پایه
      ============================================================ */
   const VW = 800, VH = 450, DT = 1 / 60, GY = 370, TAU = Math.PI * 2;
+  const MAX_LEVELS = 30; /* تعداد مراحل ماجراجویی */
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const lerp = (a, b, t) => a + (b - a) * t;
   const mod = (a, n) => ((a % n) + n) % n;
@@ -714,7 +717,7 @@ main {
     { id: 'coins100', ico: '💰', name: 'صد سکه', desc: 'جمع‌آوری ۱۰۰ سکه (مجموع همه بازی‌ها)', stat: 'totalCoins', goal: 100 },
     { id: 'coins1000', ico: '🏦', name: 'هزار سکه', desc: 'جمع‌آوری ۱۰۰۰ سکه (مجموع همه بازی‌ها)', stat: 'totalCoins', goal: 1000 },
     { id: 'bossNoDmg', ico: '🛡️', name: 'قارچ غول بی‌خراش', desc: 'شکست باس بدون دریافت آسیب' },
-    { id: 'allDone', ico: '🏆', name: 'قهرمان قارچ‌ها', desc: 'تمام کردن هر ۵ مرحلهٔ ماجراجویی' },
+    { id: 'allDone', ico: '🏆', name: 'قهرمان قارچ‌ها', desc: 'تمام کردن هر ۳۰ مرحلهٔ ماجراجویی' },
     { id: 'speed2', ico: '⚡', name: 'برق‌آسا', desc: 'تمام کردن حالت سرعت زیر ۲ دقیقه' }
   ];
   const ACHV_KEY = 'mp_achievements_v1', STATS_KEY = 'mp_stats_v1';
@@ -769,7 +772,7 @@ main {
   if (!Array.isArray(progress.unlockedLevels) || !progress.unlockedLevels.length) progress.unlockedLevels = [1];
   function maxUnlocked() { return Math.max.apply(null, progress.unlockedLevels); }
   function unlockLevel(n) {
-    if (n > 5) return;
+    if (n > MAX_LEVELS) return;
     if (progress.unlockedLevels.indexOf(n) < 0) progress.unlockedLevels.push(n);
     LS.set(PROG_KEY, progress);
   }
@@ -921,7 +924,7 @@ main {
   const POWER_COLORS = { mushroom: '#ff5252', star: '#ffd54a', feather: '#5fe0a0', clock: '#6ec6ff' };
 
   function biomeAt(wl, x) {
-    if (wl.mode === 'adventure' && wl.level < 5) return wl.level - 1;
+    if (wl.mode === 'adventure' && wl.level % 5 !== 0) return (wl.level - 1) % 4; /* هر مرحلهٔ مضرب ۵ = فینال ترکیبی */
     if (wl.endless) return Math.floor(Math.max(0, x) / 2400) % 4;
     return Math.min(3, Math.floor(Math.max(0, x) / (wl.len / 4)));
   }
@@ -973,14 +976,14 @@ main {
     wl.plats = []; wl.bricks = []; wl.spikes = []; wl.springs = []; wl.spawns = []; wl.sp = 0; wl.zones = [];
     clearPool(wl.enemies); clearPool(wl.coinsP); clearPool(wl.powers); clearPool(wl.particles); clearPool(wl.floats); clearPool(wl.shots);
     wl.endless = (m === 'survival' || wl.demo);
-    wl.bossLevel = (m === 'adventure' && (L === 2 || L === 4));
+    wl.bossLevel = (m === 'adventure' && (L % 5 === 2 || L % 5 === 4));
     let seed;
     if (m === 'daily') seed = dailySeed();
     else if (m === 'speed') seed = 777001;
     else if (m === 'adventure') seed = 1000 + L * 7919;
     else seed = Math.floor(Math.random() * 1e9);
     wl.grng = mulberry32(seed);
-    wl.len = m === 'adventure' ? 3000 + L * 500 : m === 'speed' ? 3800 : m === 'daily' ? 4200 : 0;
+    wl.len = m === 'adventure' ? Math.min(8000, 3000 + L * 500) : m === 'speed' ? 3800 : m === 'daily' ? 4200 : 0;
     wl.genX = 0; wl.lastY = 350; wl.pruneT = 0;
     wl.time = 0; wl.dmgLevel = 0; wl.bossHurt = false; wl.slowT = 0;
     wl.camX = 0; wl.camLock = null; wl.minX = 0; wl.maxX = 1e9;
@@ -1028,7 +1031,7 @@ main {
     while (wl.genX < x1) {
       const x = wl.genX, bio = biomeAt(wl, x);
       const progress = wl.endless ? Math.min(2.5, x / 3600) : x / Math.max(1, wl.len);
-      const diff = (wl.mode === 'adventure' ? 0.5 + wl.level * 0.22 : wl.endless ? 0.9 : 1.1) + progress * 0.6;
+      const diff = (wl.mode === 'adventure' ? Math.min(2.4, 0.5 + wl.level * 0.22) : wl.endless ? 0.9 : 1.1) + progress * 0.6;
       let w = ri(240, 470), safe = false;
       const z = zoneHit(wl, x, x + w + 160);
       if (z) { safe = true; w = Math.max(w, z[1] - x); }
@@ -1666,7 +1669,7 @@ main {
      پایان مرحله / پایان بازی
      ============================================================ */
   function levelComplete(wl) {
-    const par = wl.mode === 'adventure' ? 100 + wl.level * 20 : wl.mode === 'speed' ? 150 : 160;
+    const par = wl.mode === 'adventure' ? Math.min(320, 100 + wl.level * 20) : wl.mode === 'speed' ? 150 : 160;
     const timeBonus = Math.max(0, Math.floor(par - wl.time)) * (wl.mode === 'speed' ? 20 : 10);
     const bonus = 500 + timeBonus;
     wl.score += bonus; wl.runTime += wl.time;
@@ -1675,7 +1678,7 @@ main {
     if (wl.mode === 'adventure') {
       setBestTime('L' + wl.level, wl.time);
       unlockLevel(wl.level + 1);
-      if (wl.level < 5) {
+      if (wl.level < MAX_LEVELS) {
         showToast('پایان مرحله ' + faNum(wl.level), '+' + faNum(bonus) + ' امتیاز (پاداش زمان ' + faNum(timeBonus) + ')', '🚩');
         wl.level++;
         setupLevel(wl);
@@ -1702,7 +1705,7 @@ main {
     saveTop(wl.score); sessionEnd();
     hideBossBar();
     winTitle.textContent = wl.mode === 'adventure' ? '🏆 ماجراجویی تمام شد!' : '🏁 مرحله تمام شد!';
-    winSub.textContent = wl.mode === 'adventure' ? 'هر ۵ مرحله را فتح کردی — تبریک قهرمان قارچ‌ها!' : MODE_LABEL[wl.mode] + ' — پاداش پایان مرحله: ' + faNum(bonus);
+    winSub.textContent = wl.mode === 'adventure' ? 'هر ۳۰ مرحله را فتح کردی — تبریک قهرمان قارچ‌ها!' : MODE_LABEL[wl.mode] + ' — پاداش پایان مرحله: ' + faNum(bonus);
     winScoreEl.textContent = faNum(wl.score);
     const total = wl.mode === 'adventure' ? wl.runTime : wl.time;
     winStats.innerHTML =
@@ -1744,7 +1747,7 @@ main {
   const hudCache = {};
   function updateHUD(wl) {
     if (hudCache.score !== wl.score) { hudCache.score = wl.score; scoreEl.textContent = faNum(Math.floor(wl.score)); }
-    const lv = wl.endless ? '∞' : wl.mode === 'adventure' ? faNum(wl.level) + '/۵' : '۱';
+    const lv = wl.endless ? '∞' : wl.mode === 'adventure' ? faNum(wl.level) + '/' + faNum(MAX_LEVELS) : '۱';
     if (hudCache.level !== lv) { hudCache.level = lv; levelEl.textContent = lv; }
     if (hudCache.lives !== wl.lives) { hudCache.lives = wl.lives; livesEl.textContent = faNum(Math.max(0, wl.lives)); }
     if (hudCache.coins !== wl.coins) { hudCache.coins = wl.coins; coinEl.textContent = faNum(wl.coins); }
@@ -1772,8 +1775,8 @@ main {
   let introTimer = 0;
   function levelTitle(wl) {
     if (wl.mode === 'adventure') {
-      if (wl.level === 5) return ['مرحله ۵ — فینال', 'تلفیق همهٔ بایوم‌ها'];
-      const b = BIO[wl.level - 1];
+      if (wl.level % 5 === 0) return ['مرحله ' + faNum(wl.level) + ' — فینال', 'تلفیق همهٔ بایوم‌ها'];
+      const b = BIO[(wl.level - 1) % 4];
       return ['مرحله ' + faNum(wl.level), b.name + ' — ' + b.sub + (wl.bossLevel ? ' • باس!' : '')];
     }
     if (wl.mode === 'speed') return ['حالت سرعت', 'هرچه سریع‌تر به پرچم برس!'];
@@ -2615,7 +2618,7 @@ main {
 
   function renderLevelGrid() {
     let h = '';
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= MAX_LEVELS; i++) {
       const ok = progress.unlockedLevels.indexOf(i) >= 0;
       h += '<button class="pm-btn' + (i === maxUnlocked() ? ' primary' : '') + '" type="button" data-lvl="' + i + '"' + (ok ? '' : ' disabled') + '>' + faNum(i) + '</button>';
     }
@@ -2654,6 +2657,11 @@ main {
     pendingRecord = null; nameModal.classList.remove('show'); refreshRecordLists(); Snd.ui();
     showToast('رکورد ثبت شد', name, '🏆');
   }
+  /* ★ فیکس باگ: جلوگیری از انتخاب متن — مسدود کردن selectstart و لمس طولانی روی کل صفحهٔ بازی */
+  gameWrap.addEventListener('selectstart', e => e.preventDefault());
+  [$('dpad'), jumpBtn].forEach(el => el.addEventListener('touchstart', e => e.preventDefault(), { passive: false }));
+  function clearSelection() { try { const s = window.getSelection && window.getSelection(); if (s && s.removeAllRanges) s.removeAllRanges(); } catch (e) { /* ignore */ } }
+  document.addEventListener('selectionchange', function () { if (!gameWrap.hidden) clearSelection(); });
   gameWrap.addEventListener('contextmenu', e => e.preventDefault());
   gameWrap.addEventListener('gesturestart', e => e.preventDefault());
 
