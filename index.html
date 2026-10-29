@@ -1839,6 +1839,64 @@ body.attract-mode .banners-section { opacity: .35; }
   }
 }
 
+
+
+/* ============================================================
+   ★ پولیش UI ۱ تا ۱۰ — فقط لایهٔ بصری و تعاملات رابط
+   ============================================================ */
+/* ★ پولیش UI: Hero */
+.hero{position:relative;isolation:isolate;overflow:hidden}.hero>*{position:relative;z-index:1}
+.hero::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.9) 1px,transparent 1px);background-size:60px 60px;opacity:.04}
+.hero::after{content:'';position:absolute;z-index:0;pointer-events:none;width:400px;height:400px;top:-72px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(245,197,24,.10),transparent 68%)}
+.hero-title{letter-spacing:-.01em;background-image:linear-gradient(90deg,#c4cbd8 0%,#fff 25%,var(--gold-light) 45%,#fff 62%,#c4cbd8 100%);background-size:200% auto;animation:heroGoldShimmer 8s ease-in-out infinite}
+/* ★ فیکس باگ: مکث شیمر */
+@keyframes heroGoldShimmer{0%,60%{background-position:0% center}100%{background-position:200% center}}
+.hero-line{transform:scaleX(0);transform-origin:center;animation:heroLineOpen .8s ease-out forwards}@keyframes heroLineOpen{to{transform:scaleX(1)}}
+.stat{min-width:86px}.stat-main{display:inline-flex;align-items:center;justify-content:center;gap:6px}.stat-pixel-icon{width:12px;height:12px;color:rgba(245,197,24,.72);shape-rendering:crispEdges;flex:0 0 12px}.stat-label{display:inline-flex!important;align-items:center;gap:4px}
+.hero-cta{display:inline-flex;align-items:center;justify-content:center;margin:28px auto 0;padding:14px 32px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));color:#1a1500;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 8px 26px rgba(245,197,24,.28),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .22s var(--ease-out),box-shadow .22s var(--ease-out)}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(245,197,24,.42),inset 0 1px 0 rgba(255,255,255,.45)}
+.hero-cta:focus-visible{outline:2px solid var(--gold-light);outline-offset:4px}
+
+/* ★ پولیش UI: کارت‌ها و ژانر */
+.card[data-genre="shooter"] .genre{background:rgba(239,68,68,.15);color:#fca5a5}.card[data-genre="classic"] .genre{background:rgba(59,130,246,.15);color:#93c5fd}.card[data-genre="puzzle"] .genre{background:rgba(139,92,246,.15);color:#c4b5fd}.card[data-genre="racing"] .genre{background:rgba(249,115,22,.15);color:#fdba74}.card[data-genre="all"] .genre{background:rgba(255,255,255,.05)}
+.card-cover::before{content:'';position:absolute;inset:0 0 auto;height:2px;z-index:4;opacity:.7;background:rgba(255,255,255,.16);pointer-events:none}.card[data-genre="shooter"] .card-cover::before{background:#ef4444}.card[data-genre="classic"] .card-cover::before{background:#3b82f6}.card[data-genre="puzzle"] .card-cover::before{background:#8b5cf6}.card[data-genre="racing"] .card-cover::before{background:#f97316}
+.card-cover svg{transition:transform .5s ease}.card:hover:not(.soon) .card-cover>svg{transform:scale(1.04)}
+.card-hover-overlay{background:linear-gradient(180deg,rgba(245,197,24,.06),rgba(0,0,0,.7))}
+.best,.stat b,.pb-value,.profile-xp-value,.dev-mini-stat b{font-feature-settings:"tnum" 1;letter-spacing:.02em}.best-trophy{font-size:10px;margin-inline-end:3px;vertical-align:1px}
+
+/* ★ پولیش UI: کارت به‌زودی */
+.card.soon{opacity:.85}.card.soon .card-cover{filter:grayscale(.7) brightness(.55)}
+.soon-lock{position:absolute;inset:0;z-index:2;display:grid;place-items:center;pointer-events:none}.soon-lock svg{width:36px!important;height:36px!important;color:var(--gold);filter:drop-shadow(0 0 18px rgba(245,197,24,.35));shape-rendering:crispEdges}.soon-badge{border:1px solid rgba(245,197,24,.4);background:linear-gradient(135deg,rgba(245,197,24,.18),rgba(245,197,24,.08));color:var(--gold);font-weight:700;animation:soonPulse 3s infinite}.soon-note{position:absolute;top:38px;right:10px;z-index:3;color:var(--text-tertiary);font-size:9.5px}@keyframes soonPulse{0%,100%{opacity:.8}50%{opacity:1}}
+
+/* ★ پولیش UI: سلسله‌مراتب عنوان‌ها */
+.section-head h2::after,.recent h2::after{content:'';display:block;width:24px;height:2px;background:var(--gold);margin-top:8px;border-radius:2px}
+
+/* ★ پولیش UI: Skeleton و Empty state */
+.card.skeleton{min-height:360px;cursor:default;pointer-events:none;background:var(--surface);opacity:1}.card.skeleton>*{visibility:hidden}.card.skeleton::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.08) 42%,rgba(245,197,24,.08) 50%,rgba(255,255,255,.08) 58%,transparent 80%);background-size:220% 100%;animation:skeletonRTL 1.5s linear infinite}.card.skeleton::before{content:'';position:absolute;inset:14px;border-radius:14px;background:linear-gradient(var(--surface-hover) 0 62%,transparent 62%),linear-gradient(90deg,var(--surface-hover) 0 62%,transparent 62%);opacity:.55}@keyframes skeletonRTL{from{background-position:-120% 0}to{background-position:120% 0}}
+.empty-state{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:52px 20px;color:var(--text-secondary)}.empty-pixel{width:64px;height:64px;margin-bottom:14px;color:var(--gold);shape-rendering:crispEdges}.empty-state strong{font-size:16px;color:var(--text-primary);margin-bottom:5px}.empty-state p{font-size:12px;color:var(--text-tertiary);margin-bottom:16px}
+
+/* ★ پولیش UI: Level Up و Achievement */
+.levelup-modal .about-card{overflow:hidden}.levelup-confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}.levelup-avatar-wrap{position:relative;width:86px;height:86px;margin:0 auto 14px;display:grid;place-items:center}.levelup-avatar{width:72px;height:72px;position:relative;z-index:2}.levelup-ring{position:absolute;inset:7px;border:2px solid var(--gold);border-radius:50%;z-index:1;animation:ringExpand 1.2s ease-out 1 forwards}@keyframes ringExpand{from{transform:scale(.3);opacity:1}to{transform:scale(1.5);opacity:0}}
+.achievement-unlock-modal .about-card{width:min(390px,90vw);padding:30px 24px;text-align:center;border:1px solid rgba(245,197,24,.28);background:radial-gradient(ellipse at 50% 0%,rgba(245,197,24,.13),transparent 65%),rgba(10,14,22,.92)}.achievement-unlock-icon{font-size:52px;filter:drop-shadow(0 0 18px rgba(245,197,24,.3));margin-bottom:8px}.achievement-unlock-modal h2{font-size:19px;color:var(--gold-light);margin-bottom:8px}.achievement-unlock-name{font-size:16px;font-weight:700;margin-bottom:6px}.achievement-unlock-desc{font-size:12px;color:var(--text-secondary);line-height:1.8;margin-bottom:18px}
+
+/* ★ پولیش UI: Bottom Nav indicator */
+.bottom-nav-inner{position:relative}.nav-indicator{position:absolute;top:6px;bottom:6px;left:0;width:0;z-index:0;border-radius:22px;background:linear-gradient(135deg,rgba(245,197,24,.22),rgba(245,197,24,.08));transition:transform .35s cubic-bezier(.34,1.56,.64,1),width .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none}.nav-item{z-index:1}.nav-item.active{background:transparent;box-shadow:none}.nav-item svg{transition:transform .25s var(--ease-spring),stroke-width .2s}.nav-item.active svg{stroke-width:2.2}
+
+/* ★ پولیش UI: مودال‌ها و فروشگاه */
+#profileModal .about-backdrop{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.about-modal:not(#profileModal):not(#levelUpModal) .about-backdrop{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.levelup-modal .about-backdrop{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#profileModal .about-card{isolation:isolate}#profileModal .about-card::before{content:'';position:absolute;inset:0 0 auto;height:220px;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(245,197,24,.14),transparent 60%)}
+.shop-item{position:relative}.shop-item.rarity-rare{border-color:rgba(245,197,24,.35)}.rarity-label{position:absolute;top:8px;right:8px;z-index:2;padding:2px 6px;border-radius:6px;background:rgba(245,197,24,.12);border:1px solid rgba(245,197,24,.28);color:var(--gold);font-size:9px;font-weight:700}
+.about-modal .about-icon{animation:aboutGlow 3s ease-in-out infinite}@keyframes aboutGlow{0%,100%{box-shadow:0 0 20px rgba(245,197,24,.2)}50%{box-shadow:0 0 40px rgba(245,197,24,.38)}}
+
+/* ★ پولیش UI: CRT اختیاری */
+body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:.06;background-image:repeating-linear-gradient(to bottom,rgba(255,255,255,.6) 0 1px,transparent 1px 3px),radial-gradient(circle at center,transparent 60%,rgba(0,0,0,.35) 100%);filter:contrast(1.02) saturate(1.05)}
+
+/* ★ پولیش UI: موبایل */
+@media(max-width:768px){.card-cover{aspect-ratio:3/4}.bottom-nav{bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
+@media(max-width:600px){.hero{padding-top:36px}.hub-toast,.points-toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))}.xp-toast-stack{bottom:calc(104px + env(safe-area-inset-bottom,0px))}}
+@media(max-width:480px){.bottom-nav{bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
+@media(prefers-reduced-motion:reduce){.hero-title,.hero-line,.soon-badge,.card.skeleton::after,.levelup-ring,.about-modal .about-icon{animation:none!important}.levelup-confetti{display:none!important}body.crt-mode::after{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -1847,7 +1905,7 @@ body.attract-mode .banners-section { opacity: .35; }
 <div class="attract-brand" id="attractBrand" aria-hidden="true"><b dir="ltr">ARCADE</b><small>برای بازگشت، ماوس رو حرکت بده یا صفحه رو لمس کن.</small></div>
 
 <!-- ============ Header (شیشه) ============ -->
-<header class="lg-glass">
+<header class="lg-glass"><!-- ★ دسته: وضعیت اتصال --><span id="gpHeaderBadge" class="gp-header-badge" hidden role="status"></span>
   <a class="logo" href="./index.html" aria-label="آرکید">
     <div class="logo-icon">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1884,12 +1942,15 @@ body.attract-mode .banners-section { opacity: .35; }
     <div class="hero-line"></div>
     <p class="hero-sub">به یاد روزهای طلایی بازی‌های آرکید — بازسازی مدرن، تجربه نوستالژیک</p>
     <div class="hero-stats">
-      <div class="stat"><b id="statGames">۰</b><span>بازی</span></div>
+      <div class="stat"><div class="stat-main"><svg class="stat-pixel-icon" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="1" y="5" width="10" height="5"/><rect x="3" y="3" width="2" height="4"/><rect x="2" y="6" width="4" height="1" fill="#1a1500"/><rect x="4" y="5" width="1" height="3" fill="#1a1500"/><rect x="8" y="6" width="1" height="1" fill="#1a1500"/><rect x="9" y="8" width="1" height="1" fill="#1a1500"/></svg><b id="statGames">۰</b></div><span>بازی</span></div>
       <div class="stat-div"></div>
-      <div class="stat"><b id="statPlays">۰</b><span>دست بازی</span></div>
+      <div class="stat"><div class="stat-main"><svg class="stat-pixel-icon" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="2" y="5" width="8" height="5"/><rect x="3" y="2" width="1" height="5"/><rect x="5" y="1" width="1" height="6"/><rect x="7" y="2" width="1" height="5"/><rect x="9" y="3" width="1" height="4"/></svg><b id="statPlays">۰</b></div><span>دست بازی</span></div>
       <div class="stat-div"></div>
-      <div class="stat"><b id="statBest">۰</b><span>بهترین امتیاز</span></div>
+      <div class="stat"><div class="stat-main"><svg class="stat-pixel-icon" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="3" y="1" width="6" height="5"/><rect x="1" y="2" width="2" height="3"/><rect x="9" y="2" width="2" height="3"/><rect x="5" y="6" width="2" height="3"/><rect x="3" y="9" width="6" height="2"/></svg><b id="statBest">۰</b></div><span>بهترین امتیاز</span></div>
     </div>
+    <!-- ★ پولیش UI: Hero CTA -->
+    <!-- ★ فیکس باگ: اتصال رویداد داخل IIFE -->
+    <button class="hero-cta" id="heroRandomBtn" type="button">🎲 شروع بازی تصادفی</button>
     <div class="quests-section" id="questsSection">
       <div class="quests-head"><span>🎯 مأموریت‌های امروز</span><small id="questsCount">۰ از ۳</small></div>
       <div class="quests-list" id="questsList"></div>
@@ -1968,6 +2029,8 @@ body.attract-mode .banners-section { opacity: .35; }
 <!-- ============ نوار ناوبری پایین ============ -->
 <nav class="bottom-nav" id="bottomNav" role="tablist" aria-label="ناوبری اصلی">
   <div class="bottom-nav-inner">
+    <!-- ★ پولیش UI: نشانگر متحرک ناوبری -->
+    <span class="nav-indicator" style="opacity:0" aria-hidden="true"></span>
     <button type="button" class="nav-item active" data-tab="home" role="tab" aria-selected="true" aria-label="خانه">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
       <span>خانه</span>
@@ -2060,7 +2123,7 @@ body.attract-mode .banners-section { opacity: .35; }
       <a class="sm-item" href="https://aligraph-art.cv/" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">🎨</span><span>طراح و توسعه‌دهنده</span></a>
     </div>
     <div class="sm-divider"></div>
-    <div class="sm-section"><button class="sm-item" type="button" data-action="about"><span aria-hidden="true">ⓘ</span><span>درباره آرکید</span></button></div>
+    <div class="sm-section"><button class="sm-item" type="button" data-action="about"><span aria-hidden="true">ⓘ</span><span>درباره آرکید</span></button><!-- ★ دسته: تنظیمات --> <button class="sm-item" type="button" data-action="gamepad"><span aria-hidden="true">🎮</span><span>دستهٔ بازی</span></button><button class="sm-item" type="button" data-action="toggleCRT"><span aria-hidden="true">📺</span><span>افکت CRT</span><span class="sm-badge" id="crtStatus">خاموش</span></button></div>
     <div class="sm-footer">نسخه ۱.۰ · ساخته‌شده با ❤️</div>
   </div>
 </div>
@@ -2111,6 +2174,9 @@ body.attract-mode .banners-section { opacity: .35; }
 <div class="about-modal levelup-modal" id="levelUpModal">
   <div class="about-backdrop"></div>
   <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="levelUpHeading" aria-describedby="levelUpReached levelUpTitle levelUpNext" tabindex="-1">
+    <!-- ★ پولیش UI: کانفتی و آواتار Level Up -->
+    <canvas class="levelup-confetti" id="levelUpConfetti" aria-hidden="true"></canvas>
+    <div class="levelup-avatar-wrap"><span class="levelup-ring" aria-hidden="true"></span><div class="pixel-avatar levelup-avatar" id="levelUpAvatar" aria-label="آواتار بازیکن"></div></div>
     <div class="levelup-icon" id="levelUpIcon" aria-hidden="true">🌱</div>
     <h2 id="levelUpHeading">لول آپ!</h2>
     <div class="levelup-reached" id="levelUpReached"></div>
@@ -2118,6 +2184,18 @@ body.attract-mode .banners-section { opacity: .35; }
     <div class="levelup-next" id="levelUpNext"></div>
     <div class="progress"><div class="progress-fill" id="levelUpProgress"></div></div>
     <button class="gold-btn levelup-continue" id="levelUpContinue" type="button" data-initial-focus>ادامه</button>
+  </div>
+</div>
+
+<!-- ★ پولیش UI: مودال دستاورد جدید -->
+<div class="about-modal achievement-unlock-modal" id="achievementUnlockModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card" role="dialog" aria-modal="true" aria-labelledby="achievementUnlockHeading" tabindex="-1">
+    <div class="achievement-unlock-icon" id="achievementUnlockIcon">🏆</div>
+    <h2 id="achievementUnlockHeading">🏆 دستاورد جدید</h2>
+    <div class="achievement-unlock-name" id="achievementUnlockName"></div>
+    <div class="achievement-unlock-desc" id="achievementUnlockDesc"></div>
+    <button class="gold-btn" type="button" data-close="achievementUnlockModal" data-initial-focus>ادامه</button>
   </div>
 </div>
 <div class="xp-toast-stack" id="xpToastStack" role="status" aria-live="polite" aria-atomic="false"></div>
@@ -2232,8 +2310,10 @@ body.attract-mode .banners-section { opacity: .35; }
       <button class="shop-tab" data-cat="colors" id="shop-tab-colors" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">🎨 نام</button>
       <button class="shop-tab" data-cat="badges" id="shop-tab-badges" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">🏅 بج</button>
       <button class="shop-tab" data-cat="boosters" id="shop-tab-boosters" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">⚡ تقویت</button>
+      <button class="shop-tab" data-cat="gamepad" id="shop-tab-gamepad" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">🎮 دسته</button>
       <button class="shop-tab" data-cat="utility" id="shop-tab-utility" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">🔧 کاربردی</button>
     </div>
+    <!-- ★ فروشگاه: دستهٔ جدید -->
     <div class="shop-grid" id="shopGrid" role="tabpanel" aria-labelledby="shop-tab-frames"></div>
   </div>
 </div>
@@ -2414,6 +2494,10 @@ body.attract-mode .banners-section { opacity: .35; }
   </div>
 </div>
 
+<!-- ★ دسته: از الگوی مودال و تنها سطح about-card استفاده می‌کند -->
+<div class="about-modal" id="gamepadConfigModal"><div class="about-backdrop"></div><div class="about-card lg-glass gp-hub" role="dialog" aria-modal="true" aria-labelledby="gpTitle" tabindex="-1"><button class="about-close" type="button" data-close="gamepadConfigModal" aria-label="بستن">✕</button><h2 id="gpTitle">🎮 دستهٔ بازی</h2><div id="gpHubContent"></div></div></div>
+<!-- ★ دسته: حالت هاب، بدون ایجاد کنترل روی هاب -->
+<script src="arcade-gamepad.js" data-hub></script>
 <script>
 (function(){
 'use strict';
@@ -2476,6 +2560,33 @@ const POINTS_REWARDS = {
 };
 
 const SHOP_ITEMS = [
+  /* ★ فروشگاه: آیتم‌های جدید */
+{"id": "gp-skin-neon", "name": "اسکین نئون دسته", "price": 800, "cat": "gamepad", "kind": "gamepadSkin"},
+{"id": "gp-skin-gold", "name": "اسکین طلایی دسته", "price": 1500, "cat": "gamepad", "kind": "gamepadSkin"},
+{"id": "gp-skin-diamond", "name": "اسکین الماسی دسته", "price": 3500, "cat": "gamepad", "kind": "gamepadSkin"},
+{"id": "gp-layout-minimal", "name": "چیدمان مینیمال", "price": 600, "cat": "gamepad", "kind": "gamepadLayout"},
+{"id": "gp-layout-extended", "name": "چیدمان کامل", "price": 1200, "cat": "gamepad", "kind": "gamepadLayout"},
+{"id": "gp-color-custom", "name": "رنگ سفارشی دسته", "price": 2000, "cat": "gamepad", "kind": "gamepadColor"},
+{"id": "gp-haptic-pro", "name": "لرزش حرفه‌ای", "price": 1000, "cat": "gamepad", "kind": "gamepadHaptic"},
+{"id": "gp-profile-extra", "name": "پروفایل اضافی remap", "price": 1500, "cat": "gamepad", "kind": "gamepadProfile"},
+{"id": "name-emerald", "name": "نام زمردی", "price": 800, "cat": "colors", "kind": "nameColor", "color": "#34d399"},
+{"id": "name-sunset", "name": "نام غروب", "price": 1200, "cat": "colors", "kind": "nameColor", "color": "#fb923c"},
+{"id": "name-ice", "name": "نام یخی", "price": 1000, "cat": "colors", "kind": "nameColor", "color": "#bae6fd"},
+{"id": "frame-neon", "name": "قاب نئون", "price": 2500, "cat": "frames", "kind": "frame", "color": "#67e8f9"},
+{"id": "frame-fire", "name": "قاب آتش", "price": 3000, "cat": "frames", "kind": "frame", "color": "#fb5c2e"},
+{"id": "frame-galaxy", "name": "قاب کهکشان", "price": 4000, "cat": "frames", "kind": "frame", "color": "#b794f4"},
+{"id": "frame-holographic", "name": "قاب هولوگرافیک", "price": 6000, "cat": "frames", "kind": "frame", "color": "#a7f3d0"},
+{"id": "badge-star", "name": "⭐ ستاره", "price": 3000, "cat": "badges", "kind": "badge", "icon": "⭐"},
+{"id": "badge-rocket", "name": "🚀 موشک", "price": 5000, "cat": "badges", "kind": "badge", "icon": "🚀"},
+{"id": "badge-trophy", "name": "🏆 قهرمان", "price": 8000, "cat": "badges", "kind": "badge", "icon": "🏆"},
+{"id": "badge-king", "name": "👑 پادشاه آرکید", "price": 15000, "cat": "badges", "kind": "badge", "icon": "👑"},
+{"id": "cursor-trail", "name": "دنبالهٔ موس", "price": 1500, "cat": "utility", "kind": "cursorTrail"},
+{"id": "bg-theme-neon", "name": "تم نئون", "price": 2500, "cat": "utility", "kind": "bgTheme"},
+{"id": "bg-theme-matrix", "name": "تم ماتریکس", "price": 2500, "cat": "utility", "kind": "bgTheme"},
+{"id": "sound-pack-retro", "name": "پک صدای رترو", "price": 800, "cat": "utility", "kind": "soundPack"},
+{"id": "sound-pack-chiptune", "name": "پک صدای چیپ‌تیون", "price": 800, "cat": "utility", "kind": "soundPack"},
+{"id": "border-theme-gold", "name": "قاب طلایی صفحه بازی", "price": 2000, "cat": "utility", "kind": "borderTheme"},
+{"id": "border-theme-neon", "name": "قاب نئون صفحه بازی", "price": 2000, "cat": "utility", "kind": "borderTheme"},
   // ===== Frames — قاب آواتار =====
   { id:'frame-bronze',  cat:'frames', name:'قاب برنزی',   price:400,  kind:'frame',  color:'#cd7f32' },
   { id:'frame-silver',  cat:'frames', name:'قاب نقره‌ای', price:900,  kind:'frame',  color:'#cbd5e1' },
@@ -2662,10 +2773,20 @@ function levelUpJingle() {
 function renderLevelUpContents() {
   const p = getProfile(), level = p.level, title = getLevelTitle(level), progress = xpProgress(p.xp);
   document.getElementById('levelUpIcon').textContent = title.icon;
+  const levelAvatar = document.getElementById('levelUpAvatar'), avatar = ALL_AVATARS[p.avatar]; if (levelAvatar && avatar) { levelAvatar.style.background = 'linear-gradient(135deg,'+avatar.bg[0]+','+avatar.bg[1]+')'; levelAvatar.innerHTML = avatar.svg; }
   document.getElementById('levelUpReached').textContent = 'به لول ' + faNum(level) + ' رسیدی';
   document.getElementById('levelUpTitle').textContent = 'عنوان جدید: ' + title.title;
   document.getElementById('levelUpNext').textContent = faNum(progress.needed - progress.current) + ' XP تا لول ' + faNum(level + 1);
   document.getElementById('levelUpProgress').style.width = progress.percent + '%';
+}
+/* ★ پولیش UI: کانفتی Level Up */
+function launchConfetti(){
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const canvas=document.getElementById('levelUpConfetti'), card=canvas?.parentElement;if(!canvas||!card)return;
+  const dpr=Math.min(window.devicePixelRatio||1,2),r=card.getBoundingClientRect();canvas.width=Math.max(1,r.width*dpr);canvas.height=Math.max(1,r.height*dpr);canvas.style.width=r.width+'px';canvas.style.height=r.height+'px';
+  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);const cx=r.width/2,cy=Math.min(125,r.height*.32),colors=['#f5c518','#ffd54a','#ffffff'];
+  const parts=Array.from({length:30},(_,i)=>{const a=(Math.PI*2*i/30)+(Math.random()-.5)*.35,s=2.4+Math.random()*3.2;return{x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2.4,g:.075,life:1,size:2+Math.random()*3,c:colors[i%colors.length]}});const start=performance.now();
+  function frame(now){const t=(now-start)/1500;ctx.clearRect(0,0,r.width,r.height);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.life=Math.max(0,1-t);ctx.globalAlpha=p.life;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.size,p.size)});ctx.globalAlpha=1;if(t<1)requestAnimationFrame(frame);else ctx.clearRect(0,0,r.width,r.height)}requestAnimationFrame(frame);
 }
 function showLevelUp(newLevel) {
   pendingLevelUp = Math.max(pendingLevelUp,newLevel);
@@ -2678,19 +2799,25 @@ function flushLevelUp() {
   if (getProfile().level < 2) { pendingLevelUp = 0; safeSessionRemove('arcade_pending_level'); return; }
   renderLevelUpContents();
   if (!alreadyOpen) {
-    showModal('levelUpModal'); levelUpJingle();
+    showModal('levelUpModal'); levelUpJingle(); /* ★ فیکس باگ: پس از ورود مودال */ setTimeout(()=>{if(modal.classList.contains('show'))launchConfetti()},350);
     try { if (audioUnlocked && navigator.vibrate) navigator.vibrate([80,50,120,50,220]); } catch(e) {}
   }
 }
 function continueAfterLevelUp() {
   pendingLevelUp = 0; safeSessionRemove('arcade_pending_level');
   closeModal('levelUpModal');
+  flushAchievementQueue();
   flushTournamentResult(); resumePendingNavigation();
 }
-function enableRewardFeedback() { feedbackReady = true; syncOverlayState(); flushXPFeedback(); flushLevelUp(); flushHubToasts(); flushPointsFeedback(); flushTournamentResult(); resumePendingNavigation(); }
+function enableRewardFeedback() { feedbackReady = true; syncOverlayState(); flushXPFeedback(); flushLevelUp(); flushHubToasts(); flushPointsFeedback(); flushTournamentResult(); resumePendingNavigation(); flushAchievementQueue(); }
 
 /* مدیریت مشترک مودال‌ها: لایه‌بندی، بازگشت فوکوس، Tab و قفل اسکرول. */
 let modalStack = [], sideMenuOpen = false;
+/* ★ فیکس باگ: صف دستاوردها */
+let achievementQueue = [];
+function queueAchievementUnlock(a){achievementQueue.push(a);if(!modalStack.length&&!launchInProgress)flushAchievementQueue()}
+function flushAchievementQueue(){if(!achievementQueue.length||modalStack.length||launchInProgress||document.hidden||pendingNavigation||!feedbackReady)return;showAchievementUnlock(achievementQueue.shift())}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)flushAchievementQueue()});
 function bootIsActive() {
   const boot = document.getElementById('bootScreen');
   return !!(boot && !boot.hidden && !boot.classList.contains('done'));
@@ -2739,6 +2866,9 @@ function closeModal(id, restoreFocus = true) {
   }
   if (!modalStack.some(item => item.id === 'profileModal')) syncTabWithScroll(true);
   if (id === 'tournamentResultModal') resumePendingNavigation();
+  /* ★ فیکس باگ: نمایش بعدی فقط پس از خالی شدن لایه‌ها */
+  if(id==='gamepadConfigModal')gpCommit();
+  if(id==='achievementUnlockModal'||!modalStack.length)flushAchievementQueue();
 }
 function requestCloseModal(id) { if (id === 'levelUpModal') continueAfterLevelUp(); else closeModal(id); }
 function openSideMenu() {
@@ -2888,6 +3018,8 @@ function bindProfileControls() {
       case 'refresh': refreshGames(); break;
       case 'install': installApp(); break;
       case 'about': openAboutModal(); break;
+      case 'gamepad': openGamepadConfig(); break;
+      case 'toggleCRT': toggleCRT(); break;
     }
   });
   document.getElementById('achStripBtn').addEventListener('click',openAchievements);
@@ -3118,7 +3250,7 @@ function addItem(id) { if (!SHOP_ITEMS.some(item => item.id === id)) return; con
 function getEquipped() {
   const raw = LS.get('arcade_equipped',{}), equipped = {}, owned = getInventory().items;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return equipped;
-  ['frame','nameColor','badge'].forEach(kind => { if (owned.includes(raw[kind]) && SHOP_ITEMS.some(item => item.id === raw[kind] && item.kind === kind)) equipped[kind] = raw[kind]; });
+  ['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme'].forEach(kind => { if (owned.includes(raw[kind]) && SHOP_ITEMS.some(item => item.id === raw[kind] && item.kind === kind)) equipped[kind] = raw[kind]; });
   return equipped;
 }
 function setEquipped(value) { LS.set('arcade_equipped',value); applyCosmetics(); }
@@ -3152,11 +3284,13 @@ function buyItem(value) {
 }
 function equipItem(value) {
   const item = SHOP_ITEMS.find(it => it.id === (typeof value === 'string' ? value : value && value.id));
-  if (!item || !hasItem(item.id) || !['frame','nameColor','badge'].includes(item.kind)) return false;
+  /* ★ دسته: انتخاب خریدها در پیکربندی */
+  if(item&&hasItem(item.id)&&item.cat==='gamepad'){gpCommit();const patch=item.kind==='gamepadSkin'?{skin:item.id.replace('gp-skin-','')}:item.kind==='gamepadLayout'?{layout:item.id.replace('gp-layout-','')}:item.kind==='gamepadHaptic'?{hapticPro:true}:{};setGamepadConfig(patch);closeModal('shopModal',false);openGamepadConfig();return true;}
+  if (!item || !hasItem(item.id) || !['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme'].includes(item.kind)) return false;
   const eq = getEquipped(); eq[item.kind] = item.id; setEquipped(eq); renderShop(); return true;
 }
 function unequip(kind) {
-  if (!['frame','nameColor','badge'].includes(kind)) return;
+  if (!['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme'].includes(kind)) return;
   const eq = getEquipped(); delete eq[kind]; setEquipped(eq); renderShop();
 }
 let currentShopCat = 'frames';
@@ -3179,12 +3313,15 @@ function renderShop() {
     else if (item.kind === 'nameColor') { preview = '<div class="sample-name ' + (item.color === 'rainbow' ? 'cosmetic-rainbow' : '') + '"' + (item.color === 'rainbow' ? '' : ' style="color:' + item.color + '"') + '>' + esc(profile.name) + '</div>'; desc = 'رنگ نام در پروفایل و کارت‌های اشتراک'; }
     else if (item.kind === 'badge') { preview = '<div class="sample-badge">' + item.icon + '</div>'; desc = 'یک بج کنار نامت'; }
     else if (item.kind === 'xpBoost') { preview = '<div class="sample-icon">⚡</div>'; desc = '۲۴ ساعت XP بیشتر؛ جایگزین تقویت قبلی می‌شود'; }
+    else if(item.cat==='gamepad'){preview='<div class="sample-icon">🎮</div>';desc='قابل انتخاب در تنظیمات دسته';}
+    else if(['cursorTrail','bgTheme','soundPack','borderTheme'].includes(item.kind)){preview='<div class="sample-icon">✨</div>';desc='جلوهٔ اختیاری هاب؛ قابل فعال و غیرفعال کردن';}
     else { preview = '<div class="sample-icon">🔒</div>'; desc = 'حفظ استریک بازی هنگام وقفه؛ مصرف خودکار یک قفل'; }
     if (!isOwned) actions = '<button class="shop-buy-btn" type="button" data-buy="' + item.id + '" aria-label="خرید ' + esc(item.name) + '؛ ' + faNum(item.price) + ' امتیاز"' + (!canAfford || economyBusy ? ' disabled' : '') + '>' + (canAfford ? '💰 خرید' : '💰 ' + faNum(item.price)) + '</button>';
     else if (['xpBoost','streakFreeze'].includes(item.kind)) actions = '<button class="shop-equip-btn on" type="button" disabled>✓ خریداری شده</button>';
     else if (isEquipped) actions = '<button class="shop-equip-btn on" type="button" data-unequip="' + item.kind + '" aria-label="غیرفعال کردن ' + esc(item.name) + '">✓ فعال · برداشتن</button>';
     else actions = '<button class="shop-equip-btn" type="button" data-equip="' + item.id + '">فعال کن</button>';
-    return '<div class="shop-item" data-shop-item="' + item.id + '"><div class="shop-item-preview" aria-hidden="true">' + preview + '</div><div class="shop-item-info"><div class="shop-item-name">' + esc(item.name) + '</div><div class="shop-item-desc">' + desc + '</div><div class="shop-item-price">💰 ' + faNum(item.price) + '</div></div><div class="shop-item-actions">' + actions + '</div></div>';
+    const rareIds = ['frame-gold','frame-diamond','name-rainbow','badge-diamond','badge-goat','xp-3']; const rare = rareIds.includes(item.id);
+    return '<div class="shop-item' + (rare ? ' rarity-rare' : '') + '" data-shop-item="' + item.id + '">' + (rare ? '<span class="rarity-label">💎 کمیاب</span>' : '') + '<div class="shop-item-preview" aria-hidden="true">' + preview + '</div><div class="shop-item-info"><div class="shop-item-name">' + esc(item.name) + '</div><div class="shop-item-desc">' + desc + '</div><div class="shop-item-price">💰 ' + faNum(item.price) + '</div></div><div class="shop-item-actions">' + actions + '</div></div>';
   }).join('');
   if (focused) {
     const selector = '[data-' + focused.action + '="' + focused.id + '"]', button = grid.querySelector(selector);
@@ -3317,6 +3454,8 @@ function getCosmetics() {
   return { frameColor: frame ? frame.color : null, nameColor: name ? name.color : null, badgeIcon: badge ? badge.icon : null, badgeName: badge ? badge.name : '' };
 }
 function applyCosmetics() {
+  /* ★ فروشگاه: جلوه‌های جدید */
+  gpApplyExtras();
   const c = getCosmetics();
   document.querySelectorAll('#pcAvatar,#smAvatar,#profileAvatar,[data-profile-summary] .pixel-avatar').forEach(el => {
     if (c.frameColor) {
@@ -3989,6 +4128,8 @@ function startFeatureClock() {
 }
 function stopFeatureClock() { if (featureClock !== null) clearInterval(featureClock); featureClock = null; }
 function bindArcadeFeatures() {
+  /* ★ فیکس باگ: CTA هرو */
+  document.getElementById('heroRandomBtn')?.addEventListener('click',launchRandom);
   document.getElementById('startTournamentBtn').addEventListener('click',openTournamentModal);
   document.getElementById('tournamentStartBtn').addEventListener('click',startSelectedTournament);
   document.getElementById('tournamentGamePicker').addEventListener('click',event => {
@@ -4048,7 +4189,9 @@ function flushHubToasts() {
   el.className = 'hub-toast lg-glass'; el.setAttribute('role','status');
   el.innerHTML = `<span class="ico">${esc(notice.icon || '✨')}</span><span>${esc(notice.text)}</span>`;
   hubToastElement = el; document.body.appendChild(el);
-  if (pendingLevelUp < 2) { if (notice.sound === 'long') levelUpJingle(); else if (notice.sound === 'short') jingle(); }
+  /* ★ فروشگاه: صدا هنگام نمایش، نه هنگام ورود به صف */
+  if(getEquipped().soundPack)gpSound();
+  else if (pendingLevelUp < 2) { if (notice.sound === 'long') levelUpJingle(); else if (notice.sound === 'short') jingle(); }
   hubToastHideTimer = setTimeout(() => { hubToastHideTimer = null; el.classList.add('hide'); },3500);
   hubToastRemoveTimer = setTimeout(() => {
     hubToastRemoveTimer = null; el.remove(); hubToastElement = null; hubToastQueue.shift(); persistHubToasts(); flushHubToasts();
@@ -4126,7 +4269,7 @@ async function checkGameFiles(opts) {
   filesChecked = false;
   const changed = [];
   const run = (async () => {
-    if (!silent) document.querySelectorAll('.card').forEach(card => card.classList.add('checking'));
+    if (!silent) { if (!document.querySelector('.card')) renderGrid(); document.querySelectorAll('.card').forEach(card => card.classList.add('skeleton')); }
     const existence = await probeGameFiles();
     GAMES.forEach((game,index) => {
       const previous = game.available, exists = existence[index];
@@ -4140,7 +4283,7 @@ async function checkGameFiles(opts) {
       else showToast(faNum(changed.length) + ' بازی جدید پیدا شد!','🎮');
       setTimeout(() => changed.forEach(game => newFoundGames.delete(game.id)),3000);
     }
-    document.querySelectorAll('.card.checking').forEach(card => card.classList.remove('checking'));
+    document.querySelectorAll('.card.skeleton').forEach(card => card.classList.remove('skeleton'));
     setTimeout(() => document.querySelectorAll('.card.new-found').forEach(card => card.classList.remove('new-found')),2000);
   })();
   checkPromise = run;
@@ -4160,12 +4303,12 @@ function cardHTML(g, index, gotdId){
   const dis = !g.available;
   const isAnim = newFoundGames.has(g.id);
   const delay = Math.min(index * 35, 700);
-  return `<div class="card ${dis?'soon':''} ${isAnim?'new-found':''} anim-in" data-id="${esc(g.id)}" style="animation-delay:${delay}ms">
+  return `<div class="card ${dis?'soon':''} ${isAnim?'new-found':''} anim-in" data-id="${esc(g.id)}" data-genre="${esc(g.genreTag||'all')}" style="animation-delay:${delay}ms">
     <div class="card-cover">
       ${COVERS[g.cover]?COVERS[g.cover]():''}
       ${isNew && !dis ? '<span class="new-badge">جدید</span>' : ''}
       ${!dis && gotdId === g.id?'<span class="x2-badge">×۲</span>':''}
-      ${dis?'<span class="soon-badge">به زودی</span>':''}
+      ${dis?'<span class="soon-badge">به زودی</span><small class="soon-note">🎬 در حال ساخت…</small><span class="soon-lock" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="15" opacity=".28"/><rect x="11" y="16" width="14" height="12" rx="2" fill="currentColor" opacity=".9"/><path d="M14 16v-4a4 4 0 0 1 8 0v4"/><rect x="17" y="20" width="2" height="5" fill="#1a1500" stroke="none"/></svg></span>':''}
       ${!dis && best>0?`<button class="share-mini" type="button" aria-label="اشتراک رکورد">↗</button>`:''}
       ${!dis?`<div class="card-hover-overlay"><div class="card-play-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>بازی کن</div></div>`:''}
     </div>
@@ -4174,7 +4317,7 @@ function cardHTML(g, index, gotdId){
       <div class="card-sub">${esc(g.sub)} · ${esc(g.year)}</div>
       <div class="card-meta">
         <span class="genre">${esc(g.genre)}</span>
-        <span class="best">${best>0?faNum(best):'—'}</span>
+        <span class="best">${best>0?'<span class="best-trophy">🏆</span>'+faNum(best):'—'}</span>
       </div>
       ${plays > 0 ? `<div class="plays-line">🎮 ${faNum(plays)} بار بازی</div><div class="card-ach">🎯 ${faNum(getGameAchievementCount(g.id))} باز</div>` : ''}
     </div>
@@ -4211,9 +4354,8 @@ function renderGrid() {
   const gs = getVisibleGames();
   const gotdId = getGameOfTheDay()?.id || null;
   if (!gs.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--text-secondary)">' +
-      '<p style="font-size:15px;font-weight:700;margin-bottom:6px">بازی‌ای پیدا نشد</p>' +
-      '<p style="font-size:12px;opacity:.7">فیلتر یا جستجو رو تغییر بده</p></div>';
+    grid.innerHTML = `<div class="empty-state"><svg class="empty-pixel" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true"><rect x="20" y="8" width="24" height="8"/><rect x="12" y="16" width="40" height="28"/><rect x="18" y="24" width="8" height="8" fill="#05070c"/><rect x="38" y="24" width="8" height="8" fill="#05070c"/><rect x="24" y="36" width="16" height="4" fill="#05070c"/><rect x="8" y="22" width="6" height="20"/><rect x="4" y="16" width="6" height="8"/><rect x="50" y="30" width="6" height="16"/><rect x="56" y="22" width="4" height="10"/></svg><strong>این بازی رو نداشتیم!</strong><p>ولی حتماً ببین چیا هست 👇</p><button class="gold-btn" type="button" id="emptySearchClear">پاک کردن جستجو</button></div>`;
+    document.getElementById('emptySearchClear')?.addEventListener('click',()=>document.getElementById('searchClear')?.click());
     return;
   }
   grid.innerHTML = gs.map((g, i) => cardHTML(g, i, gotdId)).join('');
@@ -4288,7 +4430,7 @@ async function launch(g, forceGotd, tournamentContext = null) {
     // هنگام لول‌آپ، «ادامه» بازی انتخاب‌شده را باز می‌کند؛ پاداش‌ها دوباره محاسبه نمی‌شوند.
     pendingNavigation = navigate; renderTournamentBanner(); flushLevelUp(); resumePendingNavigation();
   } catch(e) {
-    launchInProgress = false; pendingNavigation = null; renderTournamentBanner(); resetAttractTimer(); showToast('باز کردن بازی انجام نشد؛ دوباره تلاش کن.','⚠️');
+    launchInProgress = false; pendingNavigation = null; queueMicrotask(flushAchievementQueue); renderTournamentBanner(); resetAttractTimer(); showToast('باز کردن بازی انجام نشد؛ دوباره تلاش کن.','⚠️');
   }
 }
 
@@ -4322,14 +4464,18 @@ function achievements(){const value=LS.get('arcade_achievements',{});return valu
 let audioUnlocked=false;document.addEventListener('pointerdown',()=>{audioUnlocked=true},{once:true});document.addEventListener('keydown',()=>{audioUnlocked=true},{once:true});
 function soundEnabled(){try{return localStorage.getItem('arcade_sound')!=='0'}catch(e){return true}}
 function jingle(){if(!audioUnlocked||!soundEnabled())return;try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C();[523,659,784].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.05,ctx.currentTime+i*.09);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.09+.16);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.09);o.stop(ctx.currentTime+i*.09+.17)});scheduleAudioClose(ctx,700)}catch(e){}}
+/* ★ پولیش UI: صدای و مودال دستاورد */
+function jingleAch(){if(!audioUnlocked||!soundEnabled())return;try{const C=window.AudioContext||window.webkitAudioContext,ctx=new C(),start=ctx.currentTime;[659,880].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain(),t=start+i*.12;o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.13)});scheduleAudioClose(ctx,500)}catch(e){}}
+function showAchievementUnlock(a){if(!a||launchInProgress||pendingNavigation||document.hidden)return;document.getElementById('achievementUnlockIcon').textContent=a.icon||'🏆';document.getElementById('achievementUnlockName').textContent=a.name||'';document.getElementById('achievementUnlockDesc').textContent=a.desc||a.description||'';showModal('achievementUnlockModal');jingleAch()}
 function unlockAchievement(id) {
   const a = ACHIEVEMENTS.find(x => x.id === id), unlocked = achievements();
   if (!a || unlocked[id]) return false;
   unlocked[id] = Date.now(); LS.set('arcade_achievements',unlocked);
   showToast(a.icon + ' ' + a.name + '!','🏆');
-  jingle();
+  /* ★ فیکس باگ: XP پیش از صف تا اولویت لول‌آپ حفظ شود */
   try { if (audioUnlocked && navigator.vibrate) navigator.vibrate([60,35,90]); } catch(e) {}
   addXP(XP_REWARDS.achievement,'achievement');
+  queueAchievementUnlock(a);
   addPoints(POINTS_REWARDS.achievement,'دستاورد');
   updateAchievementUI(true);
   return true;
@@ -4618,17 +4764,19 @@ function initBoot() {
   if (safeSessionGet('arcade_booted') === '1') { boot.remove(); enableRewardFeedback(); return; }
   boot.hidden = false; boot.tabIndex = 0; boot.setAttribute('role','button'); boot.setAttribute('aria-label','شروع آرکید');
   syncOverlayState(); boot.focus({ preventScroll: true });
-  let progress = 0, ready = false, autoTimer;
+  let progress = 0, ready = false, autoTimer, slowBoot = false;
+  /* ★ پولیش UI: پیام کارتریج پس از دو ثانیه */
+  const cartridgeTimer = setTimeout(()=>{ if (!ready) { slowBoot=true; document.getElementById('bootStatus').textContent='در حال بارگذاری کارتریج…'; } },2000);
   const fill = document.getElementById('bootFill'), status = document.getElementById('bootStatus'), press = document.getElementById('pressStart');
   const markReady = () => { clearInterval(interval); progress = 100; fill.style.width = '100%'; status.textContent = 'READY'; press.classList.add('ready'); ready = true; };
   const interval = setInterval(() => {
-    progress = Math.min(100,progress + 4); fill.style.width = progress + '%'; status.textContent = 'LOADING... ' + progress + '%';
+    progress = Math.min(100,progress + 4); fill.style.width = progress + '%'; if(!slowBoot) status.textContent = 'LOADING... ' + progress + '%';
     if (progress >= 100) { markReady(); bootBeep(); }
   },60);
   const end = () => {
     if (boot.classList.contains('done')) return;
     if (!ready) { markReady(); return; }
-    clearInterval(interval); clearTimeout(autoTimer); document.removeEventListener('keydown',key,true);
+    clearInterval(interval); clearTimeout(autoTimer); clearTimeout(cartridgeTimer); document.removeEventListener('keydown',key,true);
     safeSessionSet('arcade_booted','1'); boot.classList.add('done');
     setTimeout(() => { boot.remove(); enableRewardFeedback(); },600);
   };
@@ -4674,7 +4822,7 @@ document.addEventListener('visibilitychange',() => {
 });
 window.addEventListener('pageshow',event => {
   if (!event.persisted) return;
-  launchInProgress = false; pendingNavigation = null;
+  launchInProgress = false; pendingNavigation = null; queueMicrotask(flushAchievementQueue);
   initVisualEffects(); startFeatureClock();
   reconcileReturn().then(() => { renderAll(); flushXPFeedback(); flushLevelUp(); flushHubToasts(); flushTournamentResult(); });
 });
@@ -4766,6 +4914,11 @@ function openAboutModal() {
 }
 function closeAboutModal() { closeModal('aboutModal'); }
 
+/* ★ پولیش UI: CRT اختیاری */
+function syncCRT(){const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,enabled=LS.get('arcade_crt_enabled',false)===true;document.body.classList.toggle('crt-mode',enabled&&!reduce);const badge=document.getElementById('crtStatus');if(badge)badge.textContent=enabled?(reduce?'غیرفعال (سیستم)':'روشن'):'خاموش'}
+/* ★ فیکس باگ: سازگاری CRT با تنظیمات سیستم */
+function toggleCRT(){if(matchMedia('(prefers-reduced-motion: reduce)').matches){showToast('به دلیل تنظیمات مرورگر، افکت CRT غیرفعال است','♿');return}const next=!(LS.get('arcade_crt_enabled',false)===true);LS.set('arcade_crt_enabled',next);syncCRT();showToast(next?'افکت CRT روشن شد':'افکت CRT خاموش شد','📺')}
+
 /* ============================================================
    نوار ناوبری پایین: setActiveTab + کلیک‌ها
    ============================================================ */
@@ -4773,11 +4926,16 @@ const bottomNav = document.getElementById('bottomNav');
 const navItems = bottomNav.querySelectorAll('.nav-item');
 
 function setActiveTab(tab) {
+  const previous = bottomNav.querySelector('.nav-item.active')?.dataset.tab;
   navItems.forEach(b => {
     const isActive = b.dataset.tab === tab;
     b.classList.toggle('active', isActive);
     b.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
+  /* ★ پولیش UI: نشانگر لغزندهٔ Bottom Nav */
+  const inner=bottomNav.querySelector('.bottom-nav-inner'),indicator=bottomNav.querySelector('.nav-indicator'),active=bottomNav.querySelector('.nav-item.active');
+  if(inner&&indicator&&active){const ir=inner.getBoundingClientRect(),ar=active.getBoundingClientRect();indicator.style.opacity='1';indicator.style.width=ar.width+'px';indicator.style.transform='translateX('+(ar.left-ir.left)+'px)';}
+  if(previous && previous!==tab && matchMedia('(pointer: coarse)').matches){try{navigator.vibrate?.([5])}catch(e){}}
 }
 
 navItems.forEach(btn => {
@@ -4848,6 +5006,45 @@ document.addEventListener('keydown',event => {
 
 /* اتصال یک‌بارهٔ کنترل‌ها؛ هیچ ارجاعی به دکمه‌های حذف‌شدهٔ هدر باقی نمانده است. */
 bindProfileControls();
+/* ★ دستهٔ بازی: تنظیمات مستقل؛ بدون تغییر اقتصاد */
+function getGamepadConfig(){return ArcadeGamepad.get();}
+function setGamepadConfig(config){return ArcadeGamepad.set(config);}
+let gpSaveTimer=0,gpDraft=null;
+const gpHost=document.getElementById('gpHubContent');
+function gpSave(patch){gpDraft=ArcadeGamepad.sanitize({...gpDraft,...patch,mappings:{...gpDraft.mappings,...patch.mappings}});clearTimeout(gpSaveTimer);gpSaveTimer=setTimeout(()=>{setGamepadConfig(gpDraft);gpSaveTimer=0},300);gpPreview();}
+function gpCommit(){if(gpSaveTimer){clearTimeout(gpSaveTimer);setGamepadConfig(gpDraft);gpSaveTimer=0}}
+function gpPreview(){const p=document.getElementById('gpPreview');if(p&&gpDraft){p.innerHTML=ArcadeGamepad.markup(gpDraft);p.style.opacity=gpDraft.opacity;p.firstElementChild.style.transform='scale('+Math.min(.8,gpDraft.size*.65)+')';}}
+function gpShop(){gpCommit();closeModal('gamepadConfigModal',false);currentShopCat='gamepad';openShop();}
+function openGamepadConfig(){gpCommit();gpDraft=getGamepadConfig();renderGamepadConfig();showModal('gamepadConfigModal');}
+function renderGamepadConfig(){
+ const c=gpDraft;
+ const choices=(values,field,kind)=>values.map(([id,name])=>{const locked=kind&&((field==='skin'&&!['retro','minimal'].includes(id))||(field==='layout'&&['minimal','extended'].includes(id)))&&!hasItem('gp-'+kind+'-'+id);const price=SHOP_ITEMS.find(i=>i.id==='gp-'+kind+'-'+id)?.price;return '<button type="button" data-gp-field="'+field+'" data-gp-value="'+id+'" '+(locked?'data-gp-locked ':'')+'aria-pressed="'+(c[field]===id)+'">'+name+(locked?' 🔒 '+faNum(price):'')+'</button>'}).join('');
+ const keys=[' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter','Escape','Shift','Control','Alt','Tab','Backspace',...'abcdefghijklmnopqrstuvwxyz0123456789'.split(''),...Array.from({length:12},(_,i)=>'F'+(i+1))];
+ const select=(id,value,physical=false)=>'<label>'+esc(id)+'<select '+(physical?'data-gp-physical':'data-gp-map')+'="'+id+'">'+[...new Set([...keys,value])].map(k=>'<option value="'+esc(k)+'" '+(k===value?'selected':'')+'>'+esc(k===' '?'Space':k)+'</option>').join('')+'</select></label>';
+ gpHost.innerHTML='<label>فعال‌سازی دسته <input id="gpEnabled" type="checkbox" '+(c.enabled?'checked':'')+'></label><div id="gpPreview" class="gp-preview" aria-hidden="true"></div><h3>چیدمان</h3><div class="gp-options">'+choices([['basic','ساده'],['classic','کلاسیک'],['minimal','مینیمال'],['extended','کامل']],'layout','layout')+'</div><h3>اسکین</h3><div class="gp-options">'+choices([['retro','رترو — رایگان'],['minimal','مینیمال — رایگان'],['neon','نئون'],['gold','طلایی'],['diamond','الماسی']],'skin','skin')+'</div><label>اندازه <output id="gpSizeValue">'+Math.round(c.size*100)+'%</output><input id="gpSize" aria-label="اندازه" type="range" min="60" max="140" value="'+c.size*100+'"></label><label>شفافیت <output id="gpOpacityValue">'+Math.round(c.opacity*100)+'%</output><input id="gpOpacity" aria-label="شفافیت" type="range" min="30" max="100" value="'+c.opacity*100+'"></label><h3>نگاشت دکمه‌های مجازی</h3><div class="gp-remaps">'+Object.entries(c.mappings).map(([id,key])=>select(id,key)).join('')+'</div><label>لرزش <input id="gpHaptic" type="checkbox" '+(c.haptic?'checked':'')+'></label><h3>دستهٔ فیزیکی</h3><p id="gpPhysicalStatus" role="status"></p><p class="gp-note">شماره‌های استاندارد Gamepad API؛ آنالوگ با آستانهٔ ۳۵٪ به جهت‌ها تبدیل می‌شود. ورودی دلخواه را می‌توانید با فشردن کلید کیبورد روی فهرست انتخاب ثبت کنید.</p><div class="gp-remaps">'+Array.from({length:17},(_,i)=>select('button'+i,c.physicalMappings['button'+i]??c.mappings[({0:'buttonA',1:'buttonB',2:'buttonX',3:'buttonY',4:'buttonL',5:'buttonR',8:'select',9:'start',12:'dpadUp',13:'dpadDown',14:'dpadLeft',15:'dpadRight'})[i]]??' ',true)).join('')+[0,1,2,3].flatMap(i=>['-','+'].map(sign=>select('axis'+i+sign,c.physicalMappings['axis'+i+sign]??(i%2?(sign==='-'?'ArrowUp':'ArrowDown'):(sign==='-'?'ArrowLeft':'ArrowRight')),true))).join('')+'</div><h3>امکانات خریدنی</h3>'+(hasItem('gp-color-custom')?'<label>رنگ سفارشی <input id="gpColor" aria-label="رنگ سفارشی" type="color" value="'+(c.color||'#f5c518')+'"></label>':'<button data-gp-shop>🔒 رنگ سفارشی · ۲۰۰۰</button>')+(hasItem('gp-haptic-pro')?'<label>لرزش حرفه‌ای <input id="gpHapticPro" type="checkbox" '+(c.hapticPro?'checked':'')+'></label>':'<button data-gp-shop>🔒 لرزش حرفه‌ای · ۱۰۰۰</button>')+(hasItem('gp-profile-extra')?'<div class="gp-options"><button data-gp-profile-save>ذخیرهٔ پروفایل اضافی</button><button data-gp-profile-load '+(!c.profiles.length?'disabled':'')+'>بازیابی پروفایل اضافی</button></div>':'<button data-gp-shop>🔒 پروفایل اضافی · ۱۵۰۰</button>')+'<p><button id="gpReset">بازنشانی به پیش‌فرض</button></p><p class="gp-note">برای اعمال در بازی، صفحهٔ بازی را رفرش کن. اگر دستهٔ فیزیکی وصل باشد، اولویت با آن است. فایل‌های مشترک را کنار فایل بازی قرار بده و این خط را پیش از پایان body اضافه کن:</p><code>&lt;script src="arcade-gamepad.js"&gt;&lt;/script&gt;</code><button id="gpCopy">کپی کد اسکریپت</button>';
+ gpPreview();gpUpdatePhysical();
+ gpHost.querySelectorAll('[data-gp-field]').forEach(b=>b.onclick=()=>{if(b.hasAttribute('data-gp-locked'))return gpShop();gpSave({[b.dataset.gpField]:b.dataset.gpValue});renderGamepadConfig()});
+ gpHost.querySelectorAll('[data-gp-shop]').forEach(b=>b.onclick=gpShop);
+ for(const [id,field]of [['gpEnabled','enabled'],['gpHaptic','haptic'],['gpHapticPro','hapticPro']]){const el=document.getElementById(id);if(el)el.onchange=()=>gpSave({[field]:el.checked})}
+ for(const [id,field]of [['gpSize','size'],['gpOpacity','opacity']])document.getElementById(id).oninput=e=>{document.getElementById(id+'Value').textContent=e.target.value+'%';gpSave({[field]:Number(e.target.value)/100})};
+ const color=document.getElementById('gpColor');if(color)color.oninput=()=>gpSave({color:color.value});
+ gpHost.querySelectorAll('[data-gp-map],[data-gp-physical]').forEach(el=>{el.onchange=()=>{if(el.dataset.gpMap)gpSave({mappings:{[el.dataset.gpMap]:el.value}});else gpSave({physicalMappings:{...gpDraft.physicalMappings,[el.dataset.gpPhysical]:el.value}})};el.onkeydown=e=>{if(['Tab','Escape','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();e.stopPropagation();if(![...el.options].some(o=>o.value===e.key))el.add(new Option(e.key,e.key));el.value=e.key;el.onchange()}});
+ document.getElementById('gpReset').onclick=()=>{gpDraft=setGamepadConfig({...ArcadeGamepad.defaults,physicalMappings:{},profiles:[],color:null});clearTimeout(gpSaveTimer);gpSaveTimer=0;renderGamepadConfig()};
+ document.getElementById('gpCopy').onclick=async()=>{try{await navigator.clipboard.writeText('<script src="arcade-gamepad.js"><'+'/script>');showToast('کد اسکریپت کپی شد','📋')}catch(_){showToast('کپی خودکار ممکن نیست؛ کد بالا را انتخاب و کپی کن','📋')}};
+ const save=gpHost.querySelector('[data-gp-profile-save]'),load=gpHost.querySelector('[data-gp-profile-load]');if(save)save.onclick=()=>{gpSave({profiles:[{mappings:gpDraft.mappings,physicalMappings:gpDraft.physicalMappings}]});renderGamepadConfig()};if(load)load.onclick=()=>{gpSave(gpDraft.profiles[0]);renderGamepadConfig()};
+}
+function gpUpdatePhysical(){const p=ArcadeGamepad.pads()[0],el=document.getElementById('gpPhysicalStatus');if(el)el.textContent=p?'وصل شده: '+p.id:'وصل نیست — برای شناسایی، یکی از دکمه‌های دسته را فشار بده';const badge=document.getElementById('gpHeaderBadge');badge.hidden=!p;badge.textContent=p?'🎮 دسته متصل':'';}
+window.addEventListener('gamepadconnected',gpUpdatePhysical);window.addEventListener('gamepaddisconnected',()=>requestAnimationFrame(gpUpdatePhysical));window.addEventListener('pagehide',gpCommit);gpUpdatePhysical();
+/* ★ جلوه‌های فروشگاه: کاهش حرکت و ورودی درشت رعایت می‌شود */
+let gpTrailCanvas=null,gpTrailRAF=0,gpParticles=[],gpAudio=null;
+function gpSound(){const id=getEquipped().soundPack;if(!id)return;try{gpAudio=gpAudio||new (window.AudioContext||window.webkitAudioContext)();if(gpAudio.state==='suspended')gpAudio.resume().catch(()=>{});const o=gpAudio.createOscillator(),g=gpAudio.createGain(),t=gpAudio.currentTime;o.type=id==='sound-pack-retro'?'square':'triangle';o.frequency.setValueAtTime(id==='sound-pack-retro'?440:660,t);o.frequency.exponentialRampToValueAtTime(220,t+.07);g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);o.connect(g);g.connect(gpAudio.destination);o.start();o.stop(t+.09)}catch(_){}}
+document.addEventListener('click',e=>{if(e.target.closest('button'))gpSound()});
+function gpApplyExtras(){const eq=getEquipped();document.body.classList.toggle('bg-neon',eq.bgTheme==='bg-theme-neon');document.body.classList.toggle('bg-matrix',eq.bgTheme==='bg-theme-matrix');document.querySelectorAll('.games-section,.gameOfDay,#gameOfDay,.games').forEach(el=>{el.classList.toggle('gp-border-gold',eq.borderTheme==='border-theme-gold');el.classList.toggle('gp-border-neon',eq.borderTheme==='border-theme-neon')});const trail=!!eq.cursorTrail&&!matchMedia('(prefers-reduced-motion:reduce)').matches&&matchMedia('(pointer:fine)').matches;if(trail&&!gpTrailCanvas){gpTrailCanvas=document.createElement('canvas');gpTrailCanvas.className='gp-trail';gpTrailCanvas.setAttribute('aria-hidden','true');document.body.append(gpTrailCanvas);gpTrailResize()}if(!trail&&gpTrailCanvas){cancelAnimationFrame(gpTrailRAF);gpTrailRAF=0;gpParticles=[];gpTrailCanvas.remove();gpTrailCanvas=null}}
+function gpTrailResize(){if(gpTrailCanvas){gpTrailCanvas.width=innerWidth;gpTrailCanvas.height=innerHeight}}
+window.addEventListener('resize',gpTrailResize,{passive:true});document.addEventListener('pointermove',e=>{if(!gpTrailCanvas||e.pointerType==='touch')return;gpParticles.push({x:e.clientX,y:e.clientY,life:1});if(gpParticles.length>45)gpParticles.shift();if(!gpTrailRAF)gpTrailRAF=requestAnimationFrame(gpDrawTrail)},{passive:true});
+function gpDrawTrail(){gpTrailRAF=0;if(!gpTrailCanvas)return;const ctx=gpTrailCanvas.getContext('2d');ctx.clearRect(0,0,gpTrailCanvas.width,gpTrailCanvas.height);gpParticles=gpParticles.filter(p=>p.life>0);for(const p of gpParticles){p.life-=.055;ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle='#f5c518';ctx.fillRect(p.x,p.y,3,3)}if(gpParticles.length)gpTrailRAF=requestAnimationFrame(gpDrawTrail)}
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>{syncCRT();gpApplyExtras()});
+
 bindArcadeFeatures();
 bindEconomyControls();
 
@@ -4861,6 +5058,8 @@ const DEV_IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 
 /* لیست کامل کلیدهای ثابت arcade_* در هاب */
 const ARCADE_KNOWN_STATIC_KEYS = [
+  /* ★ دسته: کلید مستقل در بکاپ */
+  'arcade_gamepad_config',
   'arcade_profile',
   'arcade_points',
   'arcade_points_history',
@@ -5806,6 +6005,9 @@ bindDevPanel();
    ============================================================ */
 saveProfile(getProfile());
 updateProfileUI(); updateHeaderProfile();
+/* ★ پولیش UI: بازیابی CRT و موقعیت indicator */
+syncCRT(); requestAnimationFrame(()=>setActiveTab(document.querySelector('.nav-item.active')?.dataset.tab||'home'));
+window.addEventListener('resize',()=>setActiveTab(document.querySelector('.nav-item.active')?.dataset.tab||'home'),{passive:true});
 initBoot();
 checkSecretAvatars(); recoverTournament();
 smartShareBanner();
