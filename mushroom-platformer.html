@@ -911,13 +911,14 @@ main {
   ];
   const ENEMY_DEF = {
     shroom: { w: 30, h: 30, score: 50 }, turtle: { w: 36, h: 28, score: 80 },
-    bee: { w: 30, h: 26, score: 100 }, ball: { w: 30, h: 30, score: 150 }
+    bee: { w: 30, h: 26, score: 100 }, ball: { w: 30, h: 30, score: 150 },
+    slime: { w: 34, h: 24, score: 120 }, bat: { w: 34, h: 24, score: 130 }
   };
   const ENEMY_LISTS = [
-    ['shroom', 'shroom', 'shroom', 'turtle', 'ball', 'bee'],
-    ['shroom', 'ball', 'bee', 'shroom', 'turtle', 'ball'],
-    ['turtle', 'bee', 'turtle', 'shroom', 'bee', 'turtle'],
-    ['shroom', 'ball', 'turtle', 'bee', 'ball', 'bee']
+    ['shroom', 'shroom', 'slime', 'turtle', 'ball', 'bee', 'bat'],
+    ['shroom', 'ball', 'bat', 'slime', 'bee', 'turtle', 'ball'],
+    ['turtle', 'bee', 'bat', 'slime', 'shroom', 'bee', 'turtle'],
+    ['shroom', 'ball', 'slime', 'turtle', 'bat', 'bee', 'ball', 'bee']
   ];
   const POWER_TYPES = ['mushroom', 'star', 'feather', 'clock'];
   const POWER_NAMES = { mushroom: 'قارچ غول‌پیکر!', star: 'نامیرایی!', feather: 'پرش سه‌گانه!', clock: 'زمان آهسته!' };
@@ -989,7 +990,7 @@ main {
     wl.camX = 0; wl.camLock = null; wl.minX = 0; wl.maxX = 1e9;
     wl.goal = null; wl.cpFlag = null; wl.cp = { x: 80, y: GY, set: false };
     const b = wl.boss;
-    b.active = false; b.done = false; b.dying = 0; b.hp = 9; b.maxHp = 9; b.phase = 1; b.inv = 0; b.hit = 0; b.t = 0;
+    b.active = false; b.done = false; b.dying = 0; b.hp = 6; b.maxHp = 6; b.phase = 1; b.inv = 0; b.hit = 0; b.t = 0;
     wl.zones.push([0, 540]);
     if (!wl.endless) {
       const cpx = Math.floor(wl.len / 2);
@@ -1058,6 +1059,8 @@ main {
             if (type === 'shroom') addSpawn({ kind: 'shroom', x: ex, y: y - 30, x0: Math.max(x + 16, ex - 90), x1: Math.min(x + w - 46, ex + 90) });
             else if (type === 'turtle') addSpawn({ kind: 'turtle', x: ex, y: y - rf(70, 130), x0: ex - 110, x1: ex + 110 });
             else if (type === 'bee') addSpawn({ kind: 'bee', x: ex, y: y - rf(150, 210), x0: ex, x1: ex });
+            else if (type === 'slime') addSpawn({ kind: 'slime', x: ex, y: y - 24, x0: Math.max(x + 16, ex - 105), x1: Math.min(x + w - 50, ex + 105) });
+            else if (type === 'bat') addSpawn({ kind: 'bat', x: ex, y: y - rf(135, 195), x0: Math.max(x + 20, ex - 120), x1: Math.min(x + w - 54, ex + 120) });
             else addSpawn({ kind: 'ball', x: x + w - 50, y: y - 30, x0: 0, x1: 0 });
           } else if (roll < hazard + 0.18) {
             const py = y - rf(90, 120);
@@ -1429,6 +1432,24 @@ main {
           if (e.x < e.x0) e.dir = 1; else if (e.x > e.x1) e.dir = -1;
           e.y = e.by + Math.sin(e.t * 0.06) * 16;
           break;
+        case 'slime':
+          e.cd -= ts;
+          if (e.st === 0) {
+            e.x += e.dir * 0.75 * dm * ts;
+            if (e.x < e.x0) { e.x = e.x0; e.dir = 1; } else if (e.x > e.x1) { e.x = e.x1; e.dir = -1; }
+            if (e.cd <= 0) { e.st = 1; e.vy = -6.6; e.cd = 85 + Math.random() * 45; }
+          } else {
+            e.vy += 0.34 * ts; e.y += e.vy * ts; e.x += e.dir * 1.45 * dm * ts;
+            if (e.y >= e.by) { e.y = e.by; e.vy = 0; e.st = 0; }
+          }
+          break;
+        case 'bat': {
+          const span = Math.max(30, (e.x1 - e.x0) / 2), mid = (e.x0 + e.x1) / 2;
+          e.x = mid + Math.sin(e.t * 0.045) * span;
+          e.y = e.by + Math.sin(e.t * 0.09) * 28;
+          e.dir = Math.cos(e.t * 0.045) >= 0 ? 1 : -1;
+          break;
+        }
         case 'bee':
           if (e.st === 0) {
             e.x = e.x0 + Math.sin(e.t * 0.05) * 30; e.y = e.by + Math.sin(e.t * 0.1) * 8; e.cd -= ts;
@@ -1545,7 +1566,7 @@ main {
   }
   function startBoss(wl) {
     const b = wl.boss;
-    b.active = true; b.done = false; b.hp = 9; b.maxHp = 9; b.phase = 1; b.t = 0; b.inv = 0; b.dying = 0; b.hit = 0;
+    b.active = true; b.done = false; b.hp = 6; b.maxHp = 6; b.phase = 1; b.t = 0; b.inv = 0; b.dying = 0; b.hit = 0;
     b.x = b.cx; b.y = -340; b.vy = 0; b.onG = false; b.cd = 120; b.jumpCd = 150;
     wl.camLock = { x: wl.len }; wl.minX = wl.len; wl.maxX = wl.len + VW;
     wl.state = 'BOSS'; wl.bossHurt = false;
@@ -1588,7 +1609,7 @@ main {
       if (b.dying <= 0) { b.active = false; b.done = true; victoryBoss(wl); }
       return;
     }
-    const ph = b.hp >= 6 ? 1 : b.hp >= 3 ? 2 : 3;
+    const ph = b.hp >= 5 ? 1 : b.hp >= 3 ? 2 : 3;
     if (ph !== b.phase) {
       b.phase = ph; shake(wl, 8, 20); Snd.bossHit();
       floatText(wl, b.x, b.y - 10, ph === 2 ? 'فاز ۲: جهش!' : 'فاز ۳: خشم!', ph === 2 ? '#ffb347' : '#ff5252', 20);
@@ -1627,7 +1648,7 @@ main {
         b.cd--;
         if (b.cd <= 0) { b.cd = 55; shootSpore(wl, b.x, b.y + 20, aimVx(b, p.x + p.w / 2, b.y + 20, -9), -9); Snd.shoot(); }
       }
-      b.x = clamp(b.x, 200, 600) + (b.cx - 400) - 0;
+      /* مختصات باس جهانی است؛ محدودسازی مستقیم نسبت به مرکز آرنا از گیرکردن باس در سمت راست جلوگیری می‌کند. */
       b.x = clamp(b.x, b.cx - 200, b.cx + 200);
     }
 
@@ -1638,7 +1659,7 @@ main {
       const surf = b.y + 156 - 156 * Math.sqrt(Math.max(0, 1 - dx * dx));
       if (p.vy > 0 && (p.y + p.h - p.vy) <= surf + 14) {
         if (b.inv <= 0) {
-          b.hp--; b.inv = 75; b.hit = 14; wl.score += 300;
+          b.hp--; b.inv = 48; b.hit = 14; wl.score += 300;
           Snd.bossHit(); shake(wl, 6, 14); vibrate(40);
           burst(wl, p.x + p.w / 2, p.y + p.h, 14, ['#fff', '#ffd54a', '#ff8a65'], 5);
           if (b.hp <= 0) startBossDeath(wl);
@@ -2133,6 +2154,26 @@ main {
         c.fillStyle = '#222'; c.fillRect(-4, -7, 3, 16); c.fillRect(3, -7, 3, 16);
         c.beginPath(); c.moveTo(-13, 1); c.lineTo(-18, 3); c.lineTo(-13, 5); c.fill();
         c.fillStyle = '#fff'; c.beginPath(); c.arc(8, -1, 3, 0, TAU); c.fill(); c.fillStyle = '#c00'; c.beginPath(); c.arc(9, -1, 1.5, 0, TAU); c.fill();
+        break;
+      }
+      case 'slime': {
+        const bob = e.st === 1 ? Math.min(1.18, 1 + Math.abs(e.vy) * 0.025) : 1;
+        c.scale(1 / bob, bob);
+        c.fillStyle = '#38d66b'; c.shadowBlur = 8; c.shadowColor = '#38d66b';
+        c.beginPath(); c.ellipse(0, 4, 16, 11, 0, 0, TAU); c.fill(); c.shadowBlur = 0;
+        c.fillStyle = '#72f59b'; c.beginPath(); c.ellipse(-5, 0, 7, 5, -0.2, 0, TAU); c.fill();
+        c.fillStyle = '#fff'; c.beginPath(); c.arc(-5, 3, 3, 0, TAU); c.arc(6, 3, 3, 0, TAU); c.fill();
+        c.fillStyle = '#16251a'; c.beginPath(); c.arc(-4 + e.dir, 3, 1.4, 0, TAU); c.arc(7 + e.dir, 3, 1.4, 0, TAU); c.fill();
+        break;
+      }
+      case 'bat': {
+        c.scale(e.dir > 0 ? 1 : -1, 1);
+        const flap = Math.sin(e.t * 0.7) * 5;
+        c.fillStyle = '#7554d8';
+        c.beginPath(); c.moveTo(-4, 0); c.quadraticCurveTo(-15, -11 - flap, -18, 2); c.quadraticCurveTo(-11, -2, -5, 7); c.fill();
+        c.beginPath(); c.moveTo(4, 0); c.quadraticCurveTo(15, -11 - flap, 18, 2); c.quadraticCurveTo(11, -2, 5, 7); c.fill();
+        c.fillStyle = '#4d35a8'; c.beginPath(); c.ellipse(0, 2, 8, 10, 0, 0, TAU); c.fill();
+        c.fillStyle = '#ffeb3b'; c.beginPath(); c.arc(-3, 0, 1.8, 0, TAU); c.arc(3, 0, 1.8, 0, TAU); c.fill();
         break;
       }
       case 'ball': {
