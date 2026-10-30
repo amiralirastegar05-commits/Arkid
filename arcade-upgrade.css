@@ -22,3 +22,48 @@
 .au-clock{direction:ltr;unicode-bidi:isolate;display:inline-block}
 /* ★ ارتفاع هدف لمسی هدر، با حفظ عرض فشردهٔ فروشگاه */
 @media(pointer:coarse){header .points-pill,header .header-btn,header .profile-chip{min-height:44px}}
+
+/* ★ پولیش: آیکون‌های SVG یکپارچه به‌جای ایموجی */
+.ic{width:1.15em;height:1.15em;flex:none;display:inline-block;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.ic-fill{fill:currentColor}
+.ic-fill[data-ic=sparkle]{stroke-width:1.5}
+button>.ic+span,button>span+.ic{margin-inline-start:0}
+.points-icon,.eb-icon,.sample-icon,.levelup-icon,.achievement-unlock-icon,.ico,.sm-item>span[aria-hidden]{display:inline-grid;place-items:center;line-height:1}
+.points-icon .ic,.ico .ic{width:1.15em;height:1.15em}
+.sample-icon .ic,.levelup-icon .ic,.achievement-unlock-icon .ic{width:1em;height:1em;stroke-width:1.6}
+.sm-item>span[aria-hidden] .ic{width:20px;height:20px}
+.about-close .ic,.dev-close .ic{width:16px;height:16px;vertical-align:middle}
+.tick .ic,.ach-check .ic,.avatar-tick .ic{width:1em;height:1em;stroke-width:3}
+.au-loot-card .ic{width:1em;height:1em;stroke-width:1.5}
+.gold-btn .ic,.au-button .ic,.hero-cta .ic,.shop-buy-btn .ic,.shop-equip-btn .ic{width:1.1em;height:1.1em;margin-inline-end:.35em;vertical-align:-.2em}
+.au-star .ic{width:20px;height:20px}
+.au-theme .ic{width:20px;height:20px;stroke-width:2.2}
+.au-fab .ic{width:22px;height:22px}
+.modal-title .ic,.about-card h2 .ic,.about-card h3 .ic,.quests-head .ic{color:var(--gold);margin-inline-end:.3em;vertical-align:-.18em}
+.toast .ico .ic,.au-record strong .ic{color:var(--gold)}
+.rarity-label .ic{width:1em;height:1em}
+
+/* ★ پولیش: برگهٔ ذخیرهٔ جایگزین برای مرورگرهای داخلی (ایتا، تلگرام و …) */
+.ap-sheet{z-index:9000}
+.ap-card{text-align:center}
+.ap-card h2{display:flex;align-items:center;justify-content:center;gap:8px;font-size:18px}
+.ap-note{display:flex;gap:8px;align-items:flex-start;text-align:right;font-size:12.5px;line-height:1.9;color:var(--text-secondary);background:var(--bg-2);border:1px solid var(--border-normal);padding:10px 12px;border-radius:12px;margin:12px 0}
+.ap-note .ic{margin-top:4px;color:var(--gold)}
+.ap-img{display:block;width:100%;max-height:48dvh;object-fit:contain;border-radius:14px;border:1px solid var(--border-normal);background:var(--bg-0);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;pointer-events:auto}
+.ap-text{width:100%;min-height:150px;max-height:36dvh;resize:vertical;font:12px/1.6 ui-monospace,Menlo,monospace;background:var(--bg-0);color:var(--text-primary);border:1px solid var(--border-normal);border-radius:12px;padding:10px;-webkit-user-select:text;user-select:text}
+.ap-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:14px 0 6px}
+.ap-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.ap-btn:first-child{background:linear-gradient(130deg,var(--gold-light),var(--gold-dark))!important;color:var(--text-inverse)!important;border-color:transparent!important;font-weight:700!important}
+.ap-steps{text-align:right;margin:10px 0 0;padding-inline-start:20px;font-size:12px;line-height:2;color:var(--text-secondary)}
+.ap-alt{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;min-height:44px;padding:8px;background:none;border:0;color:var(--text-secondary);font:500 12px 'Ali_Grapph';cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.ap-alt:hover{color:var(--gold)}
+.ap-alt .ic{width:15px;height:15px}
+
+/* ★ پولیش: چیدمان دکمه‌های بالای فروشگاه و عنوان پین‌شده‌ها */
+#shopModal [data-au=inventory],#shopModal [data-au=wallet].au-full,#shopModal [data-au=spin]{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:8px 0 0}
+.au-pins h2{display:flex;align-items:center;gap:8px;font-size:20px}
+.au-pins h2 .ic{width:20px;height:20px;color:var(--gold)}
+.au-button,.au-modal button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.ap-card h2{margin:4px 0 16px;min-height:44px}
+.ap-note{margin-top:4px}
+#shopModal [data-au=inventory]+*{margin-top:10px}

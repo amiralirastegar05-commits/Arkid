@@ -1,8 +1,8 @@
 /* ★ PWA: نسخهٔ مستقل؛ فایل‌های مفقود مانع نصب نمی‌شوند */
-const CACHE_VERSION='arcade-2026-10-v2';
+const CACHE_VERSION='arcade-2026-10-v3';
 const CORE=CACHE_VERSION+'-core',BANNERS=CACHE_VERSION+'-banners';
 const ROOT=new URL('./',self.location.href);
-const CORE_URLS=['./','index.html','arcade-gamepad.js','arcade-gamepad.css','arcade-upgrade.css','manifest.webmanifest','arcade-icon-192.png','arcade-icon-512.png','Ali_Grapph_medium.woff2','Ali_Grapph_bold.woff2'];
+const CORE_URLS=['./','index.html','arcade-gamepad.js','arcade-gamepad.css','arcade-upgrade.css','arcade-polish.js','manifest.webmanifest','arcade-icon-192.png','arcade-icon-512.png','Ali_Grapph_medium.woff2','Ali_Grapph_bold.woff2'];
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CORE);await Promise.allSettled(CORE_URLS.map(async path=>{const response=await fetch(new URL(path,ROOT),{cache:'reload'});if(response.ok)await cache.put(new URL(path,ROOT),response)}));self.skipWaiting()})())});
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await Promise.all((await caches.keys()).filter(k=>k.startsWith('arcade-')&&!k.startsWith(CACHE_VERSION)).map(k=>caches.delete(k)));await self.clients.claim()})()));
 self.addEventListener('message',event=>{if(event.data?.type!=='ARCADE_CACHE'||!Array.isArray(event.data.urls))return;event.waitUntil((async()=>{const cache=await caches.open(CORE);await Promise.allSettled(event.data.urls.slice(0,100).map(async path=>{const url=new URL(path,ROOT);if(url.origin!==ROOT.origin)return;const response=await fetch(url);if(response.ok)await cache.put(url,response)}))})())});
