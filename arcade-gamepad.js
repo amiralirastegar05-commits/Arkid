@@ -4,6 +4,13 @@
 if (window.ArcadeGamepad) return;
 const script = document.currentScript, hub = script?.hasAttribute('data-hub');
 const css = document.createElement('link'); css.rel='stylesheet'; css.href=new URL('arcade-gamepad.css',script?.src || location.href).href; document.head.append(css);
+/* ★ پل ذخیره‌سازی: هاب از LS خودش استفاده می‌کند؛ بازی مستقل fallback امن دارد */
+let gpStorageAdapter=null;
+const localStorage={
+ getItem(key){if(gpStorageAdapter){const value=gpStorageAdapter.get(key,null);return value==null?null:JSON.stringify(value)}try{return window.localStorage.getItem(key)}catch(_){return null}},
+ setItem(key,value){if(gpStorageAdapter){let parsed;try{parsed=JSON.parse(value)}catch(_){return}gpStorageAdapter.set(key,parsed);return}try{window.localStorage.setItem(key,value)}catch(_){}},
+ removeItem(key){if(gpStorageAdapter)return gpStorageAdapter.remove(key);try{window.localStorage.removeItem(key)}catch(_){}}
+};
 const KEY='arcade_gamepad_config';
 const defaults={enabled:true,layout:'classic',skin:'retro',size:1,opacity:.85,position:{x:null,y:null},mappings:{dpadUp:'ArrowUp',dpadDown:'ArrowDown',dpadLeft:'ArrowLeft',dpadRight:'ArrowRight',buttonA:' ',buttonB:'Shift',buttonX:'z',buttonY:'x',start:'Enter',select:'Escape',buttonL:'q',buttonR:'e'},haptic:true,physicalMappings:{}};
 function read(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback}catch(_){return fallback}}
@@ -33,6 +40,8 @@ const labels={dpadUp:'↑',dpadDown:'↓',dpadLeft:'←',dpadRight:'→',buttonA
 function markup(c){const ids=['dpadUp','dpadLeft','dpadDown','dpadRight'];if(c.layout!=='minimal')ids.push('buttonA','buttonB');if(['classic','extended'].includes(c.layout))ids.push('buttonX','buttonY','start','select');if(c.layout==='extended')ids.push('buttonL','buttonR');return '<div class="gp-controls gp-skin-'+c.skin+' gp-layout-'+c.layout+'" style="'+(c.color?'--gp-accent:'+c.color:'')+'">'+ids.map(k=>'<button type="button" class="gp-key gp-'+k+'" data-gp-key="'+k+'" aria-label="'+k+'">'+labels[k]+'</button>').join('')+(c.layout==='extended'?'<div class="gp-stick" role="group" aria-label="آنالوگ لمسی"><span></span></div>':'')+'</div>'}
 function pads(){try{return Array.from(navigator.getGamepads?.()||[]).filter(Boolean)}catch(_){return []}}
 window.ArcadeGamepad={get,set,sanitize,defaults,markup,pads,owns};
+/* ★ API افزایشی، توابع موجود حفظ شده‌اند */
+window.ArcadeGamepad.useStorage=adapter=>{if(adapter&&typeof adapter.get==='function'&&typeof adapter.set==='function')gpStorageAdapter=adapter};
 if(hub)return;
 function boot(){
  let audio=null;
