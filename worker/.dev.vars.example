@@ -1,3 +1,0 @@
-# Copy this file to .dev.vars for local development.
-# This is a publishable Supabase key, not a service-role/secret key.
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_REPLACE_ME
