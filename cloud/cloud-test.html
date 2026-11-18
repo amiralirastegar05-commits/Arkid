@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arkid Cloud Test</title>
+  <style>
+    body {
+      background: #080811;
+      color: white;
+      font-family: sans-serif;
+      padding: 25px;
+      line-height: 2;
+    }
+    .item {
+      background: #171727;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 12px 0;
+    }
+    button {
+      background: #8055ff;
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Arkid Cloud Test</h2>
+
+  <div class="item" id="module">در حال بررسی ماژول...</div>
+  <div class="item" id="supabase">در انتظار بررسی Supabase...</div>
+  <div class="item" id="api">در انتظار بررسی API...</div>
+
+  <button onclick="checkConnection()">بررسی مجدد</button>
+
+  <script type="module">
+    const moduleStatus = document.getElementById("module");
+    const supabaseStatus = document.getElementById("supabase");
+    const apiStatus = document.getElementById("api");
+
+    let auth = null;
+
+    try {
+      await import("./arcade-auth.js");
+      auth = window.ArkidAuth;
+      moduleStatus.textContent = "ماژول احراز هویت بارگذاری شد.";
+    } catch (error) {
+      moduleStatus.textContent = "خطای ماژول: " + error.message;
+    }
+
+    window.checkConnection = async function () {
+      if (!auth) {
+        supabaseStatus.textContent = "ماژول در دسترس نیست.";
+        return;
+      }
+
+      supabaseStatus.textContent = auth.isConfigured()
+        ? "تنظیمات Supabase شناسایی شد."
+        : "تنظیمات Supabase ناقص است.";
+
+      try {
+        const response = await fetch(
+          "https://arkid-api.nova-197b21.workers.dev/health"
+        );
+        const result = await response.json();
+        apiStatus.textContent = response.ok
+          ? "Worker فعال است: " + result.status
+          : "خطای Worker";
+      } catch (error) {
+        apiStatus.textContent = "خطای ارتباط با Worker: " + error.message;
+      }
+    };
+
+    checkConnection();
+  </script>
+</body>
+</html>
