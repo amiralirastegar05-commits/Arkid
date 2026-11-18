@@ -1,6 +1,6 @@
 # راه‌اندازی حساب آرکید
 
-رابط ورود در منوی کناری بازی اضافه شده است و از اتصال موجود شاخه‌ی `cloud-integration-phase1` استفاده می‌کند: پروژه‌ی Supabase با شناسه‌ی `uirtfghcpzevedvbaekj` و Worker با آدرس `https://arkid-api.nova-197b21.workers.dev`. بررسی فقط‌خواندنی Worker نشان داد `/health` پاسخ 200 می‌دهد و `/v1/me` نشست نامعتبر را با 401 رد می‌کند. پیشرفت، امتیاز و ذخیره‌های بازی همچنان محلی‌اند.
+رابط ورود در منوی کناری بازی از پروژه‌ی Supabase `arkid` با شناسه‌ی `kttefkhuchbufobdgdhi` استفاده می‌کند. آدرس Worker فعلی بازی `https://arkid-api.nova-197b21.workers.dev` است. پیشرفت، امتیاز و ذخیره‌های بازی همچنان محلی‌اند.
 
 ## تنظیمات Auth که مالک پروژه باید کامل کند
 
@@ -8,13 +8,13 @@
 2. Email provider در پروژه فعال است. Google provider فعلاً غیرفعال است؛ آن را در Supabase فعال کن و Google OAuth Client ID/Secret را فقط در داشبورد Supabase وارد کن. در Google Cloud، callback URIای را ثبت کن که Supabase در تنظیمات provider نشان می‌دهد.
 3. برای ارسال ایمیل تأیید به بازیکنان، SMTP اختصاصی را در **Authentication → SMTP Settings** تنظیم کن. سرویس پیش‌فرض Supabase فقط برای اعضای سازمان ایمیل می‌فرستد و محدودیت ارسال پایینی دارد.
 
-## به‌روزرسانی جدول پروفایل
+## جدول پروفایل
 
-جدول `public.profiles` از قبل در پروژه موجود است؛ درخواست فقط‌خواندنی از Data API نشان داد دو ستون `bio` و `avatar_path` در آن نیستند. مالک پروژه باید فایل `supabase/migrations/003_profiles_extend_existing.sql` را در SQL Editor اجرا کند. این فایل فقط ستون‌های مفقود و قید طول bio را اضافه می‌کند. دسترسی فعلی Supabase به این پروژه اجازه‌ی اعمال migration از راه دور نداد.
+جدول `public.profiles` و ستون‌های `bio` و `avatar_path` همراه قید طول bio در پروژه‌ی `arkid` ساخته شده‌اند. مهاجرت‌های 001 تا 003 روی همین پروژه اعمال شده‌اند.
 
 ## Worker
 
-Worker از قبل منتشر شده است. پیکربندی سورس در `worker/wrangler.toml` به همان Project URL اشاره می‌کند. برای انتشار دوباره از پوشه‌ی `worker`، Wrangler و دسترسی Cloudflare لازم است:
+Worker از قبل در آدرس بالا منتشر شده بود. سورس در `worker/wrangler.toml` به Project URL پروژه‌ی `arkid` اشاره می‌کند. برای اینکه Worker منتشرشده هم نشست‌های پروژه‌ی `arkid` را تأیید کند، باید همین URL در متغیر `SUPABASE_URL` و کلید عمومی پروژه در secret `SUPABASE_PUBLISHABLE_KEY` حساب Cloudflare ثبت شوند، سپس Worker دوباره منتشر شود:
 
 ```bash
 npm install

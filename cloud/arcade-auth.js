@@ -1,8 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // تنظیمات پروژه Supabase
-const SUPABASE_URL = "https://uirtfghcpzevedvbaekj.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Jyylbrq5UtuQbMDxGp2clA_pKg1YXOP";
+const SUPABASE_URL = "https://kttefkhuchbufobdgdhi.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_FMQLpq4eD0-U4O3jQdhO1g_ZIQe6Gbt";
 
 // آدرس API آرکید
 const API_BASE_URL = "https://arkid-api.nova-197b21.workers.dev";

@@ -4,7 +4,7 @@ compatibility_date = "2026-11-18"
 
 [vars]
 # Set this to the Supabase project URL from Project Settings > API.
-SUPABASE_URL = "https://uirtfghcpzevedvbaekj.supabase.co"
+SUPABASE_URL = "https://kttefkhuchbufobdgdhi.supabase.co"
 
 # Use the exact origin (scheme + hostname), not a page URL with /Arkid/.
 # Add localhost only while testing locally.
