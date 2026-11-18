@@ -49,6 +49,7 @@ const ArkidAuth = {
       password,
       options: {
         data: {
+          name: displayName,
           display_name: displayName
         },
         emailRedirectTo: location.origin + location.pathname
@@ -131,5 +132,6 @@ const ArkidAuth = {
 };
 
 window.ArkidAuth = ArkidAuth;
+window.dispatchEvent(new Event("arkid-auth-ready"));
 
 console.log("Arkid Auth module loaded.");
