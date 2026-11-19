@@ -143,9 +143,10 @@
     setStatus('در حال ذخیره پشتیبان…');
     try {
       const result = await auth.snapshots.upload(auth.getClient(), user, localStorage);
+      if (window.arkidHasVolatileData?.()) return setStatus('پشتیبان ذخیره شد، اما داده‌های جدید فقط در حافظه هستند؛ پیش از بستن صفحه از آن‌ها نسخه بگیر.', 'error');
       setStatus(result.localChanged ? 'پشتیبان ذخیره شد، اما داده محلی در حین ذخیره تغییر کرد؛ دوباره پشتیبان بگیر.' : 'پشتیبان ابری ذخیره شد.', 'success');
     } catch (error) {
-      setStatus('پشتیبان ذخیره نشد: ' + (error?.message || 'خطای اتصال'), 'error');
+      setStatus('ذخیره پشتیبان تأیید نشد؛ ممکن است عملیات در ابر انجام شده باشد. حساب را بررسی و دوباره تلاش کن: ' + (error?.message || 'خطای اتصال'), 'error');
     } finally { setBusy(false); }
   }
 

@@ -6,6 +6,14 @@
 
 **Scope:** previous migration work plus this verification/reporting task. This is a source and local-test audit, not a verification of the live Cloudflare or Supabase projects. No implementation changes were made during this reporting task.
 
+## Follow-up PR review — 2026-11-19 UTC
+
+This section updates the historical point-in-time report below; the older commit IDs, file counts and test counts remain records of the earlier verification. At follow-up start, GitHub REST reported PR #1 `mergeable=true`, `mergeable_state=clean`, draft, base `4b625d01d9fceeb6367ca25adf43fdea016d9049`, head `f9d66c308d9c6c744c29e8f0a4b5af0563c70e72`, with no reported status checks. `git merge-base` returned the base, `git rev-list --left-right --count` returned `0 6`, and `git merge-tree --write-tree` succeeded. No conflict or stale base was found. The earlier user-reported `mergeable=false` was not reproduced and its precise cause cannot be determined from available evidence; asynchronous GitHub recalculation is a possibility, not an established fact. A `git fetch` inspection initially tried `origin/cloud-integration-phase1`, which is absent from this checkout's restricted fetch refspec; a direct base SHA comparison succeeded. No branch was switched, reset or merged.
+
+The follow-up reviewed all 19 PR files and strengthened specific snapshot problems: session/binding checks around async upload and download; active-session blocking; revision validation; checks for changed data/binding during restore; explicit incomplete-rollback reporting; and a warning if the hub develops in-memory-only changes during upload. The service-worker cache version was bumped again. Tests additionally cover mocked account switching, concurrent binding/data changes, incomplete rollback and a one-row RPC result, plus more PGlite privileges/CAS cases. After these changes `npm test` passed **19/19** locally (15 snapshot unit tests, one PGlite test, three Worker tests). These checks are not real browser, live Supabase, Cloudflare or multi-process concurrency tests. See `CLOUD_MIGRATION_AUDIT.md` for SQL 004/005 deployment risks.
+
+Migration 004/005 were reviewed but not changed or run on live services. Snapshot history remains unbounded, values are client-controlled and localStorage checks do not provide cross-tab atomicity; account switch after a cloud commit can leave the server updated even if the client reports failure. No automatic conflict merge was added. Use `git rev-parse HEAD` for the current follow-up commit SHA; this file cannot include its own eventual commit SHA without changing it.
+
 ## 1. Git and GitHub evidence
 
 - **Actual working branch:** `arena/0b5bf391-arkid`. The Arena session fixes work to that branch. The user-requested target branch `cloud-integration-phase1` was used as the PR base, not checked out or directly modified. No branch switch, merge, force push, or reset was performed.

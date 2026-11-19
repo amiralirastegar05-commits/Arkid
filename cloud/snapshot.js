@@ -31,21 +31,36 @@ export function meta(storage) {
   if (!result || typeof result.user !== 'string' || typeof result.revision !== 'string') throw Error('Invalid local cloud metadata.');
   return result;
 }
+// Avoid adopting another session's result after an asynchronous request.
+export async function requireCurrentUser(client, user) {
+  const { data, error } = await client.auth.getSession();
+  if (error) throw error;
+  if (!user || data?.session?.user?.id !== user) throw Error('Account changed during cloud operation.');
+}
 export async function readRemote(client, user) {
   const { data, error } = await client.from('arkid_cloud_snapshots').select('revision,data,updated_at').eq('user_id', user).maybeSingle();
   if (error) throw error;
-  if (data) validate(data.data);
+  if (data) {
+    if (typeof data.revision !== 'string' || !data.revision) throw Error('Invalid cloud revision.');
+    validate(data.data);
+  }
   return data;
 }
 export async function upload(client, user, storage) {
+  const originalMeta = storage.getItem(META_KEY);
   const binding = meta(storage);
   if (binding && binding.user !== user) throw Error('This browser is linked to a different account; do not upload shared local progress to another account.');
+  if (storage.getItem('arcade_active_session') !== null) throw Error('A game session is active; finish it before backing up.');
   const snapshot = validate(collect(storage));
   if (!Object.keys(snapshot.storage).length) throw Error('No local game data to back up.');
+  await requireCurrentUser(client, user);
   const remote = await readRemote(client, user);
+  await requireCurrentUser(client, user);
+  if (storage.getItem(META_KEY) !== originalMeta) throw Error('Local cloud binding changed during upload.');
+  if (storage.getItem('arcade_active_session') !== null) throw Error('A game session is active; finish it before backing up.');
   if (remote && same(remote.data, snapshot)) {
     storage.setItem(META_KEY, JSON.stringify({ user, revision: remote.revision }));
-    return { unchanged: true, localChanged: !same(snapshot, collect(storage)) };
+    return { unchanged: true, localChanged: storage.getItem('arcade_active_session') !== null || !same(snapshot, collect(storage)) };
   }
   if (remote && (!binding || binding.revision !== remote.revision)) throw Error('Cloud conflict: another device has a different snapshot. Nothing was overwritten.');
   if (!remote && binding) throw Error('Cloud snapshot is missing; refusing to overwrite or recreate it automatically.');
@@ -53,29 +68,38 @@ export async function upload(client, user, storage) {
   if (error) throw error;
   // PostgREST may serialize composite RPC results as a one-element array.
   const saved = Array.isArray(data) ? data[0] : data;
-  if (!saved || typeof saved.revision !== 'string') throw Error('Unexpected cloud response.');
+  if (!saved || typeof saved.revision !== 'string' || !saved.revision) throw Error('Unexpected cloud response.');
+  await requireCurrentUser(client, user);
+  if (storage.getItem(META_KEY) !== originalMeta) throw Error('Local cloud binding changed during upload.');
   storage.setItem(META_KEY, JSON.stringify({ user, revision: saved.revision }));
-  return { unchanged: false, localChanged: !same(snapshot, collect(storage)) };
+  return { unchanged: false, localChanged: storage.getItem('arcade_active_session') !== null || !same(snapshot, collect(storage)) };
 }
 // Only install on a pristine browser. No existing game key is replaced or deleted.
 export function restoreEmpty(storage, user, remote) {
+  if (!user || !remote || typeof remote.revision !== 'string' || !remote.revision) throw Error('Invalid cloud account or revision.');
   validate(remote.data);
+  const originalMeta = storage.getItem(META_KEY);
   const binding = meta(storage);
   if (binding && binding.user !== user) throw Error('This browser is linked to another account.');
+  if (storage.getItem('arcade_active_session') !== null) throw Error('A game session is active; close it before restoring.');
   if (Object.keys(collect(storage).storage).length) throw Error('Local game data already exists. Restore is blocked to protect it.');
   if (!Object.keys(remote.data.storage).length) throw Error('Cloud snapshot is empty.');
   const written = [];
   try {
     for (const [key, value] of Object.entries(remote.data.storage)) {
-      if (storage.getItem(key) !== null) throw Error('Local data changed during restore.');
+      if (storage.getItem(META_KEY) !== originalMeta || storage.getItem('arcade_active_session') !== null || storage.getItem(key) !== null) throw Error('Local data changed during restore.');
       storage.setItem(key, value);
       written.push(key);
     }
+    if (storage.getItem(META_KEY) !== originalMeta || storage.getItem('arcade_active_session') !== null || !same(remote.data, collect(storage))) throw Error('Local data changed during restore.');
     storage.setItem(META_KEY, JSON.stringify({ user, revision: remote.revision }));
   } catch (error) {
+    let rollbackFailed = false;
     for (const key of written) {
-      try { if (storage.getItem(key) === remote.data.storage[key]) storage.removeItem(key); } catch (_) {}
+      try { if (storage.getItem(key) === remote.data.storage[key]) storage.removeItem(key); }
+      catch (_) { rollbackFailed = true; }
     }
+    if (rollbackFailed) throw new Error('Restore failed and rollback was incomplete; do not clear storage, seek recovery help.', { cause: error });
     throw error;
   }
 }

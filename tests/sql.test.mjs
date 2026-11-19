@@ -20,7 +20,13 @@ test('migrations, compare-and-swap and RLS on PostgreSQL', async () => {
     const revision = insert.rows[0].revision;
     await assert.rejects(db.query('select public.arkid_save_snapshot($1,null,$2::jsonb)',[one,snapshot]), /snapshot conflict/);
     await assert.rejects(db.query('select public.arkid_save_snapshot($1,null,$2::jsonb)',[two,snapshot]), /account changed/);
-    await db.query('select public.arkid_save_snapshot($1,$2,$3::jsonb)',[one,revision,snapshot]);
+    const next = await db.query('select * from public.arkid_save_snapshot($1,$2,$3::jsonb)',[one,revision,snapshot]);
+    assert.notEqual(next.rows[0].revision, revision);
+    await assert.rejects(db.query('select public.arkid_save_snapshot($1,$2,$3::jsonb)',[one,revision,snapshot]), /snapshot conflict/);
+    await assert.rejects(db.query('select public.arkid_save_snapshot($1,$2,$3::jsonb)',[one,next.rows[0].revision,JSON.stringify({schema:2,storage:{}})]), /invalid snapshot/);
+    await db.query("update public.profiles set display_name = 'Player' where id = $1", [one]);
+    assert.equal((await db.query('select display_name from public.profiles where id = $1',[one])).rows[0].display_name,'Player');
+    await assert.rejects(db.query('insert into public.arkid_cloud_snapshots(user_id,revision,data) values ($1,$2,$3::jsonb)',[one,revision,snapshot]), /permission denied/);
     assert.equal(Number((await db.query('select count(*) from public.arkid_cloud_snapshot_history')).rows[0].count),1);
     assert.equal(Number((await db.query('select count(*) from public.profiles')).rows[0].count),1);
     await assert.rejects(db.query('update public.profiles set created_at=now()'), /permission denied/);
@@ -28,5 +34,9 @@ test('migrations, compare-and-swap and RLS on PostgreSQL', async () => {
     await db.exec(`select set_config('request.jwt.claim.sub','${two}',false);`);
     assert.equal(Number((await db.query('select count(*) from public.arkid_cloud_snapshots')).rows[0].count),0);
     assert.equal(Number((await db.query('select count(*) from public.arkid_cloud_snapshot_history')).rows[0].count),0);
+    assert.equal(Number((await db.query('select count(*) from public.profiles where id = $1',[one])).rows[0].count),0);
+    await db.exec('reset role; set role anon;');
+    await assert.rejects(db.query('select * from public.arkid_cloud_snapshots'), /permission denied/);
+    await assert.rejects(db.query('select public.arkid_save_snapshot($1,null,$2::jsonb)',[two,snapshot]), /permission denied/);
   } finally { await db.close(); }
 });

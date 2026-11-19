@@ -20,6 +20,7 @@ download.onclick = async () => {
   try {
     const {data,error} = await auth.getSession(); if(error) throw error; const user = data.session?.user?.id; if(!user) throw Error('ابتدا وارد شوید.');
     const remote = await auth.snapshots.readRemote(auth.getClient(), user); if(!remote) throw Error('پشتیبان ابری پیدا نشد.');
+    await auth.snapshots.requireCurrentUser(auth.getClient(), user);
     const payload = {__arcadeBackup:true, version:'1.0', exportedAt:new Date().toISOString(), reason:'cloud-snapshot', keyCount:Object.keys(remote.data.storage).length, storage:remote.data.storage};
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
     const a = document.createElement('a'); a.href=url; a.download='arkid-cloud-snapshot.json'; document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
