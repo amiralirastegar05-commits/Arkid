@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>بررسی اتصال Worker آرکید</title>
+  <style>
+    body { margin: 2rem auto; padding: 1rem; max-width: 38rem; background: #080811; color: #fff; font: 16px/1.9 sans-serif; }
+    button, a { font: inherit; }
+    button { background: #8055ff; color: #fff; border: 0; border-radius: .6rem; padding: .7rem 1.2rem; cursor: pointer; }
+    a { color: #c8b5ff; }
+    #result { background: #171727; border-radius: .6rem; padding: 1rem; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>بررسی اتصال Worker آرکید</h1>
+  <p>این بررسی از یک توکن ساختگی استفاده می‌کند؛ وارد حساب شما نمی‌شود و هیچ داده‌ای را ذخیره یا بازیابی نمی‌کند.</p>
+  <button id="check" type="button">بررسی اتصال</button>
+  <p id="result" role="status" aria-live="polite">برای شروع دکمه را بزنید.</p>
+  <p>این آزمون فقط ارتباط مرورگر و پاسخ به توکن نامعتبر را بررسی می‌کند، نه ورود واقعی یا پشتیبان ابری.</p>
+  <a href="../index.html">بازگشت به آرکید</a>
+  <script type="module">
+    import { checkWorkerCors } from './worker-diagnostic.js';
+    const button = document.getElementById('check');
+    const result = document.getElementById('result');
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      result.textContent = 'در حال بررسی…';
+      try {
+        const check = await checkWorkerCors();
+        if (check.ok) result.textContent = 'بررسی اتصال موفق بود: Worker توکن ساختگی را رد کرد (۴۰۱).';
+        else if (check.reason === 'not_configured') result.textContent = 'نشانی Worker هنوز تنظیم نشده است.';
+        else if (check.reason === 'unexpected_response') result.textContent = 'پاسخ غیرمنتظرهٔ Worker: HTTP ' + check.status;
+        else result.textContent = 'ارتباط برقرار نشد؛ ممکن است خطای شبکه یا CORS باشد.';
+      } finally { button.disabled = false; }
+    });
+  </script>
+</body>
+</html>
