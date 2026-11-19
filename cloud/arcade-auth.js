@@ -1,18 +1,10 @@
 import * as snapshots from "./snapshot.js";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// تنظیمات پروژه Supabase
-const SUPABASE_URL = "https://kttefkhuchbufobdgdhi.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_FMQLpq4eD0-U4O3jQdhO1g_ZIQe6Gbt";
-
-// آدرس API آرکید
-const API_BASE_URL = "https://arkid-api.nova-197b21.workers.dev";
-
-const configured =
-  SUPABASE_URL.startsWith("https://") &&
-  !SUPABASE_URL.includes("PASTE_") &&
-  SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_") &&
-  !SUPABASE_PUBLISHABLE_KEY.includes("PASTE_");
+// Public project configuration only. The Worker endpoint remains disabled
+// until a separate Worker is deployed and verified.
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, GOOGLE_SIGN_IN_ENABLED, API_BASE_URL, isConfigured } from "./config.js";
+const configured = isConfigured();
 
 let supabase = null;
 
@@ -33,6 +25,10 @@ if (configured) {
 const ArkidAuth = {
   isConfigured() {
     return configured;
+  },
+
+  supportsGoogle() {
+    return GOOGLE_SIGN_IN_ENABLED;
   },
 
   getClient() {
@@ -66,6 +62,7 @@ const ArkidAuth = {
   },
 
   async signInWithGoogle() {
+    if (!GOOGLE_SIGN_IN_ENABLED) throw new Error("Google sign-in is not configured.");
     return await this.getClient().auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -118,6 +115,7 @@ const ArkidAuth = {
       throw new Error("User is not signed in.");
     }
 
+    if (!API_BASE_URL) throw new Error("API آرکید هنوز پیکربندی نشده است.");
     const response = await fetch(`${API_BASE_URL}/v1/me`, {
       headers: {
         Authorization: `Bearer ${data.session.access_token}`

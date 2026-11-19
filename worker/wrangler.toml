@@ -1,11 +1,13 @@
-name = "arkid-api"
+name = "arkid-api-new"
 main = "src/index.js"
 compatibility_date = "2026-11-18"
 
 [vars]
 # Set this to the Supabase project URL from Project Settings > API.
-SUPABASE_URL = "https://kttefkhuchbufobdgdhi.supabase.co"
+SUPABASE_URL = "https://xorsueznslmcmkfqizqn.supabase.co"
+# Publishable key, safe to expose; do not use a service-role or secret key.
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_bdnE1LhtPj0ZJDR4n54ayA_wGOhhl4s"
 
 # Use the exact origin (scheme + hostname), not a page URL with /Arkid/.
 # Add localhost only while testing locally.
-ALLOWED_ORIGINS = "https://amiralirastegar05-commits.github.io,http://localhost:8787"
+ALLOWED_ORIGINS = "https://amiralirastegar05-commits.github.io"

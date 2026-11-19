@@ -55,8 +55,11 @@ async function verifySupabaseUser(request, env) {
   if (response.status >= 500 || response.status === 429) return { ok: false, status: 503, reason: "auth_unavailable" };
   if (!response.ok) return { ok: false, status: 401 };
 
-  const user = await response.json();
-  if (!user || typeof user.id !== "string") {
+  let user;
+  try { user = await response.json(); } catch (_) {
+    return { ok: false, status: 503, reason: "auth_unavailable" };
+  }
+  if (!user || typeof user.id !== "string" || !user.id) {
     return { ok: false, status: 401 };
   }
 

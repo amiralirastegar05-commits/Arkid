@@ -29,3 +29,13 @@ test('identity verifies token, and distinguishes auth outages from bad credentia
     assert.equal((await worker.fetch(req('/v1/me', null, { headers: { Authorization: 'Bearer token' } }), env)).status, 401);
   } finally { globalThis.fetch = old; }
 });
+
+test('malformed authentication service response is unavailable, not an unhandled error', async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => new Response('not json', {status:200});
+    const response = await worker.fetch(req('/v1/me', 'https://site.example', {headers:{Authorization:'Bearer token'}}), env);
+    assert.equal(response.status,503);
+    assert.deepEqual(await response.json(), {error:'auth_unavailable'});
+  } finally { globalThis.fetch = original; }
+});
