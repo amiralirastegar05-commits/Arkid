@@ -36,8 +36,10 @@
   <div class="item" id="api">در انتظار بررسی API...</div>
 
   <button onclick="checkConnection()">بررسی مجدد</button>
+  <p><a href="./worker-check.html" style="color:#c8b5ff">بررسی اتصال Worker با موبایل</a></p>
 
   <script type="module">
+    import { API_BASE_URL } from "./config.js";
     const moduleStatus = document.getElementById("module");
     const supabaseStatus = document.getElementById("supabase");
     const apiStatus = document.getElementById("api");
@@ -57,14 +59,12 @@
         ? "تنظیمات Supabase شناسایی شد."
         : "تنظیمات Supabase ناقص است.";
 
+      if (!API_BASE_URL) {
+        apiStatus.textContent = "Worker جدید هنوز پیکربندی نشده است.";
+        return;
+      }
       try {
-        const response = await fetch(
-  "https://arkid-api.nova-197b21.workers.dev/health",
-  {
-    method: "GET",
-    mode: "cors"
-  }
-);
+        const response = await fetch(`${API_BASE_URL}/health`, { method: "GET", mode: "cors" });
         const result = await response.json();
         apiStatus.textContent = response.ok
           ? "Worker فعال است: " + result.service + " (ok=" + result.ok + ")"

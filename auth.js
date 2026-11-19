@@ -45,13 +45,13 @@
       <div id="arkidWorkerCheck" class="arkid-auth-check" data-state="pending">در حال بررسی API آرکید…</div>
       <div class="arkid-auth-actions"><button class="arkid-auth-btn" id="arkidSignOut" type="button">خروج از حساب</button></div>
       <p id="arkidAuthStatus" class="arkid-auth-status" role="status" aria-live="polite"></p>` : `
-      <p class="arkid-auth-copy">${mode === 'signup' ? 'با ایمیل و گذرواژه حساب بساز؛ ممکن است لازم باشد ایمیلت را تأیید کنی.' : 'با ایمیل و گذرواژه وارد شو یا از ورود گوگل استفاده کن.'}</p>
+      <p class="arkid-auth-copy">${mode === 'signup' ? 'با ایمیل و گذرواژه حساب بساز؛ ممکن است لازم باشد ایمیلت را تأیید کنی.' : (auth?.supportsGoogle?.() ? 'با ایمیل و گذرواژه وارد شو یا از ورود گوگل استفاده کن.' : 'با ایمیل و گذرواژه وارد شو.')}</p>
       <form class="arkid-auth-form" id="arkidAuthForm">
         ${mode === 'signup' ? '<label>نام نمایشی<input name="displayName" type="text" maxlength="40" autocomplete="nickname" required></label>' : ''}
         <label>ایمیل<input name="email" type="email" autocomplete="email" required></label>
         <label>گذرواژه<input name="password" type="password" minlength="8" autocomplete="${mode === 'signup' ? 'new-password' : 'current-password'}" required></label>
         <div class="arkid-auth-actions"><button class="arkid-auth-btn primary" id="arkidAuthSubmit" type="submit">${mode === 'signup' ? 'ساخت حساب' : 'ورود به حساب'}</button>
-        <button class="arkid-auth-btn" id="arkidGoogleSignIn" type="button">ادامه با Google</button></div>
+        ${auth?.supportsGoogle?.() ? '<button class="arkid-auth-btn" id="arkidGoogleSignIn" type="button">ادامه با Google</button>' : ''}</div>
       </form>
       <p id="arkidAuthStatus" class="arkid-auth-status" role="status" aria-live="polite"></p>
       ${configured ? '' : '<p class="arkid-auth-note">اتصال حساب آرکید هنوز در دسترس نیست. کمی بعد دوباره تلاش کن.</p>'}
