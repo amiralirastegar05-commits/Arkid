@@ -12,7 +12,7 @@ const snapshot = storage => JSON.stringify({ schema: 1, storage });
 test('new project uses a publishable key and does not target the legacy Worker', () => {
   assert.equal(SUPABASE_URL, 'https://xorsueznslmcmkfqizqn.supabase.co');
   assert.match(SUPABASE_PUBLISHABLE_KEY, /^sb_publishable_/);
-  assert.equal(API_BASE_URL, '');
+  assert.equal(API_BASE_URL, 'https://arkid-api-now.nova-197b21.workers.dev');
   assert.equal(GOOGLE_SIGN_IN_ENABLED, false);
   assert.equal(isConfigured(), true);
 });

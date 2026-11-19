@@ -1,6 +1,6 @@
 # راه سادهٔ انتشار دستی Worker جدید Arkid
 
-این راهنما **برای یک Worker جدید و مستقل** است؛ Worker قبلی را باز یا ویرایش نکنید. این پروژه هنوز توسط Arena Deploy نشده است.
+این راهنما **برای یک Worker جدید و مستقل** است؛ Worker قبلی را باز یا ویرایش نکنید. کاربر Worker جدید `arkid-api-now` را Deploy کرده و پاسخ `/health` آن مشاهده شده است. مراحل ساخت زیر برای مراجعات بعدی است؛ Worker موجود را دوباره Deploy نکنید مگر تغییر جدیدی لازم باشد.
 
 ## ۱. ساخت Worker جدید
 
@@ -36,6 +36,6 @@
 
 ## پیش از انتشار سایت
 
-PR شمارهٔ ۲ در آخرین بررسی پیش‌نویس و بدون تعارض بود، اما چک خودکار GitHub برای آن گزارش نشده بود. ادغام آن به `cloud-integration-phase1` می‌تواند GitHub Pages را خودکار منتشر کند. نشانی Worker در Frontend هنوز خالی است؛ تا بررسی Worker، تنظیم Auth، ورود واقعی و پشتیبان/بازیابی در محیط مناسب، PR را آمادهٔ انتشار ندانید. داده یا binding محلی قدیمی را پاک نکنید. نسخهٔ منتشرشدهٔ فعلی هنوز با شاخهٔ جدید یکسان نیست.
+PR شمارهٔ ۲ در آخرین بررسی پیش‌نویس و بدون تعارض بود، اما چک خودکار GitHub برای آن گزارش نشده بود. ادغام آن به `cloud-integration-phase1` می‌تواند GitHub Pages را خودکار منتشر کند. نشانی Worker جدید در Frontend این شاخه تنظیم شده، ولی CORS و احراز هویت واقعی، تنظیم Auth و پشتیبان/بازیابی سرتاسری هنوز تأیید نشده‌اند. داده یا binding محلی قدیمی را پاک نکنید. نسخهٔ منتشرشدهٔ فعلی هنوز با شاخهٔ جدید یکسان نیست.
 
 منابع: [Cloudflare Dashboard](https://developers.cloudflare.com/workers/get-started/dashboard/)، [ویرایش و Deploy](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/gradual-deployments/)، [Supabase Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).

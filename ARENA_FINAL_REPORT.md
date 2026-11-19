@@ -1,6 +1,6 @@
 # گزارش نهایی فعلی اتصال Arkid به Supabase مستقل
 
-> **به‌روزرسانی بازبینی PR:** راهنمای ساده و Worker تک‌فایلی مخصوص Dashboard در `WORKER_MANUAL_DEPLOY_FA.md` و `worker/dashboard-worker.js` آماده شد. آزمون‌های جاری ۲۶ مورد موفق‌اند. PR همچنان پیش‌نویس است؛ Worker و سایت جدید منتشر نشده‌اند و Auth redirect و تست انتهابه‌انتها هنوز تأیید نشده‌اند. جزئیات پایین مربوط به بررسی قبلی است.
+> **به‌روزرسانی پس از Deploy دستی:** کاربر Worker جدید `https://arkid-api-now.nova-197b21.workers.dev` را Deploy کرد. پاسخ `/health` با `{ok:true,service:"arkid-api",version:1}` و پاسخ بدون نشست `/v1/me` با `unauthorized` مشاهده شد. نشانی Worker در Frontend این شاخه تنظیم شد. این دو پاسخ به‌تنهایی هویت کد، پیکربندی، CORS یا ورود واقعی را تأیید نمی‌کنند. PR همچنان پیش‌نویس است و نسخهٔ جدید سایت منتشر نشده؛ Auth redirect، آزمون نشست و تست انتهابه‌انتها همچنان باقی‌اند. جزئیات پایین مربوط به بررسی‌های قبلی است.
 
 تاریخ: ۲۰۲۶-۱۱-۱۹ · پروژه: `xorsueznslmcmkfqizqn` · منطقه: Singapore · شاخه: `arena/22234c77-arkid`
 

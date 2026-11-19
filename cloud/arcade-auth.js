@@ -1,8 +1,8 @@
 import * as snapshots from "./snapshot.js";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Public project configuration only. The Worker endpoint remains disabled
-// until a separate Worker is deployed and verified.
+// Public project configuration only. The Worker URL is independent of
+// Supabase; live authenticated and browser CORS checks are still required.
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, GOOGLE_SIGN_IN_ENABLED, API_BASE_URL, isConfigured } from "./config.js";
 const configured = isConfigured();
 
