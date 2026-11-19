@@ -39,7 +39,9 @@
     const title = session ? 'حساب آرکید' : (mode === 'signup' ? 'ساخت حساب آرکید' : 'ورود به آرکید');
     const body = session ? `
       <div class="arkid-auth-account"><strong>${esc(session.user?.user_metadata?.name || session.user?.user_metadata?.full_name || 'بازیکن آرکید')}</strong><small dir="ltr">${esc(session.user?.email)}</small></div>
-      <p class="arkid-auth-note">ورود شما فعال است. پیشرفت بازی در این فاز همچنان فقط روی همین مرورگر ذخیره می‌شود.</p>
+      <p class="arkid-auth-note">ورود شما فعال است. پیشرفت به‌طور پیش‌فرض محلی است. پشتیبان ابری دستی است و اطلاعات به‌طور خودکار ادغام نمی‌شوند.</p>
+      <p class="arkid-auth-note">پیش از پشتیبان، بازی‌ها و برگه‌های دیگر را ببند. این داده‌ها به حساب فعلی تعلق خواهند گرفت.</p>
+      <div class="arkid-auth-actions"><button class="arkid-auth-btn" id="arkidCloudUpload" type="button">پشتیبان ابری</button><a class="arkid-auth-btn" href="cloud/restore.html">بازیابی در مرورگر خالی</a></div>
       <div id="arkidWorkerCheck" class="arkid-auth-check" data-state="pending">در حال بررسی API آرکید…</div>
       <div class="arkid-auth-actions"><button class="arkid-auth-btn" id="arkidSignOut" type="button">خروج از حساب</button></div>
       <p id="arkidAuthStatus" class="arkid-auth-status" role="status" aria-live="polite"></p>` : `
@@ -64,6 +66,7 @@
     document.getElementById('arkidAuthForm')?.addEventListener('submit', submitEmailForm);
     document.getElementById('arkidGoogleSignIn')?.addEventListener('click', signInWithGoogle);
     document.getElementById('arkidSignOut')?.addEventListener('click', signOut);
+    document.getElementById('arkidCloudUpload')?.addEventListener('click', uploadCloud);
     setBusy(false);
     if (session) checkWorker();
   }
@@ -131,11 +134,28 @@
     setStatus('از حساب خارج شدی.', 'success');
   }
 
+  async function uploadCloud() {
+    if (!session?.user?.id) return;
+    if (window.arkidHasVolatileData?.()) return setStatus('برخی داده‌ها فقط در حافظه هستند؛ فضای ذخیره‌سازی را بررسی کن و پیش از بستن صفحه نسخه پشتیبان بگیر.', 'error');
+    if (!confirm('پشتیبان‌گیری دستی از داده‌های محلی برای این حساب؟ همه بازی‌ها و برگه‌های دیگر را ببندید. در صورت تعارض، هیچ داده‌ای بازنویسی نمی‌شود.')) return;
+    const user = session.user.id;
+    setBusy(true);
+    setStatus('در حال ذخیره پشتیبان…');
+    try {
+      const result = await auth.snapshots.upload(auth.getClient(), user, localStorage);
+      if (window.arkidHasVolatileData?.()) return setStatus('پشتیبان ذخیره شد، اما داده‌های جدید فقط در حافظه هستند؛ پیش از بستن صفحه از آن‌ها نسخه بگیر.', 'error');
+      setStatus(result.localChanged ? 'پشتیبان ذخیره شد، اما داده محلی در حین ذخیره تغییر کرد؛ دوباره پشتیبان بگیر.' : 'پشتیبان ابری ذخیره شد.', 'success');
+    } catch (error) {
+      setStatus('ذخیره پشتیبان تأیید نشد؛ ممکن است عملیات در ابر انجام شده باشد. حساب را بررسی و دوباره تلاش کن: ' + (error?.message || 'خطای اتصال'), 'error');
+    } finally { setBusy(false); }
+  }
+
   async function checkWorker() {
     const check = document.getElementById('arkidWorkerCheck');
     if (!check) return;
     try {
       const identity = await auth.apiMe();
+      if (!session?.user) return;
       check.textContent = identity.id === session.user.id ? 'اتصال حساب و API برقرار است.' : 'شناسه حساب با API مطابقت ندارد.';
       check.dataset.state = identity.id === session.user.id ? 'ok' : 'bad';
     } catch (error) {

@@ -39,14 +39,20 @@ async function verifySupabaseUser(request, env) {
   }
 
   const baseUrl = env.SUPABASE_URL.replace(/\/+$/, "");
-  const response = await fetch(`${baseUrl}/auth/v1/user`, {
+  let response;
+  try {
+    response = await fetch(`${baseUrl}/auth/v1/user`, {
     method: "GET",
     headers: {
       apikey: env.SUPABASE_PUBLISHABLE_KEY,
       Authorization: `Bearer ${match[1]}`,
     },
-  });
+    });
+  } catch (_) {
+    return { ok: false, status: 503, reason: "auth_unavailable" };
+  }
 
+  if (response.status >= 500 || response.status === 429) return { ok: false, status: 503, reason: "auth_unavailable" };
   if (!response.ok) return { ok: false, status: 401 };
 
   const user = await response.json();
@@ -59,11 +65,16 @@ async function verifySupabaseUser(request, env) {
 
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+    // Health is deliberately public and carries no credentials or private data.
+    if (url.pathname === "/health" && request.method === "GET") {
+      return json({ ok: true, service: "arkid-api", version: 1 }, 200, { "access-control-allow-origin": "*" });
+    }
     const cors = corsHeaders(request, env);
     const origin = request.headers.get("Origin");
 
     if (origin && !cors) {
-      return json({ error: "origin_not_allowed" }, 403);
+      return json({ error: "origin_not_allowed" }, 403, { "vary": "Origin" });
     }
 
     if (request.method === "OPTIONS") {
@@ -71,12 +82,7 @@ export default {
       return new Response(null, { status: 204, headers: cors });
     }
 
-    const url = new URL(request.url);
-    const headers = cors || {};
-
-    if (request.method === "GET" && url.pathname === "/health") {
-      return json({ ok: true, service: "arkid-api", version: 1 }, 200, headers);
-    }
+    const headers = cors || { "vary": "Origin" };
 
     if (request.method === "GET" && url.pathname === "/v1/me") {
       const result = await verifySupabaseUser(request, env);
