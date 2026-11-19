@@ -1,5 +1,7 @@
 # گزارش نهایی فعلی اتصال Arkid به Supabase مستقل
 
+> **به‌روزرسانی بازبینی PR:** راهنمای ساده و Worker تک‌فایلی مخصوص Dashboard در `WORKER_MANUAL_DEPLOY_FA.md` و `worker/dashboard-worker.js` آماده شد. آزمون‌های جاری ۲۶ مورد موفق‌اند. PR همچنان پیش‌نویس است؛ Worker و سایت جدید منتشر نشده‌اند و Auth redirect و تست انتهابه‌انتها هنوز تأیید نشده‌اند. جزئیات پایین مربوط به بررسی قبلی است.
+
 تاریخ: ۲۰۲۶-۱۱-۱۹ · پروژه: `xorsueznslmcmkfqizqn` · منطقه: Singapore · شاخه: `arena/22234c77-arkid`
 
 ## خلاصه
