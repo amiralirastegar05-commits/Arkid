@@ -1,3 +1,4 @@
+import * as snapshots from "./snapshot.js";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // تنظیمات پروژه Supabase
@@ -106,6 +107,8 @@ const ArkidAuth = {
   onAuthStateChange(callback) {
     return this.getClient().auth.onAuthStateChange(callback);
   },
+
+  snapshots,
 
   async apiMe() {
     const { data, error } = await this.getSession();
