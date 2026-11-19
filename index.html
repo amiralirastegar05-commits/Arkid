@@ -2475,7 +2475,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
         <span class="dev-file-name" id="devImportFileName">فایلی انتخاب نشده است</span>
         <button class="gold-btn" id="devImportBtn" type="button" disabled>بازنویسی و Reload</button>
       </div>
-      <p class="dev-note">با تأیید عملیات بازیابی، محتوای فعلی localStorage با فایل بکاپ جایگزین شده و صفحه مجدداً بارگذاری می‌شود.</p>
+      <p class="dev-note">با تأیید عملیات بازیابی، داده‌های فعلی به جز نشست حساب با فایل بکاپ جایگزین شده و صفحه مجدداً بارگذاری می‌شود.</p>
     </section>
   </div>
 </div>
@@ -5546,8 +5546,14 @@ function collectStorageSnapshot() {
   return entries;
 }
 
+function isProtectedAuthStorageKey(key) {
+  return /^sb-.+-auth-token(?:-code-verifier)?$/.test(key) || key === 'arkid_cloud_snapshot_meta_v1';
+}
+
 function downloadDevBackup(reasonTag) {
   const entries = collectStorageSnapshot();
+  // Never export active credentials or cloud revision bindings.
+  Object.keys(entries).filter(isProtectedAuthStorageKey).forEach(key => delete entries[key]);
   const now = new Date();
   const pad2 = n => String(n).padStart(2, '0');
   const stamp = now.getFullYear() + '-' + pad2(now.getMonth() + 1) + '-' + pad2(now.getDate()) + '_' +
@@ -5795,7 +5801,7 @@ function openDevImportConfirm() {
   if (!titleEl || !descEl || !keysEl || !autoRow || !acceptBtn) return;
 
   titleEl.textContent = '📤 تأیید بازیابی بکاپ و بارگذاری مجدد';
-  descEl.textContent = 'تمام محتوای فعلی localStorage پاک شده و ' + faNum(devPendingImport.keyCount) + ' کلید از فایل «' + devPendingImport.fileName + '» جایگزین آن می‌شود، سپس صفحه Reload خواهد شد.';
+  descEl.textContent = 'داده‌های محلی فعلی (به جز نشست حساب و شناسه پشتیبان ابری) پاک شده و ' + faNum(devPendingImport.keyCount) + ' کلید از فایل «' + devPendingImport.fileName + '» جایگزین آن می‌شود، سپس صفحه Reload خواهد شد.';
   keysEl.hidden = false;
   keysEl.textContent = Object.keys(devPendingImport.entries).slice(0, 60).join('\n') || '(بکاپ خالی)';
   autoRow.hidden = true;
@@ -5811,11 +5817,26 @@ function executeDevImport() {
   const entries = devPendingImport.entries;
   devLog('importBackup', { oldKeyCount: Object.keys(oldSnapshot).length }, { fileName: devPendingImport.fileName, newKeyCount: devPendingImport.keyCount });
 
-  try { localStorage.clear(); } catch (e) {}
+  // Keep the current authentication session and cloud binding; never import them from a file.
+  try {
+    const keys = Array.from({length: localStorage.length}, (_, i) => localStorage.key(i));
+    keys.filter(k => k !== null && !isProtectedAuthStorageKey(k)).forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
   localMemory.clear();
+  // An imported older backup has no trustworthy common ancestor with the cloud.
+  // Keep its owner binding, but force a conflict until the data matches the cloud.
+  try {
+    const key = 'arkid_cloud_snapshot_meta_v1';
+    const binding = JSON.parse(localStorage.getItem(key) || 'null');
+    if (binding && typeof binding.user === 'string') {
+      binding.revision = 'local-import-conflict';
+      localStorage.setItem(key, JSON.stringify(binding));
+    }
+  } catch (e) { /* a malformed binding already blocks cloud uploads */ }
   ARCADE_SESSION_KEYS.forEach(k => safeSessionRemove(k));
 
   Object.keys(entries).forEach(k => {
+    if (isProtectedAuthStorageKey(k)) return;
     const val = entries[k];
     if (val === null || val === undefined) return;
     const serialized = typeof val === 'string' ? val : JSON.stringify(val);
