@@ -53,12 +53,7 @@
     }
 
     window.checkConnection = async function () {
-      if (!auth) {
-        supabaseStatus.textContent = "ماژول در دسترس نیست.";
-        return;
-      }
-
-      supabaseStatus.textContent = auth.isConfigured()
+      supabaseStatus.textContent = !auth ? "ماژول در دسترس نیست." : auth.isConfigured()
         ? "تنظیمات Supabase شناسایی شد."
         : "تنظیمات Supabase ناقص است.";
 
@@ -72,8 +67,8 @@
 );
         const result = await response.json();
         apiStatus.textContent = response.ok
-          ? "Worker فعال است: " + result.status
-          : "خطای Worker";
+          ? "Worker فعال است: " + result.service + " (ok=" + result.ok + ")"
+          : "خطای Worker: HTTP " + response.status;
       } catch (error) {
         apiStatus.textContent = "خطای ارتباط با Worker: " + error.message;
       }
