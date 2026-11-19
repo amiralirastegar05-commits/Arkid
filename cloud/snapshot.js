@@ -45,7 +45,7 @@ export async function upload(client, user, storage) {
   const remote = await readRemote(client, user);
   if (remote && same(remote.data, snapshot)) {
     storage.setItem(META_KEY, JSON.stringify({ user, revision: remote.revision }));
-    return { unchanged: true };
+    return { unchanged: true, localChanged: !same(snapshot, collect(storage)) };
   }
   if (remote && (!binding || binding.revision !== remote.revision)) throw Error('Cloud conflict: another device has a different snapshot. Nothing was overwritten.');
   if (!remote && binding) throw Error('Cloud snapshot is missing; refusing to overwrite or recreate it automatically.');

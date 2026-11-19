@@ -2541,6 +2541,8 @@ const LS = {
   set(k,v) { try { localStorage.setItem(k,JSON.stringify(v)); localMemory.delete(k); } catch(e) { localMemory.set(k,v); } },
   remove(k) { localMemory.delete(k); try { localStorage.removeItem(k); } catch(e) {} }
 };
+// Cloud backup must not silently omit writes that only survived in memory.
+window.arkidHasVolatileData = () => localMemory.size > 0;
 /* برای اضافه کردن بنر جدید: فقط یک خط به این آرایه اضافه کن
    برای کم کردن: خط مربوطه رو حذف کن
    link می‌تونه null باشه (بنر غیرکلیکی) یا آدرس کامل */
@@ -5541,7 +5543,7 @@ function collectStorageSnapshot() {
     }
   } catch (e) {}
   localMemory.forEach((v, k) => {
-    if (!(k in entries)) entries[k] = v;
+    entries[k] = JSON.stringify(v); // failed writes may have a newer value than localStorage
   });
   return entries;
 }

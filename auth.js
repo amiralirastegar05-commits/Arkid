@@ -136,6 +136,7 @@
 
   async function uploadCloud() {
     if (!session?.user?.id) return;
+    if (window.arkidHasVolatileData?.()) return setStatus('برخی داده‌ها فقط در حافظه هستند؛ فضای ذخیره‌سازی را بررسی کن و پیش از بستن صفحه نسخه پشتیبان بگیر.', 'error');
     if (!confirm('پشتیبان‌گیری دستی از داده‌های محلی برای این حساب؟ همه بازی‌ها و برگه‌های دیگر را ببندید. در صورت تعارض، هیچ داده‌ای بازنویسی نمی‌شود.')) return;
     const user = session.user.id;
     setBusy(true);

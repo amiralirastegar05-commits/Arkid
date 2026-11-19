@@ -61,3 +61,10 @@ test('failed restore rolls back inserted keys and keeps unrelated values', () =>
   assert.throws(() => restoreEmpty(local,'user',{revision:'r',data:{schema:1,storage:{arcade_points:'20',arcade_profile:'{}'}}}), /quota/);
   assert.equal(local.getItem('arcade_points'), null); assert.equal(local.getItem('other'),'stay');
 });
+test('reports local changes while an unchanged cloud read is pending', async () => {
+  const db = client(), local = new Storage({arcade_points:'10'});
+  await upload(db,'u',local);
+  const original = db.from;
+  db.from = (...args) => { const query = original(...args); const first = query.maybeSingle; query.maybeSingle = async function() { const result = await first.call(this); local.setItem('arcade_points','11'); return result; }; return query; };
+  assert.equal((await upload(db,'u',local)).localChanged,true);
+});
