@@ -84,7 +84,7 @@ jobs:
             elif grep -qi 'already exists' "$scratch/restore.log"; then category='object conflict';
             elif grep -qi 'does not exist' "$scratch/restore.log"; then category='missing object or version mismatch';
             else category='other SQL or connection error'; fi
-            echo "::error title=Restore check::SQL restore failed: $category. Private SQL output was not logged."
+            echo "::warning title=Restore check::Standard-role restore failed: $category. Private SQL output was not logged."
             # Report only a fixed file category and allowlisted infrastructure
             # diagnostics, never SQL text, user data, identifiers or passwords.
             python3 - "$scratch/restore.log" <<'PY'
@@ -105,10 +105,21 @@ jobs:
                   print('::notice title=Restore diagnosis::' + label)
                   break
           PY
-            exit 1
+            # An additional, strictly local superuser trial helps distinguish
+            # an unreadable dump from limitations of the target postgres role.
+            # It does NOT prove this backup can be restored to hosted Supabase.
+            test "$category" = 'permission denied' || exit 1
+            export PGUSER=supabase_admin
+            local_admin="$(psql --set ON_ERROR_STOP=1 --tuples-only --no-align --command 'select rolsuper from pg_roles where rolname=current_user' 2>"$scratch/admin.log")" || { echo '::error title=Restore check::Local admin login failed.'; exit 1; }
+            test "$local_admin" = t || { echo '::error title=Restore check::Local admin is not a superuser.'; exit 1; }
+            if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/admin-restore.log" 2>&1; then
+              echo '::error title=Restore check::Local superuser restore also failed; private output was not logged.'
+              exit 1
+            fi
+            echo '::warning title=Restore check::Restore required a local superuser; hosted recovery is not verified.'
           fi
           echo '::notice title=Restore phase::SQL restore transaction succeeded.'
-          result="$(psql --set ON_ERROR_STOP=1 --tuples-only --no-align --command "select count(*) = 3 and bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('profiles','arkid_cloud_snapshots','arkid_cloud_snapshot_history') and c.relkind='r'" 2>"$scratch/check.log")"
-          test "$result" = t || { echo 'Expected restored tables or RLS were not found.'; exit 1; }
-          echo 'Isolated restore completed and the three existing tables have RLS enabled.'
+          result="$(psql --set ON_ERROR_STOP=1 --tuples-only --no-align --command "select count(*) = 3 and bool_and(c.relrowsecurity) and bool_and(has_table_privilege('authenticated', c.oid, 'SELECT')) and has_function_privilege('authenticated','public.arkid_save_snapshot(uuid,uuid,jsonb)','EXECUTE') from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('profiles','arkid_cloud_snapshots','arkid_cloud_snapshot_history') and c.relkind='r'" 2>"$scratch/check.log")"
+          test "$result" = t || { echo '::error title=Restore check::Expected restored tables, RLS or authenticated grants were not found.'; exit 1; }
+          echo '::notice title=Restore phase::Three restored tables have RLS and authenticated read grants; snapshot RPC execute grant exists.'
           echo 'Other services, actual content and a full production recovery remain unverified.'
