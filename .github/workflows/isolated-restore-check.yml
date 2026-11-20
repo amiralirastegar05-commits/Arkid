@@ -1,0 +1,85 @@
+name: Isolated encrypted backup restore check
+
+# Only a deliberate push with this subject on this fixed branch may execute.
+# Never run on pull requests or on a schedule. This does not connect to the
+# hosted project and must only run after explicit owner permission.
+on:
+  push:
+    branches:
+      - arena/947a456b-arkid
+
+permissions:
+  actions: read
+
+jobs:
+  isolated-restore:
+    if: startsWith(github.event.head_commit.message, 'Run isolated restore check [approved]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check restore passphrase is present
+        shell: bash
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.ARKID_BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          test "${#BACKUP_PASSPHRASE}" -ge 24 || { echo 'Restore passphrase is missing or too short.'; exit 1; }
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 2.122.1
+      - name: Download only the encrypted backup
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: arkid-encrypted-db-backup
+          path: ${{ runner.temp }}/arkid-encrypted-restore-input
+          github-token: ${{ github.token }}
+          run-id: 44724874628
+      - name: Restore into disposable local Postgres and check schema
+        shell: bash
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.ARKID_BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          scratch="$(mktemp -d "${RUNNER_TEMP}/arkid-restore.XXXXXXXX")"
+          cleanup() {
+            if [ -f "$scratch/local/supabase/config.toml" ]; then
+              supabase stop --no-backup --workdir "$scratch/local" >/dev/null 2>&1 || true
+            fi
+            rm -rf "$scratch" "$RUNNER_TEMP/arkid-encrypted-restore-input"
+          }
+          trap cleanup EXIT
+          test -f "$RUNNER_TEMP/arkid-encrypted-restore-input/arkid-backup.tar.gz.gpg"
+          gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 3 --decrypt "$RUNNER_TEMP/arkid-encrypted-restore-input/arkid-backup.tar.gz.gpg" >"$scratch/backup.tar.gz" 3<<<"$BACKUP_PASSPHRASE" || { echo 'Backup decryption failed.'; exit 1; }
+          # Only fixed plain files are extracted; paths and links in archives
+          # are never trusted. Their contents are never printed or uploaded.
+          python3 - "$scratch" <<'PY'
+          import pathlib, sys, tarfile
+          root = pathlib.Path(sys.argv[1])
+          expected = {'roles.sql', 'schema.sql', 'data.sql'}
+          with tarfile.open(root / 'backup.tar.gz', 'r:gz') as archive:
+              members = archive.getmembers()
+              assert len(members) == 3 and {m.name for m in members} == expected
+              assert all(m.isfile() for m in members)
+              for member in members:
+                  with archive.extractfile(member) as source, (root / member.name).open('wb') as target:
+                      while chunk := source.read(1024 * 1024):
+                          target.write(chunk)
+          PY
+          mkdir -p "$scratch/local"
+          # A fresh unlinked CLI workdir ensures every target below is local.
+          supabase init --workdir "$scratch/local" >/dev/null
+          supabase db start --workdir "$scratch/local" >/dev/null
+          export PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=postgres
+          command -v psql >/dev/null || { echo 'Postgres client is unavailable on this runner.'; exit 1; }
+          # SQL and errors can contain private data; keep all output local and
+          # only publish a generic outcome. ON_ERROR_STOP rolls back failures.
+          if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore.log" 2>&1; then
+            echo 'Isolated restore failed; private SQL output was not logged.'
+            exit 1
+          fi
+          result="$(psql --set ON_ERROR_STOP=1 --tuples-only --no-align --command "select count(*) = 3 and bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('profiles','arkid_cloud_snapshots','arkid_cloud_snapshot_history') and c.relkind='r'" 2>"$scratch/check.log")"
+          test "$result" = t || { echo 'Expected restored tables or RLS were not found.'; exit 1; }
+          echo 'Isolated restore completed and the three existing tables have RLS enabled.'
+          echo 'Other services, actual content and a full production recovery remain unverified.'
