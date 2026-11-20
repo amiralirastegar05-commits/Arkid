@@ -1,0 +1,61 @@
+name: Synthetic local Supabase integration
+
+# No repository secrets and no hosted Supabase projects. The local stack is
+# isolated inside a disposable GitHub-hosted runner with synthetic users only.
+on:
+  push:
+    branches:
+      - arena/947a456b-arkid
+
+permissions:
+  contents: read
+
+jobs:
+  local-integration:
+    if: startsWith(github.event.head_commit.message, 'Run local Supabase test [approved]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 2.122.1
+      - name: Start isolated local stack and run integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          scratch="$(mktemp -d "${RUNNER_TEMP}/arkid-synthetic.XXXXXXXX")"
+          cleanup() {
+            if [ -f "$scratch/supabase/config.toml" ]; then
+              supabase stop --no-backup --workdir "$scratch" >/dev/null 2>&1 || true
+            fi
+            rm -rf "$scratch"
+          }
+          trap cleanup EXIT
+          supabase init --workdir "$scratch" >/dev/null
+          echo '::notice title=Synthetic test::Local configuration initialized.'
+          supabase start --workdir "$scratch" --exclude realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor >/dev/null || { echo '::error title=Synthetic test::Local services failed to start.'; exit 1; }
+          echo '::notice title=Synthetic test::Local services started.'
+          export PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=postgres
+          for migration in supabase/new-project/migrations/0*.sql; do
+            if ! psql --set ON_ERROR_STOP=1 --single-transaction --file "$migration" >"$scratch/migration.log" 2>&1; then
+              printf '::error title=Synthetic migration::%s failed.\n' "$(basename "$migration")"
+              grep -m1 -E 'ERROR:|FATAL:' "$scratch/migration.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic diagnostic::/' || true
+              exit 1
+            fi
+          done
+          psql --set ON_ERROR_STOP=1 --command "notify pgrst, 'reload schema'" >/dev/null
+          echo '::notice title=Synthetic test::Migrations installed on local database.'
+          # Status contains ONLY local generated development keys. Never print it.
+          supabase status --workdir "$scratch" -o env >"$scratch/status.env"
+          set -a; source "$scratch/status.env"; set +a
+          export ARKID_LOCAL_SUPABASE=yes ARKID_LOCAL_API=http://127.0.0.1:54321 ARKID_LOCAL_ANON="$ANON_KEY" ARKID_LOCAL_SERVICE="$SERVICE_ROLE_KEY"
+          if ! node tests/supabase/local-real-stack.mjs >"$scratch/test.log" 2>&1; then
+            echo '::error title=Synthetic test::Local Auth, REST or Worker integration failed.'
+            head -6 "$scratch/test.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic diagnostic::/' || true
+            exit 1
+          fi
+          echo '::notice title=Synthetic test::Synthetic local Auth, REST, PostgreSQL and Worker flows passed.'
