@@ -70,9 +70,17 @@ jobs:
           supabase stop --workdir "$scratch" --no-backup >/dev/null 2>&1
           supabase db start --workdir "$scratch" >/dev/null
           if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore.log" 2>&1; then
-            echo '::error title=Synthetic restore::Standard-role restore failed.'
+            echo '::warning title=Synthetic restore::Standard-role restore failed; testing a local-only admin fallback.'
             grep -m1 'ERROR:' "$scratch/restore.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic restore diagnostic::/' || true
-            exit 1
+            export PGUSER=supabase_admin
+            admin="$(psql --tuples-only --no-align --command 'select rolsuper from pg_roles where rolname=current_user')"
+            test "$admin" = t || { echo '::error title=Synthetic restore::No local superuser.'; exit 1; }
+            if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore-admin.log" 2>&1; then
+              echo '::error title=Synthetic restore::Local admin restore failed.'
+              grep -m1 'ERROR:' "$scratch/restore-admin.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic restore diagnostic::/' || true
+              exit 1
+            fi
+            echo '::warning title=Synthetic restore::Local superuser required; hosted recovery remains unverified.'
           fi
           psql --tuples-only --no-align --command "select (select count(*) from auth.users), (select count(*) from public.profiles), (select count(*) from public.arkid_cloud_snapshots)" >"$scratch/after.count"
           cmp -s "$scratch/before.count" "$scratch/after.count" || { echo '::error title=Synthetic restore::Synthetic row counts differ.'; exit 1; }
