@@ -113,6 +113,18 @@ jobs:
             local_admin="$(psql --set ON_ERROR_STOP=1 --tuples-only --no-align --command 'select rolsuper from pg_roles where rolname=current_user' 2>"$scratch/admin.log")" || { echo '::error title=Restore check::Local admin login failed.'; exit 1; }
             test "$local_admin" = t || { echo '::error title=Restore check::Local admin is not a superuser.'; exit 1; }
             if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/admin-restore.log" 2>&1; then
+              python3 - "$scratch/admin-restore.log" <<'PY'
+          import re, sys
+          s = open(sys.argv[1], encoding='utf-8', errors='replace').read()
+          match = re.search(r'psql:[^\r\n]*/(roles|schema|data)\.sql:\d+:', s)
+          if match: print('::notice title=Admin restore file::' + match.group(1))
+          categories = [('permission denied','permission denied'),('already exists','object conflict'),('does not exist','missing object or version mismatch'),('syntax error','SQL syntax error'),('invalid configuration parameter','unsupported configuration'),('unrecognized configuration parameter','unsupported configuration'),('cannot be dropped','role or object in use')]
+          for pattern, label in categories:
+              if pattern in s.lower():
+                  print('::notice title=Admin restore category::' + label)
+                  break
+          else: print('::notice title=Admin restore category::other restore error')
+          PY
               echo '::error title=Restore check::Local superuser restore also failed; private output was not logged.'
               exit 1
             fi
