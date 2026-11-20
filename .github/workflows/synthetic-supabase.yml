@@ -59,3 +59,24 @@ jobs:
             exit 1
           fi
           echo '::notice title=Synthetic test::Synthetic local Auth, REST, PostgreSQL and Worker flows passed.'
+          # Rehearse backup/restore separately, using ONLY this synthetic DB.
+          # Never use a linked/remote flag or any real project credential.
+          psql --tuples-only --no-align --command "select (select count(*) from auth.users), (select count(*) from public.profiles), (select count(*) from public.arkid_cloud_snapshots)" >"$scratch/before.count"
+          supabase db dump --workdir "$scratch" --local --role-only --file "$scratch/roles.sql" >/dev/null
+          supabase db dump --workdir "$scratch" --local --file "$scratch/schema.sql" >/dev/null
+          supabase db dump --workdir "$scratch" --local --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes --file "$scratch/data.sql" >/dev/null
+          echo '::notice title=Synthetic restore::Local synthetic dumps created.'
+          # This destroys only the synthetic local stack, not a hosted project.
+          supabase stop --workdir "$scratch" --no-backup >/dev/null 2>&1
+          supabase db start --workdir "$scratch" >/dev/null
+          if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore.log" 2>&1; then
+            echo '::error title=Synthetic restore::Standard-role restore failed.'
+            grep -m1 'ERROR:' "$scratch/restore.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic restore diagnostic::/' || true
+            exit 1
+          fi
+          psql --tuples-only --no-align --command "select (select count(*) from auth.users), (select count(*) from public.profiles), (select count(*) from public.arkid_cloud_snapshots)" >"$scratch/after.count"
+          cmp -s "$scratch/before.count" "$scratch/after.count" || { echo '::error title=Synthetic restore::Synthetic row counts differ.'; exit 1; }
+          # The auth.users signup trigger is part of the recovery requirements.
+          trigger="$(psql --tuples-only --no-align --command "select exists(select 1 from pg_trigger where tgrelid='auth.users'::regclass and tgname='arkid_create_profile' and not tgisinternal)")"
+          test "$trigger" = t || { echo '::error title=Synthetic restore::Profile creation trigger was not recovered.'; exit 1; }
+          echo '::notice title=Synthetic restore::Synthetic restore, counts and profile trigger passed.'
