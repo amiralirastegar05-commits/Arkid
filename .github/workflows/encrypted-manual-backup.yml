@@ -36,7 +36,12 @@ jobs:
           import os, sys
           from urllib.parse import urlsplit, unquote, quote, urlunsplit
           try:
-              u = urlsplit(os.environ['BACKUP_DB_TEMPLATE'])
+              template = os.environ['BACKUP_DB_TEMPLATE']
+              placeholders = ('[YOUR-PASSWORD]', '[YOUR-DATABASE-PASSWORD]')
+              assert sum(template.count(p) for p in placeholders) == 1
+              for placeholder in placeholders:
+                  template = template.replace(placeholder, 'ARKID_PASSWORD_PLACEHOLDER')
+              u = urlsplit(template)
               host = (u.hostname or '').lower()
               name = unquote(u.username or '')
               password = os.environ['BACKUP_DB_PASSWORD']
@@ -45,7 +50,7 @@ jobs:
               pooler = host.endswith('.pooler.supabase.com') and name == 'postgres.xorsueznslmcmkfqizqn'
               assert u.scheme in ('postgres', 'postgresql') and (direct or pooler)
               assert u.path == '/postgres' and u.port in (None, 5432)
-              assert u.password in ('[YOUR-PASSWORD]', '[YOUR-DATABASE-PASSWORD]')
+              assert u.password == 'ARKID_PASSWORD_PLACEHOLDER'
               assert password and not any(c in password for c in '\r\n')
               assert len(phrase) >= 24 and phrase != password and not any(c in phrase for c in '\r\n')
               print(urlunsplit((u.scheme, quote(name,safe='')+':'+quote(password,safe='')+'@'+host+':5432', '/postgres', 'sslmode=require', '')))
