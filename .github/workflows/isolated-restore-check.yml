@@ -85,6 +85,26 @@ jobs:
             elif grep -qi 'does not exist' "$scratch/restore.log"; then category='missing object or version mismatch';
             else category='other SQL or connection error'; fi
             echo "::error title=Restore check::SQL restore failed: $category. Private SQL output was not logged."
+            # Report only a fixed file category and allowlisted infrastructure
+            # diagnostics, never SQL text, user data, identifiers or passwords.
+            python3 - "$scratch/restore.log" <<'PY'
+          import re, sys
+          s = open(sys.argv[1], encoding='utf-8', errors='replace').read()
+          match = re.search(r'psql:[^\r\n]*/(roles|schema|data)\.sql:\d+:', s)
+          if match:
+              print('::notice title=Restore file::' + match.group(1))
+          known = {
+              'permission denied to grant role "postgres"': 'managed postgres role grant',
+              'must be able to SET ROLE "supabase_admin"': 'managed owner role',
+              'permission denied to set parameter "session_replication_role"': 'replication role setting',
+              'permission denied for table buckets_vectors': 'managed vector storage table',
+              'permission denied for table vector_indexes': 'managed vector storage index table',
+          }
+          for pattern, label in known.items():
+              if pattern in s:
+                  print('::notice title=Restore diagnosis::' + label)
+                  break
+          PY
             exit 1
           fi
           echo '::notice title=Restore phase::SQL restore transaction succeeded.'
