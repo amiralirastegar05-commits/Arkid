@@ -1,0 +1,65 @@
+name: Encrypted database backup (manual branch trigger)
+
+# Deliberately NOT a pull_request, pull_request_target, schedule, or generic
+# push trigger. workflow_dispatch requires this file on the default branch,
+# which this session must not modify. A trusted, explicitly approved push with
+# the exact commit message below is the temporary trigger on this branch only.
+on:
+  push:
+    branches:
+      - arena/947a456b-arkid
+
+permissions: {}
+
+jobs:
+  encrypted-backup:
+    if: github.event.head_commit.message == 'Run encrypted backup [approved]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          version: 2.122.1
+      - name: Dump, encrypt and check archive readability
+        shell: bash
+        env:
+          BACKUP_DB_URL: ${{ secrets.ARKID_BACKUP_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.ARKID_BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          # Never print either secret or dump contents. Check the exact project
+          # identity, including the username when using the shared pooler.
+          python3 - <<'PY'
+          import os, sys
+          from urllib.parse import urlsplit, unquote
+          try:
+              u = urlsplit(os.environ['BACKUP_DB_URL'])
+              host = (u.hostname or '').lower()
+              name = unquote(u.username or '')
+              direct = host == 'db.xorsueznslmcmkfqizqn.supabase.co' and name == 'postgres'
+              pooler = host.endswith('.pooler.supabase.com') and name == 'postgres.xorsueznslmcmkfqizqn'
+              assert u.scheme in ('postgres', 'postgresql') and (direct or pooler)
+              assert u.path == '/postgres' and u.password and u.port in (None, 5432)
+              assert len(os.environ['BACKUP_PASSPHRASE']) >= 24
+          except (ValueError, KeyError, AssertionError):
+              sys.exit('Missing or invalid backup secrets, project, port or passphrase length.')
+          PY
+          scratch="$(mktemp -d "${RUNNER_TEMP}/arkid-backup.XXXXXXXX")"
+          trap 'rm -rf "$scratch"' EXIT
+          supabase db dump --db-url "$BACKUP_DB_URL" --role-only --file "$scratch/roles.sql"
+          supabase db dump --db-url "$BACKUP_DB_URL" --file "$scratch/schema.sql"
+          supabase db dump --db-url "$BACKUP_DB_URL" --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes --file "$scratch/data.sql"
+          tar -C "$scratch" -czf "$scratch/backup.tar.gz" roles.sql schema.sql data.sql
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 --cipher-algo AES256 --symmetric --output "$RUNNER_TEMP/arkid-backup.tar.gz.gpg" "$scratch/backup.tar.gz" 3<<<"$BACKUP_PASSPHRASE"
+          # This verifies decryptability and the archive structure, NOT that a
+          # database restore works or that every Supabase service is included.
+          gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 3 --decrypt "$RUNNER_TEMP/arkid-backup.tar.gz.gpg" 3<<<"$BACKUP_PASSPHRASE" | tar -tzf - >/dev/null
+      - name: Upload encrypted backup only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: arkid-encrypted-db-backup
+          path: ${{ runner.temp }}/arkid-backup.tar.gz.gpg
+          if-no-files-found: error
+          retention-days: 7
