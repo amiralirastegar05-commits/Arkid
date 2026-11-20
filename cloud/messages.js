@@ -10,9 +10,11 @@
     if (raw.includes('local data changed during restore') || raw.includes('local cloud binding changed')) return 'اطلاعات این مرورگر هنگام انجام کار تغییر کرد. برگه‌های دیگر آرکید را ببند و دوباره تلاش کن.';
     if (raw.includes('linked to a different account') || raw.includes('linked to another account')) return 'این مرورگر به حساب دیگری متصل است. برای حفظ پیشرفت فعلی، از مرورگر دیگری استفاده کن.';
     if (raw.includes('another or unknown project') || raw.includes('invalid local cloud metadata')) return 'اطلاعات پشتیبان این مرورگر نیاز به بررسی دارد. برای حفظ پیشرفت، چیزی را پاک نکن.';
+    if (raw.includes('cloud snapshot changed during restore')) return 'پشتیبان ابری هنگام انجام کار تغییر کرد؛ اطلاعات مرورگر تغییر نکرد. دوباره تلاش کن.';
     if (raw.includes('cloud conflict') || raw.includes('snapshot conflict')) return 'پیشرفت این مرورگر با پشتیبان ابری متفاوت است. برای جلوگیری از از دست رفتن اطلاعات، هیچ‌کدام بازنویسی نشدند.';
     if (raw.includes('snapshot history full')) return 'فضای نسخه‌های پشتیبان پر شده است. پیشرفت فعلی را نگه دار و برای بررسی کمک بگیر.';
     if (raw.includes('no local game data')) return 'هنوز پیشرفتی در این مرورگر برای پشتیبان‌گیری پیدا نشد.';
+    if (raw.includes('cloud snapshot is empty')) return 'پشتیبان این حساب خالی است؛ اطلاعات فعلی مرورگر تغییر نکرده است.';
     if (raw.includes('cloud snapshot is missing') || raw.includes('پشتیبان ابری پیدا نشد')) return 'برای این حساب پشتیبان ابری پیدا نشد. ابتدا در مرورگری که پیشرفتت در آن است پشتیبان بگیر.';
     if (raw.includes('account changed')) return 'حساب در حین انجام کار تغییر کرد. دوباره وارد حساب درست شو و تلاش کن.';
     if (raw.includes('snapshot is too large')) return 'حجم پیشرفت برای پشتیبان‌گیری بیش از حد مجاز است. اطلاعاتت را نگه دار و برای بررسی کمک بگیر.';

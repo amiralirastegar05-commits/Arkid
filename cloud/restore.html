@@ -17,7 +17,7 @@
       <p class="eyebrow" dir="ltr">YOUR ADVENTURE AWAITS</p>
       <h1 id="restoreTitle">برگرد به بازی!</h1>
       <p class="intro">پیشرفتت رو قبلاً در آرکید ذخیره کردی؟ با همون حساب وارد شو و ماجراجویی‌ات رو ادامه بده.</p>
-      <div class="note"><span aria-hidden="true">✦</span><p>بازیابی فقط روی مرورگری که پیشرفت بازی ندارد انجام می‌شود. برای حفظ اطلاعاتت، پیشرفت‌های موجود پاک یا ترکیب نمی‌شوند.</p></div>
+      <div class="note"><span aria-hidden="true">✦</span><p>بازیابی معمولی فقط در مرورگر بدون پیشرفت انجام می‌شود. برای جایگزینی پیشرفت فعلی از دکمهٔ جداگانه استفاده کن؛ داده‌ها با هم ترکیب نمی‌شوند.</p></div>
       <form id="login" class="login-form">
         <label>ایمیل<input type="email" name="email" required autocomplete="email" inputmode="email" dir="ltr" placeholder="you@example.com"></label>
         <label>گذرواژه<input type="password" name="password" required autocomplete="current-password" dir="ltr" placeholder="••••••••"></label>
@@ -26,7 +26,10 @@
       <div id="account" class="account" hidden>
         <div class="account-label"><span class="account-icon" aria-hidden="true">✓</span><div><strong>آمادهٔ بازیابی</strong><small id="accountEmail" dir="ltr"></small></div></div>
         <button id="restore" class="button primary" type="button">بازیابی پیشرفت</button>
-        <p class="hint">پیش از بازیابی، برگه‌های دیگر آرکید را ببند.</p>
+        <p class="hint">پیش از بازیابی، همهٔ بازی‌ها و برگه‌های دیگر آرکید را ببند.</p>
+        <button id="replace" class="button secondary" type="button">خالی کردن داده‌های بازی و جایگزینی با پشتیبان ابری</button>
+        <p class="hint">این کار داده‌های شناخته‌شدهٔ بازی و تنظیمات آن را در این مرورگر جایگزین می‌کند؛ حساب و اطلاعات دیگر سایت‌ها پاک نمی‌شوند. بهتر است پیش از خروج از حساب قبلی، پیشرفت فعلی را در همان حساب پشتیبان بگیری. فایل پشتیبان زیر رمزگذاری نشده است؛ آن را امن نگه دار.</p>
+        <button id="downloadLocal" class="button secondary" type="button">دریافت پشتیبان از پیشرفت فعلی مرورگر</button>
         <button id="signout" class="text-button" type="button">ورود با حساب دیگر</button>
         <details><summary>گزینه‌های بیشتر</summary><button id="download" class="button secondary" type="button">دریافت فایل پشتیبان</button></details>
       </div>
