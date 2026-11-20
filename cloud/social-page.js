@@ -1,5 +1,6 @@
 import './messages.js';
 import {currentUser,socialCall} from './social.js';
+import {requireUser} from './public-profile.js';
 
 const $ = id => document.getElementById(id);
 const status=$('status'), login=$('login'), loginPanel=$('loginPanel'), content=$('socialContent');
@@ -8,7 +9,7 @@ const say=(text,kind='')=>{status.textContent=text;status.dataset.kind=kind};
 function setBusy(value){busy=value;document.querySelectorAll('button,input').forEach(el=>{el.disabled=value})}
 function message(error, action=''){
   const s=String(error?.message||'').toLowerCase();
-  const cases=[['already_in_team','هر بازیکن فعلاً فقط می‌تواند عضو یک تیم باشد.'],['not_team_owner','فقط مدیر تیم می‌تواند دعوت بفرستد.'],['team_full','ظرفیت این تیم پر شده است.'],['team_creation_limited','تعداد تیم‌های ساخته‌شده زیاد بوده است. بعداً دوباره تلاش کن.'],['team_unavailable','این تیم فعلاً در دسترس نیست.'],['player_unavailable','این بازیکن فعلاً برای دعوت در دسترس نیست.'],['invite_recent','به این بازیکن اخیراً دعوت فرستاده‌ای. کمی بعد دوباره تلاش کن.'],['invite_rate_limited','تعداد دعوت‌ها زیاد بوده است. بعداً دوباره تلاش کن.'],['search_rate_limited','تعداد جست‌وجوها زیاد بوده است. کمی بعد دوباره تلاش کن.'],['invalid_search','برای جست‌وجو بین ۲ تا ۴۰ نویسه وارد کن.'],['invalid_team_name','نام تیم باید بین ۲ تا ۳۲ نویسه باشد.'],['transfer_required','پیش از خروج، مدیریت را به یکی از اعضای تیم بسپار.'],['no_team','فعلاً عضو تیمی نیستی.'],['owner_exists','این تیم اکنون مدیر دارد.'],['invite_unavailable','این دعوت دیگر در دسترس نیست.'],['account_changed','حساب تغییر کرده است. دوباره وارد شو.'],['sign_in_required','برای ادامه دوباره وارد شو.']];
+  const cases=[['already_in_team','هر بازیکن فعلاً فقط می‌تواند عضو یک تیم باشد.'],['not_team_owner','فقط مدیر تیم می‌تواند دعوت بفرستد.'],['team_full','ظرفیت این تیم پر شده است.'],['team_creation_limited','تعداد تیم‌های ساخته‌شده زیاد بوده است. بعداً دوباره تلاش کن.'],['team_unavailable','این تیم فعلاً در دسترس نیست.'],['player_unavailable','این بازیکن فعلاً برای دعوت در دسترس نیست.'],['invite_recent','به این بازیکن اخیراً دعوت فرستاده‌ای. کمی بعد دوباره تلاش کن.'],['invite_rate_limited','تعداد دعوت‌ها زیاد بوده است. بعداً دوباره تلاش کن.'],['search_rate_limited','تعداد جست‌وجوها زیاد بوده است. کمی بعد دوباره تلاش کن.'],['rank_rate_limited','تعداد بررسی رتبه‌ها زیاد بوده است. کمی بعد دوباره تلاش کن.'],['invalid_period','این ماه برای نمایش معتبر نیست.'],['invalid_search','برای جست‌وجو بین ۲ تا ۴۰ نویسه وارد کن.'],['invalid_team_name','نام تیم باید بین ۲ تا ۳۲ نویسه باشد.'],['transfer_required','پیش از خروج، مدیریت را به یکی از اعضای تیم بسپار.'],['no_team','فعلاً عضو تیمی نیستی.'],['owner_exists','این تیم اکنون مدیر دارد.'],['invite_unavailable','این دعوت دیگر در دسترس نیست.'],['account_changed','حساب تغییر کرده است. دوباره وارد شو.'],['sign_in_required','برای ادامه دوباره وارد شو.']];
   for(const [key,text] of cases) if(s.includes(key)) return text;
   if(error?.code==='PGRST202'||error?.code==='42883') return 'این بخش هنوز فعال نشده است. کمی بعد دوباره تلاش کن.';
   if(action==='write') return 'انجام کار تأیید نشد؛ ممکن است ثبت شده باشد. صفحه را به‌روزرسانی و نتیجه را بررسی کن.';
@@ -44,6 +45,31 @@ function renderInbox(items){
     card.append(actions);box.append(card);
   }
 }
+function renderAnnouncements(items){
+  const box=$('announcements');box.replaceChildren();
+  if(!items.length){box.append(empty('فعلاً خبر تازه‌ای نیست.'));return}
+  for(const item of items){
+    const card=document.createElement('article');card.className='social-card';
+    card.append(node('strong',item.title),node('p',item.body));
+    if(item.is_read)card.append(node('p','خوانده‌شده','hint'));
+    else card.append(actionButton('خواندم',()=>markAnnouncement(item.announcement_id)));
+    box.append(card);
+  }
+}
+async function markAnnouncement(id){
+  if(busy)return;setBusy(true);say('در حال ثبت…');
+  try{await socialCall(auth.getClient(),userId,'arkid_read_announcement',{notice:id});await dashboard();say('خبر به‌عنوان خوانده‌شده ثبت شد.','success')}
+  catch(error){say(message(error,'write'),'error')}finally{setBusy(false)}
+}
+function renderRankings(items){
+  const box=$('rankings');box.replaceChildren();
+  if(!items.length){box.append(empty('هنوز رتبه‌ای برای نمایش وجود ندارد.'));return}
+  for(const item of items){
+    const card=document.createElement('article');card.className='social-card';
+    card.append(node('strong',String(item.place)+' · '+item.display_name),node('p',String(item.points)+' امتیاز ماهانه'));
+    box.append(card);
+  }
+}
 function renderResults(items){
   const box=$('results');box.replaceChildren();
   if(!items.length){box.append(empty('بازیکنی با این نام پیدا نشد.'));return}
@@ -58,8 +84,18 @@ function renderResults(items){
 }
 async function dashboard(){
   const client=auth.getClient();const id=await currentUser(client);
-  const [rows,inbox]=await Promise.all([socialCall(client,id,'arkid_my_team'),socialCall(client,id,'arkid_team_inbox')]);
-  userId=id;renderTeam(rows?.[0]||null);renderInbox(inbox||[]);$('results').replaceChildren();
+  const month=$('rankMonth').value;
+  const rankArgs=month?{period:month+'-01'}:{};
+  const [rows,inbox,announcements,rankings]=await Promise.all([
+    socialCall(client,id,'arkid_my_team'),socialCall(client,id,'arkid_team_inbox'),
+    socialCall(client,id,'arkid_announcement_feed').then(value=>({value}),error=>({error})),
+    socialCall(client,id,'arkid_monthly_leaderboard',rankArgs).then(value=>({value}),error=>({error}))
+  ]);
+  await requireUser(client,id);
+  userId=id;renderTeam(rows?.[0]||null);renderInbox(inbox||[]);
+  if(announcements.error)$('announcements').replaceChildren(empty(message(announcements.error)));else renderAnnouncements(announcements.value||[]);
+  if(rankings.error)$('rankings').replaceChildren(empty(message(rankings.error)));else renderRankings(rankings.value||[]);
+  $('results').replaceChildren();
   loginPanel.hidden=true;content.hidden=false;say('');
 }
 async function claimTeam(){
@@ -108,9 +144,14 @@ $('search').addEventListener('submit',async e=>{
   try{const rows=await socialCall(auth.getClient(),userId,'arkid_search_players',{query_text:q});renderResults(rows||[]);say('')}
   catch(error){say(message(error),'error')}finally{setBusy(false)}
 });
+$('rankForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(busy)return;const month=$('rankMonth').value;setBusy(true);say('در حال دریافت رتبه‌ها…');
+  try{const rows=await socialCall(auth.getClient(),userId,'arkid_monthly_leaderboard',month?{period:month+'-01'}:{});renderRankings(rows||[]);say('')}
+  catch(error){say(message(error),'error')}finally{setBusy(false)}
+});
 $('refresh').addEventListener('click',async()=>{if(busy)return;setBusy(true);say('در حال به‌روزرسانی…');try{await dashboard()}catch(error){say(message(error),'error')}finally{setBusy(false)}});
 $('signout').addEventListener('click',async()=>{if(busy)return;setBusy(true);try{const {error}=await auth.signOut();if(error)throw error;resetUI();say('از حساب خارج شدی.')}catch(error){say(message(error),'error')}finally{setBusy(false)}});
-function resetUI(){userId=null;team=null;content.hidden=true;loginPanel.hidden=false;for(const id of ['team','inbox','results'])$(id).replaceChildren()}
+function resetUI(){userId=null;team=null;content.hidden=true;loginPanel.hidden=false;for(const id of ['team','inbox','announcements','rankings','results'])$(id).replaceChildren()}
 setBusy(true);
 try{
   await import('./arcade-auth.js');auth=window.ArkidAuth;
