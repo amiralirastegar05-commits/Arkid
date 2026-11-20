@@ -1,0 +1,9 @@
+html[data-arkid-entry="pending"] body > :not(#arkidEntryGate){visibility:hidden}
+#arkidEntryGate[hidden]{display:none}
+#arkidEntryGate{position:fixed;inset:0;z-index:2147483000;overflow:auto;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:radial-gradient(ellipse at 50% 0%,#29220d 0%,#080c14 50%,#05070c 100%);color:#f0f3f8;font-family:Ali_Grapph,sans-serif;direction:rtl}
+#arkidEntryGate *{box-sizing:border-box}
+.entry-card{width:min(100%,440px);padding:clamp(24px,7vw,38px);border:1px solid #ffffff20;border-radius:28px;background:linear-gradient(150deg,#141a24,#0b1018);box-shadow:0 30px 100px #0009;text-align:center}
+.entry-icon{display:grid;place-items:center;width:72px;height:72px;margin:0 auto 22px;border:1px solid #f5c51855;border-radius:23px;background:#f5c5181a;font-size:34px}
+.entry-kicker{color:#f5c518;font-size:12px;letter-spacing:.12em}
+.entry-card h1{font-size:25px;margin:10px 0}.entry-card p{color:#a9b3c3;font-size:14px;line-height:2;margin:12px 0 22px}
+.entry-actions{display:grid;gap:10px}.entry-actions button,.entry-actions a{display:block;text-decoration:none;text-align:center;padding:14px;border-radius:14px;border:1px solid #ffffff25;background:#141b25;color:#f3f5f9;font:700 15px Ali_Grapph,sans-serif;cursor:pointer}.entry-actions button{background:linear-gradient(130deg,#ffd54a,#c9a010);color:#0a0d12;border-color:transparent}.entry-actions :focus-visible{outline:3px solid #ffd54a;outline-offset:3px}.entry-foot{font-size:12px!important;margin:18px 0 0!important;color:#8b95a8!important}

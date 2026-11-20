@@ -13,7 +13,7 @@
 
   function setMenuState(user) {
     const label = document.querySelector('#arkidAccountButton .arkid-account-state');
-    if (label) label.textContent = user?.email || (configured ? 'ورود / ثبت‌نام' : 'نیاز به پیکربندی');
+    if (label) label.textContent = user?.email || (configured ? 'ورود / ثبت‌نام' : 'موقتاً در دسترس نیست');
     const button = document.getElementById('arkidAccountButton');
     if (button) button.setAttribute('aria-label', user ? `حساب ${user.email}` : 'ورود یا ساخت حساب آرکید');
   }
@@ -42,7 +42,6 @@
       <p class="arkid-auth-note">ورود شما فعال است. پیشرفت به‌طور پیش‌فرض محلی است. پشتیبان ابری دستی است و اطلاعات به‌طور خودکار ادغام نمی‌شوند.</p>
       <p class="arkid-auth-note">پیش از پشتیبان، بازی‌ها و برگه‌های دیگر را ببند. این داده‌ها به حساب فعلی تعلق خواهند گرفت.</p>
       <div class="arkid-auth-actions"><button class="arkid-auth-btn" id="arkidCloudUpload" type="button">پشتیبان ابری</button><a class="arkid-auth-btn" href="cloud/restore.html">بازیابی در مرورگر خالی</a></div>
-      <div id="arkidWorkerCheck" class="arkid-auth-check" data-state="pending">در حال بررسی API آرکید…</div>
       <div class="arkid-auth-actions"><button class="arkid-auth-btn" id="arkidSignOut" type="button">خروج از حساب</button></div>
       <p id="arkidAuthStatus" class="arkid-auth-status" role="status" aria-live="polite"></p>` : `
       <p class="arkid-auth-copy">${mode === 'signup' ? 'با ایمیل و گذرواژه حساب بساز؛ ممکن است لازم باشد ایمیلت را تأیید کنی.' : (auth?.supportsGoogle?.() ? 'با ایمیل و گذرواژه وارد شو یا از ورود گوگل استفاده کن.' : 'با ایمیل و گذرواژه وارد شو.')}</p>
@@ -55,8 +54,9 @@
       </form>
       <p id="arkidAuthStatus" class="arkid-auth-status" role="status" aria-live="polite"></p>
       ${configured ? '' : '<p class="arkid-auth-note">اتصال حساب آرکید هنوز در دسترس نیست. کمی بعد دوباره تلاش کن.</p>'}
-      <button class="arkid-auth-toggle" id="arkidAuthToggle" type="button">${mode === 'signup' ? 'از قبل حساب داری؟ ورود' : 'حساب نداری؟ ثبت‌نام'}</button>`;
-    dialog.innerHTML = `<section class="arkid-auth"><header class="arkid-auth-head"><h2 id="arkidAuthTitle">${title}</h2><button class="arkid-auth-close" id="arkidAuthClose" type="button" aria-label="بستن">✕</button></header>${body}</section>`;
+      <button class="arkid-auth-toggle" id="arkidAuthToggle" type="button">${mode === 'signup' ? 'از قبل حساب داری؟ ورود' : 'حساب نداری؟ ثبت‌نام'}</button>
+      <a class="arkid-auth-restore" href="cloud/restore.html">پیشرفت قبلی داری؟ بازیابی پشتیبان ←</a>`;
+    dialog.innerHTML = `<section class="arkid-auth"><header class="arkid-auth-head"><div class="arkid-auth-brand"><span class="arkid-auth-icon" aria-hidden="true">✦</span><div><small dir="ltr">ARKID ACCOUNT</small><h2 id="arkidAuthTitle">${title}</h2></div></div><button class="arkid-auth-close" id="arkidAuthClose" type="button" aria-label="بستن">✕</button></header>${body}</section>`;
 
     document.getElementById('arkidAuthClose').addEventListener('click', () => dialog.close());
     document.getElementById('arkidAuthToggle')?.addEventListener('click', () => {
@@ -68,12 +68,11 @@
     document.getElementById('arkidSignOut')?.addEventListener('click', signOut);
     document.getElementById('arkidCloudUpload')?.addEventListener('click', uploadCloud);
     setBusy(false);
-    if (session) checkWorker();
   }
 
   async function submitEmailForm(event) {
     event.preventDefault();
-    if (!auth || !configured) return setStatus('ورود هنوز پیکربندی نشده است.', 'error');
+    if (!auth || !configured) return setStatus('ورود در حال حاضر در دسترس نیست. کمی بعد دوباره تلاش کن.', 'error');
     const form = new FormData(event.currentTarget);
     const email = String(form.get('email') || '').trim();
     const password = String(form.get('password') || '');
@@ -101,20 +100,20 @@
         setStatus('با موفقیت وارد شدی.', 'success');
       }
     } catch (error) {
-      setStatus(error?.message || 'انجام عملیات ممکن نشد. دوباره تلاش کن.', 'error');
+      setStatus(window.ArkidMessages.message(error, 'login'), 'error');
     } finally {
       setBusy(false);
     }
   }
 
   async function signInWithGoogle() {
-    if (!auth || !configured) return setStatus('ورود هنوز پیکربندی نشده است.', 'error');
+    if (!auth || !configured) return setStatus('ورود در حال حاضر در دسترس نیست. کمی بعد دوباره تلاش کن.', 'error');
     setBusy(true);
     try {
       const { error } = await auth.signInWithGoogle();
       if (error) throw error;
     } catch (error) {
-      setStatus(error?.message || 'ورود با Google انجام نشد.', 'error');
+      setStatus(window.ArkidMessages.message(error, 'login'), 'error');
       setBusy(false);
     }
   }
@@ -122,16 +121,17 @@
   async function signOut() {
     if (!auth || !configured) return;
     setBusy(true);
-    const { error } = await auth.signOut();
-    if (error) {
-      setBusy(false);
-      return setStatus(error.message, 'error');
-    }
-    session = null;
-    setMenuState(null);
-    mode = 'signin';
-    render();
-    setStatus('از حساب خارج شدی.', 'success');
+    try {
+      const { error } = await auth.signOut();
+      if (error) throw error;
+      session = null;
+      setMenuState(null);
+      mode = 'signin';
+      render();
+      setStatus('از حساب خارج شدی.', 'success');
+    } catch (error) {
+      setStatus(window.ArkidMessages.message(error), 'error');
+    } finally { setBusy(false); }
   }
 
   async function uploadCloud() {
@@ -146,22 +146,8 @@
       if (window.arkidHasVolatileData?.()) return setStatus('پشتیبان ذخیره شد، اما داده‌های جدید فقط در حافظه هستند؛ پیش از بستن صفحه از آن‌ها نسخه بگیر.', 'error');
       setStatus(result.localChanged ? 'پشتیبان ذخیره شد، اما داده محلی در حین ذخیره تغییر کرد؛ دوباره پشتیبان بگیر.' : 'پشتیبان ابری ذخیره شد.', 'success');
     } catch (error) {
-      setStatus('ذخیره پشتیبان تأیید نشد؛ ممکن است عملیات در ابر انجام شده باشد. حساب را بررسی و دوباره تلاش کن: ' + (error?.message || 'خطای اتصال'), 'error');
+      setStatus(window.ArkidMessages.message(error, 'upload'), 'error');
     } finally { setBusy(false); }
-  }
-
-  async function checkWorker() {
-    const check = document.getElementById('arkidWorkerCheck');
-    if (!check) return;
-    try {
-      const identity = await auth.apiMe();
-      if (!session?.user) return;
-      check.textContent = identity.id === session.user.id ? 'اتصال حساب و API برقرار است.' : 'شناسه حساب با API مطابقت ندارد.';
-      check.dataset.state = identity.id === session.user.id ? 'ok' : 'bad';
-    } catch (error) {
-      check.textContent = error?.message || 'API در دسترس نیست یا تنظیمات CORS کامل نشده است.';
-      check.dataset.state = 'bad';
-    }
   }
 
   function openDialog() {
@@ -208,7 +194,7 @@
     if (!configured || authListenersBound) return;
     authListenersBound = true;
     auth.getSession().then(({ data, error }) => {
-      if (error) setStatus(error.message, 'error');
+      if (error) setStatus(window.ArkidMessages.message(error), 'error');
       session = data?.session || null;
       setMenuState(session?.user);
       if (document.getElementById('arkidAuthDialog')?.open) render();
