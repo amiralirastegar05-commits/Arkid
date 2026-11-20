@@ -50,4 +50,36 @@ try{
  assert.equal(Number((await db.query('select points from public.arkid_my_monthly_points()')).rows[0].points),state.score);
  const board=(await db.query('select * from public.arkid_monthly_leaderboard()')).rows;assert.equal(Number(board[0].points),state.score);
  console.log(`Full local ranked path: authenticated start, ${moves.length} replayed moves, atomic score, retry and leaderboard passed`);
+ if(process.argv.includes('--browser')){
+  // A separate synthetic account now plays through the real browser UI and
+  // Worker against this same disposable PostgreSQL database. Auth and REST
+  // remain simulated: no hosted Supabase or Cloudflare services are contacted.
+  const {createServer}=await import('node:http'),{resolve,sep,extname}=await import('node:path'),{chromium}=await import('playwright-core');
+  const root=resolve(process.cwd()),types={'.html':'text/html','.css':'text/css','.js':'application/javascript','.woff2':'font/woff2'};
+  const http=createServer(async(req,res)=>{try{const path=resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));if(!path.startsWith(root+sep))throw Error('bad path');const bytes=await readFile(path);res.writeHead(200,{'content-type':types[extname(path)]||'application/octet-stream'});res.end(bytes)}catch{res.writeHead(404);res.end()}});
+  await new Promise(resolve=>http.listen(0,'127.0.0.1',resolve));const base=`http://127.0.0.1:${http.address().port}`;env.ALLOWED_ORIGINS=base;
+  let browser;try{
+   let executablePath=process.env.CHROMIUM_PATH,args=[];if(!executablePath){const chrome=(await import('@sparticuz/chromium')).default;executablePath=await chrome.executablePath();args=chrome.args}
+   browser=await chromium.launch({headless:true,executablePath,args});const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});let seed=null;
+   const mock=`export function createClient(){return {auth:{getSession:async()=>({data:{session:{user:{id:'${other}'},access_token:'two'}},error:null}),onAuthStateChange:()=>{},signOut:async()=>({error:null})}}}`;
+   await context.route('**/*',async route=>{const request=route.request(),url=request.url();
+    if(url.startsWith('https://esm.sh/'))return route.fulfill({status:200,contentType:'application/javascript',body:mock});
+    if(url.startsWith('https://arkid-api-now.nova-197b21.workers.dev/v1/ranked/')){
+     const method=request.method(),headers={...request.headers(),origin:base};
+     const response=await worker.fetch(new Request(url,{method,headers,...(method==='POST'?{body:request.postData()}: {})}),env);
+     const body=await response.text();if(method==='POST'&&url.endsWith('/start')&&response.ok)seed=JSON.parse(body).session.seed;
+     return route.fulfill({status:response.status,headers:Object.fromEntries(response.headers),body});
+    }
+    return url.startsWith(base+'/')?route.continue():route.abort();
+   });
+   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+   await page.goto(base+'/cloud/ranked-2048.html');await page.locator('#start:not([disabled])').waitFor();await page.locator('#start').click();await page.locator('#gamePanel:not([hidden])').waitFor();
+   assert.ok(Number.isInteger(seed));const liveGame=createRankedGame(seed),liveMoves=[];let live=liveGame.snapshot();
+   for(let i=0;i<4096&&!live.finished;i++)for(let j=0;j<4;j++){const d=dirs[(i+j)%4];try{live=liveGame.step(d);liveMoves.push(d);break}catch(e){if(e.message!=='invalid_move')throw e}}
+   assert.ok(live.finished&&live.score>0);for(const direction of liveMoves)await page.locator(`[data-move=${direction}]`).click();
+   await page.locator('#submit:not([hidden])').click();await page.getByText(/امتیاز تأیید و ثبت شد/).waitFor();assert.deepEqual(errors,[]);
+   await db.query('reset role');const stored=(await db.query('select points from public.arkid_rank_events where user_id=$1',[other])).rows;assert.equal(stored.length,1);assert.equal(stored[0].points,live.score);
+   console.log(`Ranked mobile browser → Worker → PostgreSQL: ${liveMoves.length} moves and verified points passed`);await context.close();
+  }finally{if(browser)await browser.close();await new Promise(resolve=>http.close(resolve))}
+ }
 }finally{globalThis.fetch=oldFetch;if(server)await server.end();await db.end()}

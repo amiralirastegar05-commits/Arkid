@@ -7,7 +7,9 @@
     "test:responsive": "node tests/browser/responsive.mjs",
     "test:postgres-local": "node tests/postgres/concurrency.mjs",
     "test:ranked-browser": "node tests/browser/ranked.mjs",
-    "test:ranked-postgres": "node tests/postgres/ranked-integration.mjs"
+    "test:ranked-postgres": "node tests/postgres/ranked-integration.mjs",
+    "test:ranked-postgres-browser": "node tests/postgres/ranked-integration.mjs --browser",
+    "test:social-postgres-browser": "node tests/postgres/social-browser.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.16"

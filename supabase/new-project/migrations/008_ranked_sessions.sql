@@ -38,10 +38,12 @@ revoke all on function public.arkid_rank_session_json(public.arkid_rank_sessions
 -- Five sessions per UTC day is a conservative provisional competition rule.
 create function public.arkid_rank_start(player uuid,request_id uuid,random_seed bigint) returns jsonb
 language plpgsql security definer set search_path='' as $$
-declare session_row public.arkid_rank_sessions; now_time timestamptz := pg_catalog.clock_timestamp();
+declare session_row public.arkid_rank_sessions; now_time timestamptz;
 begin
   if player is null or request_id is null or random_seed is null or random_seed not between 0 and 4294967295 then raise exception 'invalid_request' using errcode='22023'; end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('rank-session:'||player::text,0));
+  -- A request may wait for the lock; decide expiry and UTC day only afterwards.
+  now_time := pg_catalog.clock_timestamp();
   select * into session_row from public.arkid_rank_sessions s where s.user_id=player and s.request_id=arkid_rank_start.request_id;
   if session_row.id is not null then return public.arkid_rank_session_json(session_row); end if;
   select * into session_row from public.arkid_rank_sessions s where s.user_id=player and s.status='open' and s.expires_at>now_time order by s.started_at desc limit 1;

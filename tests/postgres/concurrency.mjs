@@ -86,11 +86,17 @@ try{
  const [firstCommit,secondCommit]=await idempotentRace(a,'select public.arkid_rank_commit($1,$2,100,$3) result',[id(41),firstStart.id,'LR'],b,'select public.arkid_rank_commit($1,$2,999,$3) result',[id(41),firstStart.id,'UD']);
  assert.equal(firstCommit.points,100);assert.equal(secondCommit.points,100);
  assert.equal((await db.query('select count(*)::int n from public.arkid_rank_events where user_id=$1',[id(41)])).rows[0].n,1);
+ // A start waiting on a lock must use post-wait time when checking expiry.
+ const oldSession=(await a.query('select public.arkid_rank_start($1,$2,9) result',[id(45),id(303)])).rows[0].result;
+ await db.query("update public.arkid_rank_sessions set expires_at=clock_timestamp()+interval '400 milliseconds' where id=$1",[oldSession.id]);
+ await a.query('begin');await a.query("select pg_advisory_xact_lock(hashtextextended('rank-session:'||$1::text,0))",[id(45)]);
+ let settled=false;const late=b.query('select public.arkid_rank_start($1,$2,10) result',[id(45),id(304)]).then(r=>{settled=true;return r.rows[0].result});
+ await new Promise(resolve=>setTimeout(resolve,700));assert.equal(settled,false);await a.query('commit');assert.notEqual((await late).id,oldSession.id);
  // Competing reviewers cannot process the same report twice.
  await db.query('insert into public.arkid_moderators(user_id) values($1)',[id(42)]);
  const report=(await db.query("insert into public.arkid_social_reports(reporter_id,subject_id,reason,display_name_snapshot,bio_snapshot) values($1,$2,'spam','Player','Bio') returning id",[id(43),id(44)])).rows[0].id;
  a=await as(42);b=await as(42);
  await blockedRace(a,"select public.arkid_moderation_resolve('profile',$1,'reviewed')",[report],b,"select public.arkid_moderation_resolve('profile',$1,'dismissed')",[report],/report_unavailable/);
  assert.equal((await db.query('select count(*)::int n from public.arkid_moderation_actions where report_id=$1',[report])).rows[0].n,1);
- console.log('PostgreSQL 17 multi-connection lock tests: nine races passed');
+ console.log('PostgreSQL 17 multi-connection lock tests: ten races passed');
 }finally{for(const c of clients)await c.end();await db.end()}
