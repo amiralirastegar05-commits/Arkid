@@ -6,7 +6,8 @@
 
 ## تنظیمات محرمانه توسط مالک
 
-- از صفحهٔ Settings → Secrets and variables → Actions مخزن، فقط خود مالک اتصال پایگاه دادهٔ پروژهٔ `xorsueznslmcmkfqizqn` را در `ARKID_BACKUP_DB_URL` وارد کند. باید URI اتصال PostgreSQL مستقیم یا session pooler پورت ۵۴۳۲ و شامل رمز دیتابیس باشد؛ نویسه‌های ویژه در URI باید percent-encoded باشند. Transaction pooler پورت ۶۵۴۳ برای این روش پذیرفته نمی‌شود. این مقدار را هرگز در چت، Issue، فایل یا commit ننویسید.
+- از صفحهٔ Settings → Secrets and variables → Actions مخزن، فقط خود مالک قالب URI اتصال PostgreSQL پروژهٔ `xorsueznslmcmkfqizqn` را با جای‌نگهدار رمز بدون تغییر در `ARKID_BACKUP_DB_TEMPLATE` وارد کند. direct یا session pooler پورت ۵۴۳۲ پذیرفته است، نه transaction pooler پورت ۶۵۴۳.
+- رمز اصلی دیتابیس را جداگانه در `ARKID_BACKUP_DB_PASSWORD` وارد کند. runner آن را به شکل مناسب encode و URL اتصال را در حافظه می‌سازد؛ نیازی نیست مالک رمز را در قالب URI جاسازی کند. هیچ رمز یا URL اتصال واقعی در چت، Issue، فایل یا commit نوشته نشود.
 - عبارت رمزگذاری مستقل، تصادفی و قوی، حداقل ۲۴ نویسه، با نام `ARKID_BACKUP_PASSPHRASE` در همان بخش ثبت شود و خود مالک آن را **جدا از GitHub** در محل امن نگه دارد. از رمز دیتابیس استفاده نشود. اگر عبارت رمزگذاری گم شود، بازیابی فایل ممکن نیست.
 - Secrets به workflowهای مجاز مخزن داده می‌شوند؛ اشخاص دارای توان تغییر و اجرای workflow ممکن است بتوانند از آنها سوءاستفاده کنند. قبل از تنظیم، دسترسی نوشتن به مخزن و کد workflow را بررسی کنید؛ پس از کار، در صورت عدم نیاز، مالک secrets را حذف کند. از کاربر مقدار هیچ secret در گفتگو درخواست نشود.
 
