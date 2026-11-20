@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="مجموعه بازی‌های کلاسیک آرکید — توسعه‌دهنده اول: AliGraph | توسعه‌دهنده دوم: IZORA_ART">
 <title>آرکید کلاسیک | Classic Arcade</title>
+<link rel="stylesheet" href="cloud/entry-gate.css">
+<script src="cloud/entry-gate.js"></script>
 <!-- آیکون سایت: جوی‌استیک طلایی (data URI) -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0d12'/%3E%3Ccircle cx='16' cy='6.5' r='3' fill='%23ff8a5c'/%3E%3Crect x='14.8' y='8' width='2.4' height='8' rx='1.2' fill='%23f5c518'/%3E%3Crect x='5' y='15' width='22' height='11' rx='3' fill='%23f5c518'/%3E%3Ccircle cx='11' cy='20.5' r='2.2' fill='%230a0d12'/%3E%3Ccircle cx='21' cy='20.5' r='2.2' fill='%230a0d12'/%3E%3C/svg%3E">
 <style>
@@ -1902,9 +1904,24 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
 <script src="arcade-polish.js" defer></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="auth.css">
+<script src="cloud/messages.js" defer></script>
 <script src="auth.js" defer></script>
 </head>
 <body>
+<section id="arkidEntryGate" hidden aria-labelledby="entryTitle">
+  <div class="entry-card">
+    <div class="entry-icon" aria-hidden="true">🕹️</div>
+    <span class="entry-kicker" dir="ltr">READY, PLAYER?</span>
+    <h1 id="entryTitle">به آرکید خوش اومدی!</h1>
+    <p>اینجا اولین باره بازی می‌کنی؟ یک ماجراجویی تازه شروع کن، یا پیشرفت قبلی‌ات را با حساب آرکید برگردون.</p>
+    <div class="entry-actions">
+      <button id="arkidEntryStart" type="button">شروع بازی تازه</button>
+      <a href="cloud/restore.html">پیشرفت قبلی دارم</a>
+    </div>
+    <p class="entry-foot">برای بازیابی، باید از قبل در دستگاه قبلی پشتیبان گرفته باشی.</p>
+  </div>
+</section>
+<script>window.arkidShowEntryGate?.();</script>
 <div class="parallax-layer" aria-hidden="true"><div class="p-layer pl-1"></div><div class="p-layer pl-2"></div><div class="p-layer pl-3"></div></div>
 <div class="attract-curtain" id="attractCurtain" aria-hidden="true"></div>
 <div class="attract-brand" id="attractBrand" aria-hidden="true"><b dir="ltr">ARCADE</b><small>برای بازگشت، ماوس رو حرکت بده یا صفحه رو لمس کن.</small></div>
@@ -2506,8 +2523,11 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
 <!-- ★ دسته: حالت هاب، بدون ایجاد کنترل روی هاب -->
 <script src="arcade-gamepad.js" data-hub></script>
 <script>
-(function(){
+(async function(){
 'use strict';
+// On a fresh browser, give returning players a chance to restore before the
+// hub initialises local progress. Existing browsers boot synchronously.
+if (window.arkidEntryGate) await window.arkidEntryGate;
 
 /* ============================================================
    تنظیمات پنل توسعه‌دهنده (مخفی)
@@ -6213,7 +6233,7 @@ function auInit(){
  /* ★ صوت قدیمی از اجرای شنونده‌های پک قبلی در حالت mute منع می‌شود؛ توابع دست‌نخورده‌اند */
  if(!LS.get('arcade_pet',null))LS.set('arcade_pet',auPet());
  setTimeout(auCountStats,100);auApplySettings();if(!AU.settings.sound)auSaveSettings({sound:false});setTimeout(auApplySettings,0);auRenderPins();auRenderChallenge();auProfileExtras();auSync(true);setInterval(()=>{if(!document.hidden)auSync()},1000);
- if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(reg=>{reg.active?.postMessage({type:'ARCADE_CACHE',urls:['./index.html','./arcade-gamepad.js','./arcade-gamepad.css','./arcade-upgrade.css',...GAMES.filter(g=>g.available).map(g=>g.file),...BANNERS.map(b=>b.src),...performance.getEntriesByType('resource').map(r=>r.name).filter(url=>/\.(woff2?|ttf|otf)(\?|$)/i.test(url))]})}).catch(()=>{}),{once:true});
+ if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){const registerOffline=()=>navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(reg=>{reg.active?.postMessage({type:'ARCADE_CACHE',urls:['./index.html','./arcade-gamepad.js','./arcade-gamepad.css','./arcade-upgrade.css',...GAMES.filter(g=>g.available).map(g=>g.file),...BANNERS.map(b=>b.src),...performance.getEntriesByType('resource').map(r=>r.name).filter(url=>/\.(woff2?|ttf|otf)(\?|$)/i.test(url))]})}).catch(()=>{});if(document.readyState==='complete')registerOffline();else window.addEventListener('load',registerOffline,{once:true});}
 }
 function auSync(force=false){if(!auMotion())pauseVisualEffects();const sig=getProfile().xp+':'+getPoints()+':'+getInventory().items.join(',')+':'+JSON.stringify(getEquipped())+':'+dateKey()+':'+Object.keys(achievements()).length;if(force||sig!==AU.lastState){AU.lastState=sig;auRenderPet();auRenderChallenge();auProfileExtras();auEnhanceShop();auTrailState();document.body.classList.toggle('au-glass-bg',getEquipped().bgTheme==='bg-theme-glass');document.querySelectorAll('.cosmetic-frame').forEach(el=>el.classList.toggle('au-frame-animated',getEquipped().frame==='frame-animated'));const unread=Math.max(0,Object.keys(achievements()).length-safeXP(LS.get('arcade_notification_seen',0)));auEl('auBell').classList.toggle('au-unread',unread>0);auEl('auBell').querySelector('b').textContent=faNum(unread);auEl('auBell').setAttribute('aria-label',faNum(unread)+' دستاورد جدید');auSeason()}document.querySelectorAll('[data-au-clock]').forEach(el=>el.textContent=auCountdown());auRenderPet();auRecordCheck();if(!bootIsActive()&&feedbackReady&&!modalStack.length&&!launchInProgress&&!AU.onboardShown){AU.onboardShown=true;if(LS.get('arcade_onboarded',false)!==true)auOnboarding();else{const pending=LS.get('arcade_reward_pending',null);if(pending){LS.remove('arcade_reward_pending');auPrizeModal(pending.label,'این جایزه پیش‌تر در حساب ثبت شده است.')}}}}
 auInit();

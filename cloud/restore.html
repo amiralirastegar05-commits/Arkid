@@ -1,42 +1,39 @@
 <!doctype html>
-<html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>بازیابی پشتیبان آرکید</title>
-<style>body{font:16px/1.8 sans-serif;background:#080811;color:#fff;max-width:650px;margin:2rem auto;padding:1rem}label{display:block;margin:.8rem 0}input,button,a{padding:.7rem;font:inherit}button{background:#8055ff;color:white;border:0;border-radius:8px;cursor:pointer}a{color:#c8b5ff}#status{white-space:pre-wrap}</style></head>
-<body><h1>بازیابی پشتیبان آرکید</h1>
-<p>تمام برگه‌های بازی آرکید را ببندید. بازیابی فقط در مرورگری مجاز است که هیچ داده بازی محلی ندارد؛ داده‌های موجود بازنویسی یا ادغام نمی‌شوند. این صفحه را پیش از ورود به صفحه اصلی باز کنید.</p>
-<p>در صورت وجود داده محلی، ابتدا از پنل توسعه‌دهنده نسخه پشتیبان بگیرید؛ برای جلوگیری از از دست رفتن پیشرفت، تعارض باید دستی بررسی شود.</p>
-<form id="login"><label>ایمیل <input type="email" name="email" required autocomplete="email"></label><label>گذرواژه <input type="password" name="password" required autocomplete="current-password"></label><button>ورود</button></form>
-<p><button id="restore" disabled>بازیابی پشتیبان ابری</button> <button id="download" disabled>دانلود پشتیبان ابری</button> <a href="../index.html">بازگشت</a></p><p id="status" role="status" aria-live="polite">در حال بارگذاری…</p>
-<script type="module">
-import './arcade-auth.js';
-const auth = window.ArkidAuth, status = document.getElementById('status'), form = document.getElementById('login'), button = document.getElementById('restore'), download = document.getElementById('download');
-async function update() {
-  const {data,error} = await auth.getSession(); if (error) throw error;
-  form.hidden = !!data.session; button.disabled = !data.session; download.disabled = !data.session;
-  status.textContent = data.session ? 'وارد حساب شده‌اید. برای بازیابی، دکمه را بزنید.' : 'برای بازیابی وارد حساب شوید.';
-}
-form.onsubmit = async event => { event.preventDefault(); try { const f = new FormData(form); const {error} = await auth.signIn(f.get('email'),f.get('password')); if(error) throw error; await update(); } catch(e) { status.textContent = e.message; } };
-download.onclick = async () => {
-  download.disabled = true;
-  try {
-    const {data,error} = await auth.getSession(); if(error) throw error; const user = data.session?.user?.id; if(!user) throw Error('ابتدا وارد شوید.');
-    const remote = await auth.snapshots.readRemote(auth.getClient(), user); if(!remote) throw Error('پشتیبان ابری پیدا نشد.');
-    await auth.snapshots.requireCurrentUser(auth.getClient(), user);
-    const payload = {__arcadeBackup:true, version:'1.0', exportedAt:new Date().toISOString(), reason:'cloud-snapshot', keyCount:Object.keys(remote.data.storage).length, storage:remote.data.storage};
-    const url = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
-    const a = document.createElement('a'); a.href=url; a.download='arkid-cloud-snapshot.json'; document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
-    status.textContent = 'پشتیبان دانلود شد. وارد کردن فایل از پنل توسعه‌دهنده داده‌های محلی را بازنویسی می‌کند؛ ابتدا از داده‌های فعلی نسخه پشتیبان بگیرید.';
-  } catch(e) { status.textContent = 'دانلود انجام نشد: ' + e.message; } finally { download.disabled = false; }
-};
-button.onclick = async () => {
-  if (!confirm('تمام برگه‌های دیگر را بسته‌اید؟ بازیابی فقط روی مرورگر بدون داده بازی انجام می‌شود.')) return;
-  button.disabled = true;
-  try {
-    const {data,error} = await auth.getSession(); if(error) throw error; const user = data.session?.user?.id; if(!user) throw Error('ابتدا وارد شوید.');
-    const remote = await auth.snapshots.readRemote(auth.getClient(), user); if(!remote) throw Error('پشتیبان ابری پیدا نشد.');
-    const current = await auth.getSession(); if(current.error || current.data.session?.user?.id !== user) throw Error('حساب تغییر کرد.');
-    auth.snapshots.restoreEmpty(localStorage, user, remote);
-    status.textContent = 'بازیابی انجام شد. اکنون می‌توانید صفحه اصلی را باز کنید.';
-  } catch(e) { status.textContent = 'بازیابی انجام نشد: ' + e.message; } finally { button.disabled = false; }
-};
-update().catch(e => { status.textContent = e.message; });
-</script></body></html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080c14">
+  <title>بازگشت به بازی | آرکید</title>
+  <link rel="stylesheet" href="restore.css">
+  <script src="messages.js" defer></script>
+  <script type="module" src="restore.js"></script>
+</head>
+<body>
+  <main class="restore-shell">
+    <a class="back-link" href="../index.html">→ بازگشت به آرکید</a>
+    <section class="restore-card" aria-labelledby="restoreTitle">
+      <div class="badge" aria-hidden="true">☁</div>
+      <p class="eyebrow" dir="ltr">YOUR ADVENTURE AWAITS</p>
+      <h1 id="restoreTitle">برگرد به بازی!</h1>
+      <p class="intro">پیشرفتت رو قبلاً در آرکید ذخیره کردی؟ با همون حساب وارد شو و ماجراجویی‌ات رو ادامه بده.</p>
+      <div class="note"><span aria-hidden="true">✦</span><p>بازیابی فقط روی مرورگری که پیشرفت بازی ندارد انجام می‌شود. برای حفظ اطلاعاتت، پیشرفت‌های موجود پاک یا ترکیب نمی‌شوند.</p></div>
+      <form id="login" class="login-form">
+        <label>ایمیل<input type="email" name="email" required autocomplete="email" inputmode="email" dir="ltr" placeholder="you@example.com"></label>
+        <label>گذرواژه<input type="password" name="password" required autocomplete="current-password" dir="ltr" placeholder="••••••••"></label>
+        <button class="button primary" type="submit">ورود به حساب</button>
+      </form>
+      <div id="account" class="account" hidden>
+        <div class="account-label"><span class="account-icon" aria-hidden="true">✓</span><div><strong>آمادهٔ بازیابی</strong><small id="accountEmail" dir="ltr"></small></div></div>
+        <button id="restore" class="button primary" type="button">بازیابی پیشرفت</button>
+        <p class="hint">پیش از بازیابی، برگه‌های دیگر آرکید را ببند.</p>
+        <button id="signout" class="text-button" type="button">ورود با حساب دیگر</button>
+        <details><summary>گزینه‌های بیشتر</summary><button id="download" class="button secondary" type="button">دریافت فایل پشتیبان</button></details>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">در حال آماده‌سازی…</p>
+      <a id="openGame" class="button primary" href="../index.html" hidden>بریم بازی!</a>
+    </section>
+    <p class="footer">AR KID <span>✦</span> یک دنیا بازی، یک عالمه خاطره</p>
+  </main>
+</body>
+</html>
