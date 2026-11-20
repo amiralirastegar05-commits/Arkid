@@ -3,7 +3,8 @@ name: Encrypted database backup (manual branch trigger)
 # Deliberately NOT a pull_request, pull_request_target, schedule, or generic
 # push trigger. workflow_dispatch requires this file on the default branch,
 # which this session must not modify. A trusted, explicitly approved push with
-# the exact commit message below is the temporary trigger on this branch only.
+# the approved commit subject below is the temporary trigger on this branch only.
+# A commit can include a co-author trailer after the subject.
 on:
   push:
     branches:
@@ -13,7 +14,7 @@ permissions: {}
 
 jobs:
   encrypted-backup:
-    if: github.event.head_commit.message == 'Run encrypted backup [approved]'
+    if: startsWith(github.event.head_commit.message, 'Run encrypted backup [approved]')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
