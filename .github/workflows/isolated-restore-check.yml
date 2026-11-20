@@ -51,7 +51,8 @@ jobs:
           }
           trap cleanup EXIT
           test -f "$RUNNER_TEMP/arkid-encrypted-restore-input/arkid-backup.tar.gz.gpg"
-          gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 3 --decrypt "$RUNNER_TEMP/arkid-encrypted-restore-input/arkid-backup.tar.gz.gpg" >"$scratch/backup.tar.gz" 3<<<"$BACKUP_PASSPHRASE" || { echo 'Backup decryption failed.'; exit 1; }
+          gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 3 --decrypt "$RUNNER_TEMP/arkid-encrypted-restore-input/arkid-backup.tar.gz.gpg" >"$scratch/backup.tar.gz" 3<<<"$BACKUP_PASSPHRASE" || { echo '::error title=Restore check::Decryption failed.'; exit 1; }
+          echo '::notice title=Restore phase::Backup decrypted.'
           # Only fixed plain files are extracted; paths and links in archives
           # are never trusted. Their contents are never printed or uploaded.
           python3 - "$scratch" <<'PY'
@@ -67,18 +68,26 @@ jobs:
                       while chunk := source.read(1024 * 1024):
                           target.write(chunk)
           PY
+          echo '::notice title=Restore phase::Archive extracted.'
           mkdir -p "$scratch/local"
           # A fresh unlinked CLI workdir ensures every target below is local.
-          supabase init --workdir "$scratch/local" >/dev/null
-          supabase db start --workdir "$scratch/local" >/dev/null
+          supabase init --workdir "$scratch/local" >/dev/null || { echo '::error title=Restore check::Local initialization failed.'; exit 1; }
+          echo '::notice title=Restore phase::Local configuration initialized.'
+          supabase db start --workdir "$scratch/local" >/dev/null || { echo '::error title=Restore check::Local Postgres startup failed.'; exit 1; }
+          echo '::notice title=Restore phase::Local Postgres started.'
           export PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=postgres
-          command -v psql >/dev/null || { echo 'Postgres client is unavailable on this runner.'; exit 1; }
+          command -v psql >/dev/null || { echo '::error title=Restore check::Postgres client unavailable on runner.'; exit 1; }
           # SQL and errors can contain private data; keep all output local and
           # only publish a generic outcome. ON_ERROR_STOP rolls back failures.
           if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore.log" 2>&1; then
-            echo 'Isolated restore failed; private SQL output was not logged.'
+            if grep -qi 'permission denied' "$scratch/restore.log"; then category='permission denied';
+            elif grep -qi 'already exists' "$scratch/restore.log"; then category='object conflict';
+            elif grep -qi 'does not exist' "$scratch/restore.log"; then category='missing object or version mismatch';
+            else category='other SQL or connection error'; fi
+            echo "::error title=Restore check::SQL restore failed: $category. Private SQL output was not logged."
             exit 1
           fi
+          echo '::notice title=Restore phase::SQL restore transaction succeeded.'
           result="$(psql --set ON_ERROR_STOP=1 --tuples-only --no-align --command "select count(*) = 3 and bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('profiles','arkid_cloud_snapshots','arkid_cloud_snapshot_history') and c.relkind='r'" 2>"$scratch/check.log")"
           test "$result" = t || { echo 'Expected restored tables or RLS were not found.'; exit 1; }
           echo 'Isolated restore completed and the three existing tables have RLS enabled.'
