@@ -1,6 +1,6 @@
 # Additional integration tests
 
-`npm test` runs the standard Node/PGlite suite. The scripts below are optional: they require tools that are not production dependencies and **do not contact Supabase or use real account data**.
+`npm test` runs the standard Node/PGlite suite. The optional scripts below use synthetic data. Browser/PostgreSQL tests do not contact hosted Supabase; `.github/workflows/synthetic-supabase.yml` additionally starts the real Supabase Auth, REST and PostgreSQL services on a disposable local GitHub runner, without any repository secrets or hosted project connection.
 
 ## Responsive browser smoke test
 
