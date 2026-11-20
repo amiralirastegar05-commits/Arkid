@@ -1,5 +1,3 @@
-import {rankedRequest} from './ranked-api.js';
-
 const json = (data, status = 200, headers = {}) =>
   new Response(JSON.stringify(data), {
     status,
@@ -24,7 +22,7 @@ function corsHeaders(request, env) {
 
   return {
     "access-control-allow-origin": origin,
-    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-methods": "GET, OPTIONS",
     "access-control-allow-headers": "Authorization, Content-Type",
     "access-control-max-age": "86400",
     "vary": "Origin",
@@ -88,16 +86,6 @@ export default {
     }
 
     const headers = cors || { "vary": "Origin" };
-
-    if (request.method === "POST" && (url.pathname === "/v1/ranked/start" || url.pathname === "/v1/ranked/submit")) {
-      // Fail closed: existing deployed Worker remains unchanged unless a future
-      // reviewed deployment explicitly enables ranked mode and secret storage.
-      if (env.RANKED_ENABLED !== "true" || !env.RANKED_SERVICE_KEY) return json({ error: "ranked_unavailable" }, 503, headers);
-      const result = await verifySupabaseUser(request, env);
-      if (!result.ok) return json({error: result.reason || "unauthorized"},result.status,headers);
-      const ranked = await rankedRequest(request,env,result.user.id);
-      return json(ranked.data,ranked.status,headers);
-    }
 
     if (request.method === "GET" && url.pathname === "/v1/me") {
       const result = await verifySupabaseUser(request, env);

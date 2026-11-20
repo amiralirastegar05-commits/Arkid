@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collect, validate, upload, restoreEmpty, META_KEY } from '../cloud/snapshot.js';
+import { collect, validate, upload, restoreEmpty, captureLocal, replaceLocal, META_KEY } from '../cloud/snapshot.js';
 class Storage {
   constructor(data = {}) { this.data = new Map(Object.entries(data)); }
   get length() { return this.data.size; }
@@ -140,4 +140,41 @@ test('accepts a one-row RPC array response', async () => {
   db.rpc = async (...args) => { const result = await rpc(...args); return { data: [result.data], error: result.error }; };
   await upload(db,'user1',local);
   assert.equal(JSON.parse(local.getItem(META_KEY)).revision,db.row.revision);
+});
+
+
+test('explicit replacement switches accounts and keeps non-game and auth data', () => {
+  const oldBinding = JSON.stringify({user:'old',revision:'old-rev',project:'old-project'});
+  const local = new Storage({arcade_points:'100', arcade_profile:'old', '2048_achievements_v1':'old', [META_KEY]:oldBinding, 'sb-project-auth-token':'secret', other:'untouched'});
+  const before = captureLocal(local);
+  const remote = {revision:'new-rev',data:{schema:1,storage:{arcade_points:'20',arcade_achievements:'new'}}};
+  replaceLocal(local,'new-user',remote,before);
+  assert.deepEqual({...collect(local).storage}, remote.data.storage);
+  assert.equal(JSON.parse(local.getItem(META_KEY)).user,'new-user');
+  assert.equal(local.getItem('sb-project-auth-token'),'secret'); assert.equal(local.getItem('other'),'untouched');
+});
+test('replacement refuses invalid, empty, active or changed local state before modifying data', () => {
+  const local = new Storage({arcade_points:'100', other:'stay'}), before = captureLocal(local);
+  const remote = {revision:'r',data:{schema:1,storage:{arcade_points:'20'}}};
+  assert.throws(() => replaceLocal(local,'u',{revision:'r',data:{schema:1,storage:{}}},before), /empty/);
+  assert.throws(() => replaceLocal(local,'u',{revision:'r',data:{schema:1,storage:{other:'x'}}},before), /Invalid snapshot/);
+  local.setItem('arcade_active_session','active');
+  assert.throws(() => replaceLocal(local,'u',remote,before), /game session is active/);
+  local.removeItem('arcade_active_session'); local.setItem('arcade_points','101');
+  assert.throws(() => replaceLocal(local,'u',remote,before), /Local data changed/);
+  assert.equal(local.getItem('arcade_points'),'101'); assert.equal(local.getItem('other'),'stay');
+});
+test('replacement rolls back deletions and writes on a storage failure', () => {
+  const local = new Storage({arcade_profile:'old-profile',arcade_points:'old-points', [META_KEY]:'old-binding',other:'stay'});
+  const before = captureLocal(local), set = local.setItem.bind(local);
+  local.setItem = (key,value) => { if (key === 'arcade_achievements') throw Error('quota'); set(key,value); };
+  assert.throws(() => replaceLocal(local,'u',{revision:'r',data:{schema:1,storage:{arcade_points:'new',arcade_achievements:'new'}}},before), /quota/);
+  assert.equal(local.getItem('arcade_profile'),'old-profile'); assert.equal(local.getItem('arcade_points'),'old-points');
+  assert.equal(local.getItem(META_KEY),'old-binding'); assert.equal(local.getItem('other'),'stay');
+});
+test('replacement does not overwrite concurrent edits and warns if rollback cannot complete', () => {
+  const local = new Storage({arcade_points:'old'}), before = captureLocal(local), set = local.setItem.bind(local);
+  local.setItem = (key,value) => { set(key,value); if (key === 'arcade_points' && value === 'new') set(key,'concurrent'); };
+  assert.throws(() => replaceLocal(local,'u',{revision:'r',data:{schema:1,storage:{arcade_points:'new'}}},before), /rollback was incomplete/);
+  assert.equal(local.getItem('arcade_points'),'concurrent');
 });

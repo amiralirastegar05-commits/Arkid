@@ -41,7 +41,7 @@
       <div class="arkid-auth-account"><strong>${esc(session.user?.user_metadata?.name || session.user?.user_metadata?.full_name || 'بازیکن آرکید')}</strong><small dir="ltr">${esc(session.user?.email)}</small></div>
       <p class="arkid-auth-note">ورود شما فعال است. پیشرفت به‌طور پیش‌فرض محلی است. پشتیبان ابری دستی است و اطلاعات به‌طور خودکار ادغام نمی‌شوند.</p>
       <p class="arkid-auth-note">پیش از پشتیبان، بازی‌ها و برگه‌های دیگر را ببند. این داده‌ها به حساب فعلی تعلق خواهند گرفت.</p>
-      <div class="arkid-auth-actions"><a class="arkid-auth-btn" href="cloud/public-profile.html">پروفایل اجتماعی و بیوگرافی</a><a class="arkid-auth-btn" href="cloud/social.html">دوستان، تیم و دعوت‌ها</a><button class="arkid-auth-btn" id="arkidCloudUpload" type="button">پشتیبان ابری</button><a class="arkid-auth-btn" href="cloud/restore.html">بازیابی در مرورگر خالی</a></div>
+      <div class="arkid-auth-actions"><button class="arkid-auth-btn" id="arkidCloudUpload" type="button">پشتیبان ابری</button><a class="arkid-auth-btn" id="arkidCloudRestore" href="cloud/restore.html">بازیابی یا جایگزینی پیشرفت</a></div>
       <div class="arkid-auth-actions"><button class="arkid-auth-btn" id="arkidSignOut" type="button">خروج از حساب</button></div>
       <p id="arkidAuthStatus" class="arkid-auth-status" role="status" aria-live="polite"></p>` : `
       <p class="arkid-auth-copy">${mode === 'signup' ? 'با ایمیل و گذرواژه حساب بساز؛ ممکن است لازم باشد ایمیلت را تأیید کنی.' : (auth?.supportsGoogle?.() ? 'با ایمیل و گذرواژه وارد شو یا از ورود گوگل استفاده کن.' : 'با ایمیل و گذرواژه وارد شو.')}</p>
@@ -67,6 +67,11 @@
     document.getElementById('arkidGoogleSignIn')?.addEventListener('click', signInWithGoogle);
     document.getElementById('arkidSignOut')?.addEventListener('click', signOut);
     document.getElementById('arkidCloudUpload')?.addEventListener('click', uploadCloud);
+    document.getElementById('arkidCloudRestore')?.addEventListener('click', event => {
+      if (!window.arkidHasVolatileData?.()) return;
+      event.preventDefault();
+      setStatus('بخشی از پیشرفت فقط در حافظه است؛ پیش از خروج از این صفحه از آن نسخه پشتیبان بگیر.', 'error');
+    });
     setBusy(false);
   }
 

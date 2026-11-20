@@ -35,8 +35,3 @@ test('dashboard bundle verifies identity against the intended project', async ()
     assert.equal((await response.json()).id, 'user-one');
   } finally { globalThis.fetch = oldFetch; }
 });
-
-test('dashboard ranked routes remain off without explicit private runtime configuration', async()=>{
-  const response=await dashboardWorker.fetch(new Request('https://new-worker.example/v1/ranked/start',{method:'POST',headers:{Origin:'https://amiralirastegar05-commits.github.io','content-type':'application/json'},body:'{}'}));
-  assert.equal(response.status,503);assert.deepEqual(await response.json(),{error:'ranked_unavailable'});
-});

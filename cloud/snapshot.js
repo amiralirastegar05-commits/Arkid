@@ -105,3 +105,48 @@ export function restoreEmpty(storage, user, remote) {
     throw error;
   }
 }
+
+// Explicit replacement, never a merge. The caller captures these before the
+// network request, so changes made while fetching cannot be silently erased.
+export function captureLocal(storage) {
+  return { data: validate(collect(storage)), binding: storage.getItem(META_KEY) };
+}
+export function replaceLocal(storage, user, remote, expected) {
+  if (!user || !remote || typeof remote.revision !== 'string' || !remote.revision) throw Error('Invalid cloud account or revision.');
+  validate(remote.data);
+  if (!Object.keys(remote.data.storage).length) throw Error('Cloud snapshot is empty.');
+  if (!expected || typeof expected.binding !== 'string' && expected.binding !== null) throw Error('Invalid local state.');
+  validate(expected.data);
+  let current = { ...expected.data.storage }, binding = expected.binding;
+  const operations = [];
+  const check = () => {
+    if (storage.getItem('arcade_active_session') !== null) throw Error('A game session is active; close it before restoring.');
+    if (storage.getItem(META_KEY) !== binding || !same({ schema: 1, storage: current }, collect(storage))) throw Error('Local data changed during restore.');
+  };
+  const change = (key, value) => {
+    check();
+    const before = storage.getItem(key);
+    if (before === value) return;
+    if (value === null) storage.removeItem(key); else storage.setItem(key, value);
+    operations.push({ key, before, after: value });
+    if (key === META_KEY) binding = value;
+    else if (value === null) delete current[key]; else current[key] = value;
+  };
+  check();
+  try {
+    for (const key of Object.keys(current)) if (!Object.hasOwn(remote.data.storage, key)) change(key, null);
+    for (const [key, value] of Object.entries(remote.data.storage)) change(key, value);
+    change(META_KEY, JSON.stringify({ user, revision: remote.revision, project: SUPABASE_URL }));
+    check();
+  } catch (error) {
+    let incomplete = false;
+    for (const { key, before, after } of operations.reverse()) {
+      try {
+        if (storage.getItem(key) !== after) { incomplete = true; continue; }
+        if (before === null) storage.removeItem(key); else storage.setItem(key, before);
+      } catch (_) { incomplete = true; }
+    }
+    if (incomplete) throw new Error('Restore failed and rollback was incomplete; do not clear storage, seek recovery help.', { cause: error });
+    throw error;
+  }
+}
