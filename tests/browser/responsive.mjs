@@ -22,13 +22,18 @@ if(!executablePath){const chrome=(await import('@sparticuz/chromium')).default;e
 const mock=`export function createClient(){
  const user={id:'alice',email:'player@example.test'};
  const auth={getSession:async()=>({data:{session:{user}},error:null}),onAuthStateChange:()=>{},signOut:async()=>({error:null})};
- const rpc=async(fn)=>({error:null,data:({
+ const rpc=async(fn,args={})=>{
+  if(fn==='arkid_set_player_block'){localStorage.setItem('mock_block',args.blocked?'yes':'no');return {error:null,data:args.blocked?'blocked':'unblocked'}}
+  if(fn==='arkid_block_invite_sender'){localStorage.setItem('mock_block','yes');return {error:null,data:'blocked'}}
+  if(fn==='arkid_report_profile'||fn==='arkid_report_team'){localStorage.setItem('mock_report',fn+':'+args.report_reason);return {error:null,data:'reported'}}
+  return {error:null,data:({
+  arkid_my_blocks:localStorage.getItem('mock_block')==='yes'?[{user_id:'bob',display_name:'B'.repeat(40)}]:[],
   arkid_my_team:[{team_id:'team',team_name:'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456',owner_id:'alice',members:[{user_id:'alice',display_name:'A'.repeat(40)},{user_id:'bob',display_name:'B'.repeat(40)}]}],
   arkid_team_inbox:[{invite_id:'i',team_name:'T'.repeat(32),sender_name:'S'.repeat(40)}],
   arkid_announcement_feed:[{announcement_id:'n',title:'N'.repeat(100),body:'متن '.repeat(80),is_read:false}],
   arkid_monthly_leaderboard:[{place:1,display_name:'P'.repeat(40),points:12345}],
   arkid_search_players:[{user_id:'bob',display_name:'B'.repeat(40),bio:'Z'.repeat(160)}]
- })[fn]||[]});
+ })[fn]||[]};};
  const from=()=>{const b={select:()=>b,eq:()=>b,maybeSingle:async()=>({data:{user_id:'alice',display_name:'A'.repeat(40),bio:'B'.repeat(160),is_public:false,revision:'r'},error:null})};return b};
  return {auth,rpc,from};
 }`;
@@ -43,7 +48,7 @@ try{
    return route.abort();
  })}
  await mockRoutes(context);
- const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',dialog=>dialog.accept());
  async function noOverflow(label){
    const dims=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
    assert.ok(dims.document<=dims.viewport+1&&dims.body<=dims.viewport+1,`${label}: horizontal overflow ${JSON.stringify(dims)}`);
@@ -53,6 +58,15 @@ try{
    await page.goto(`http://127.0.0.1:${port}/cloud/social.html`);
    await page.locator('#socialContent:not([hidden])').waitFor();
    await page.locator('#searchText').fill('Bob');await page.locator('#search button').click();await page.locator('#results .social-card').waitFor();
+   if(width===375){
+     await page.locator('#results select').selectOption('spam');await page.getByRole('button',{name:'گزارش پروفایل'}).click();
+     await page.getByText('گزارش ثبت شد؛ بررسی آن خودکار نیست.').waitFor();assert.equal(await page.evaluate(()=>localStorage.getItem('mock_report')),'arkid_report_profile:spam');
+     await page.locator('#inbox select').selectOption('inappropriate');await page.locator('#inbox').getByRole('button',{name:'گزارش نام تیم'}).click();
+     await page.getByText('گزارش ثبت شد؛ بررسی آن خودکار نیست.').waitFor();assert.equal(await page.evaluate(()=>localStorage.getItem('mock_report')),'arkid_report_team:inappropriate');
+     await page.getByRole('button',{name:'مسدود کردن دعوت‌ها'}).click();await page.locator('#blocks').getByRole('button',{name:'رفع مسدودسازی'}).waitFor();
+     await page.locator('#blocks').getByRole('button',{name:'رفع مسدودسازی'}).click();await page.getByText('مسدودسازی برداشته شد.').waitFor();
+     await page.locator('#search button').click();await page.locator('#results .social-card').waitFor();
+   }
    await noOverflow(`social ${width}`);
    const targets=await page.locator('.small-button:visible').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().height));
    assert.ok(targets.every(height=>height>=44),`small tap target at ${width}`);

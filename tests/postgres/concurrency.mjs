@@ -24,7 +24,7 @@ try{
  await db.query(`create schema auth; create table auth.users(id uuid primary key,raw_user_meta_data jsonb default '{}');
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
  grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;`);
- for(const f of ['003_public_profiles.sql','004_teams_and_discovery.sql','005_announcements.sql','006_monthly_ranking.sql'])await db.query(await readFile(new URL('../../supabase/new-project/migrations/'+f,import.meta.url),'utf8'));
+ for(const f of ['003_public_profiles.sql','004_teams_and_discovery.sql','005_announcements.sql','006_monthly_ranking.sql','007_social_safety.sql'])await db.query(await readFile(new URL('../../supabase/new-project/migrations/'+f,import.meta.url),'utf8'));
  const id=n=>'00000000-0000-0000-0000-'+String(n).padStart(12,'0');
  for(let n=1;n<=80;n++)await db.query('insert into auth.users(id) values($1)',[id(n)]);
  for(let n=1;n<=80;n++)await db.query('insert into public.arkid_public_profiles(user_id,display_name,is_public) values($1,$2,true)',[id(n),'Player '+n]);
@@ -62,5 +62,14 @@ try{
  a=await as(30);b=await as(30);
  await blockedRace(a,'select public.arkid_create_team($1)',['One'],b,'select public.arkid_create_team($1)',['Two'],/already_in_team/);
  assert.equal((await db.query('select count(*)::int n from public.arkid_team_members where user_id=$1 and left_at is null',[id(30)])).rows[0].n,1);
- console.log('PostgreSQL 17 multi-connection lock tests: all four races passed');
+ // A block committed while an invite is in flight must prevent its insertion.
+ await team(108,31);a=await as(32);b=await as(31);
+ await blockedRace(a,'select public.arkid_set_player_block($1,true)',[id(31)],b,'select public.arkid_invite_player($1,$2)',[id(108),id(32)],/player_unavailable/);
+ assert.equal((await db.query('select count(*)::int n from public.arkid_team_invites where team_id=$1',[id(108)])).rows[0].n,0);
+ // A pre-existing invite cannot be accepted after a racing block commits.
+ await team(109,33);await invite(207,109,33,34);a=await as(34);b=await as(34);
+ await blockedRace(a,'select public.arkid_set_player_block($1,true)',[id(33)],b,'select public.arkid_respond_team_invite($1,true)',[id(207)],/player_unavailable/);
+ assert.equal((await db.query('select count(*)::int n from public.arkid_team_members where user_id=$1 and left_at is null',[id(34)])).rows[0].n,0);
+ assert.equal((await db.query('select status from public.arkid_team_invites where id=$1',[id(207)])).rows[0].status,'pending');
+ console.log('PostgreSQL 17 multi-connection lock tests: all six races passed');
 }finally{for(const c of clients)await c.end();await db.end()}
