@@ -48,12 +48,26 @@ jobs:
               exit 1
             fi
           done
-          node supabase/new-project/build-social-stage.mjs >"$scratch/stage.sql"
-          if ! psql --set ON_ERROR_STOP=1 --single-transaction --file "$scratch/stage.sql" >"$scratch/migration.log" 2>&1; then
+          # Verify CLI migration rollback and history in the disposable DB.
+          # Its URL is fixed localhost, never a hosted project.
+          mkdir -p "$scratch/supabase/migrations"
+          probe="$scratch/supabase/migrations/20260101000000_atomic_probe.sql"
+          printf '%s\n' 'create table public.arkid_rollback_probe(id int); select 1/0;' >"$probe"
+          if supabase db push --workdir "$scratch" --db-url 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' --skip-vault --yes >"$scratch/probe.log" 2>&1; then
+            echo '::error title=Synthetic migration::Invalid migration unexpectedly succeeded.'; exit 1
+          fi
+          absent="$(psql --tuples-only --no-align --command "select to_regclass('public.arkid_rollback_probe') is null")"
+          test "$absent" = t || { echo '::error title=Synthetic migration::CLI migration was not atomic.'; exit 1; }
+          rm "$probe"
+          node supabase/new-project/build-social-stage.mjs >"$scratch/supabase/migrations/20261120120000_arkid_social_stage_1.sql"
+          if ! supabase db push --workdir "$scratch" --db-url 'postgresql://postgres:postgres@127.0.0.1:54322/postgres' --skip-vault --yes >"$scratch/migration.log" 2>&1; then
             echo '::error title=Synthetic migration::Atomic social stage failed.'
-            grep -m1 -E 'ERROR:|FATAL:' "$scratch/migration.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic diagnostic::/' || true
+            grep -m1 -E 'ERROR:|FATAL:|error' "$scratch/migration.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic diagnostic::/' || true
             exit 1
           fi
+          recorded="$(psql --tuples-only --no-align --command "select count(*) from supabase_migrations.schema_migrations where version='20261120120000'")"
+          test "$recorded" = 1 || { echo '::error title=Synthetic migration::Migration history missing.'; exit 1; }
+          echo '::notice title=Synthetic test::CLI rollback and migration history verified locally.'
           held="$(psql --tuples-only --no-align --command "select not has_function_privilege('authenticated','public.arkid_report_profile(uuid,text)','execute') and not has_function_privilege('authenticated','public.arkid_report_team(uuid,uuid,text)','execute')")"
           test "$held" = t || { echo '::error title=Synthetic migration::Reporting hold was not applied.'; exit 1; }
           echo '::notice title=Synthetic test::Atomic social stage and reporting hold installed locally.'
