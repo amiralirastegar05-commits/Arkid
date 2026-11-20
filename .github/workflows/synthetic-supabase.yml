@@ -99,6 +99,9 @@ jobs:
           supabase db dump --workdir "$scratch" --local --file "$scratch/schema.sql" >/dev/null
           supabase db dump --workdir "$scratch" --local --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes --file "$scratch/data.sql" >/dev/null
           echo '::notice title=Synthetic restore::Local synthetic dumps created.'
+          # Do not automatically replay the migration into the empty restore
+          # target: the dump supplies the schema. This scratch file is disposable.
+          rm "$scratch/supabase/migrations/20261120120000_arkid_social_stage_1.sql"
           # This destroys only the synthetic local stack, not a hosted project.
           supabase stop --workdir "$scratch" --no-backup >/dev/null 2>&1
           supabase db start --workdir "$scratch" >/dev/null
