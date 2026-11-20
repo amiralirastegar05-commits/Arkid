@@ -40,13 +40,26 @@ jobs:
           supabase start --workdir "$scratch" --exclude realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor >/dev/null || { echo '::error title=Synthetic test::Local services failed to start.'; exit 1; }
           echo '::notice title=Synthetic test::Local services started.'
           export PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=postgres
-          for migration in supabase/new-project/migrations/0*.sql; do
+          # A fresh local DB needs 001/002; the existing hosted project does not.
+          for migration in supabase/new-project/migrations/001_profiles.sql supabase/new-project/migrations/002_snapshots.sql; do
             if ! psql --set ON_ERROR_STOP=1 --single-transaction --file "$migration" >"$scratch/migration.log" 2>&1; then
               printf '::error title=Synthetic migration::%s failed.\n' "$(basename "$migration")"
               grep -m1 -E 'ERROR:|FATAL:' "$scratch/migration.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic diagnostic::/' || true
               exit 1
             fi
           done
+          node supabase/new-project/build-social-stage.mjs >"$scratch/stage.sql"
+          if ! psql --set ON_ERROR_STOP=1 --single-transaction --file "$scratch/stage.sql" >"$scratch/migration.log" 2>&1; then
+            echo '::error title=Synthetic migration::Atomic social stage failed.'
+            grep -m1 -E 'ERROR:|FATAL:' "$scratch/migration.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic diagnostic::/' || true
+            exit 1
+          fi
+          held="$(psql --tuples-only --no-align --command "select not has_function_privilege('authenticated','public.arkid_report_profile(uuid,text)','execute') and not has_function_privilege('authenticated','public.arkid_report_team(uuid,uuid,text)','execute')")"
+          test "$held" = t || { echo '::error title=Synthetic migration::Reporting hold was not applied.'; exit 1; }
+          echo '::notice title=Synthetic test::Atomic social stage and reporting hold installed locally.'
+          # Temporarily enable reporting only in this disposable stack so the
+          # full moderation path can be tested. The script reapplies the hold.
+          psql --set ON_ERROR_STOP=1 --command 'grant execute on function public.arkid_report_profile(uuid,text),public.arkid_report_team(uuid,uuid,text) to authenticated' >/dev/null
           psql --set ON_ERROR_STOP=1 --command "notify pgrst, 'reload schema'" >/dev/null
           echo '::notice title=Synthetic test::Migrations installed on local database.'
           # Status contains ONLY local generated development keys. Never print it.
