@@ -62,6 +62,12 @@ jobs:
           # Rehearse backup/restore separately, using ONLY this synthetic DB.
           # Never use a linked/remote flag or any real project credential.
           psql --tuples-only --no-align --command "select (select count(*) from auth.users), (select count(*) from public.profiles), (select count(*) from public.arkid_cloud_snapshots)" >"$scratch/before.count"
+          # The default CLI schema dump excludes managed auth schema objects,
+          # including the application's trigger on auth.users. Preserve the
+          # known definition separately for this synthetic recovery rehearsal.
+          trigger="$(psql --tuples-only --no-align --command "select count(*) from pg_trigger t join pg_proc p on p.oid=t.tgfoid join pg_namespace n on n.oid=p.pronamespace where t.tgrelid='auth.users'::regclass and t.tgname='arkid_create_profile' and not t.tgisinternal and n.nspname='public' and p.proname='arkid_create_profile'")"
+          test "$trigger" = 1 || { echo '::error title=Synthetic restore::Expected source trigger missing.'; exit 1; }
+          printf '%s\n' 'CREATE TRIGGER arkid_create_profile AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.arkid_create_profile();' >"$scratch/trigger.sql"
           supabase db dump --workdir "$scratch" --local --role-only --file "$scratch/roles.sql" >/dev/null
           supabase db dump --workdir "$scratch" --local --file "$scratch/schema.sql" >/dev/null
           supabase db dump --workdir "$scratch" --local --data-only --use-copy --exclude storage.buckets_vectors --exclude storage.vector_indexes --file "$scratch/data.sql" >/dev/null
@@ -69,13 +75,13 @@ jobs:
           # This destroys only the synthetic local stack, not a hosted project.
           supabase stop --workdir "$scratch" --no-backup >/dev/null 2>&1
           supabase db start --workdir "$scratch" >/dev/null
-          if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore.log" 2>&1; then
+          if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --file "$scratch/trigger.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore.log" 2>&1; then
             echo '::warning title=Synthetic restore::Standard-role restore failed; testing a local-only admin fallback.'
             grep -m1 'ERROR:' "$scratch/restore.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic restore diagnostic::/' || true
             export PGUSER=supabase_admin
             admin="$(psql --tuples-only --no-align --command 'select rolsuper from pg_roles where rolname=current_user')"
             test "$admin" = t || { echo '::error title=Synthetic restore::No local superuser.'; exit 1; }
-            if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore-admin.log" 2>&1; then
+            if ! psql --single-transaction --set ON_ERROR_STOP=1 --file "$scratch/roles.sql" --file "$scratch/schema.sql" --file "$scratch/trigger.sql" --command 'SET session_replication_role = replica' --file "$scratch/data.sql" >"$scratch/restore-admin.log" 2>&1; then
               echo '::error title=Synthetic restore::Local admin restore failed.'
               grep -m1 'ERROR:' "$scratch/restore-admin.log" | cut -c1-300 | sed 's/^/::notice title=Synthetic restore diagnostic::/' || true
               exit 1
@@ -84,7 +90,12 @@ jobs:
           fi
           psql --tuples-only --no-align --command "select (select count(*) from auth.users), (select count(*) from public.profiles), (select count(*) from public.arkid_cloud_snapshots)" >"$scratch/after.count"
           cmp -s "$scratch/before.count" "$scratch/after.count" || { echo '::error title=Synthetic restore::Synthetic row counts differ.'; exit 1; }
+          secure="$(psql --tuples-only --no-align --command "select count(*) = 3 and bool_and(c.relrowsecurity) and bool_and(has_table_privilege('authenticated', c.oid, 'SELECT')) and has_function_privilege('authenticated','public.arkid_save_snapshot(uuid,uuid,jsonb)','EXECUTE') from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('profiles','arkid_cloud_snapshots','arkid_cloud_snapshot_history') and c.relkind='r'")"
+          test "$secure" = t || { echo '::error title=Synthetic restore::Expected RLS or grants missing.'; exit 1; }
           # The auth.users signup trigger is part of the recovery requirements.
           trigger="$(psql --tuples-only --no-align --command "select exists(select 1 from pg_trigger where tgrelid='auth.users'::regclass and tgname='arkid_create_profile' and not tgisinternal)")"
           test "$trigger" = t || { echo '::error title=Synthetic restore::Profile creation trigger was not recovered.'; exit 1; }
-          echo '::notice title=Synthetic restore::Synthetic restore, counts and profile trigger passed.'
+          new_user="$(psql --quiet --tuples-only --no-align --command "insert into auth.users(id,raw_user_meta_data) values (gen_random_uuid(),'{\"name\":\"Synthetic after restore\"}') returning id")"
+          profile="$(psql --tuples-only --no-align --command "select exists(select 1 from public.profiles where id='$new_user'::uuid and display_name='Synthetic after restore')")"
+          test "$profile" = t || { echo '::error title=Synthetic restore::Restored signup trigger did not create a profile.'; exit 1; }
+          echo '::notice title=Synthetic restore::Synthetic restore, counts and reconstructed signup trigger passed.'
