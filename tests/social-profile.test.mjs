@@ -14,7 +14,7 @@ test('social migration protects private profiles and permits only opt-in discove
       create table auth.users (id uuid primary key, raw_user_meta_data jsonb);
       create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
       grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;`);
-    for (const f of ['001_profiles.sql','002_snapshots.sql','003_public_profiles.sql']) {
+    for (const f of ['001_profiles.sql','002_snapshots.sql','003_public_profiles.sql','004_teams_and_discovery.sql']) {
       await db.exec(await readFile(new URL('../supabase/new-project/migrations/'+f, import.meta.url),'utf8'));
     }
     await db.exec(`insert into auth.users(id,raw_user_meta_data) values ('${alice}','{"name":"Private Alice"}'),('${bob}','{"name":"Private Bob"}'); set role authenticated; select set_config('request.jwt.claim.sub','${alice}',false);`);
@@ -35,7 +35,8 @@ test('social migration protects private profiles and permits only opt-in discove
     assert.equal((await db.query('update public.arkid_public_profiles set bio=$1 where user_id=$2 and revision=$3 returning bio',['stale',alice,old])).rows.length,0);
     await assert.rejects(db.query('update public.arkid_public_profiles set display_name=$1 where user_id=$2',['x'.repeat(41),alice]),/check constraint/);
     await db.exec(`select set_config('request.jwt.claim.sub','${bob}',false);`);
-    const visible=(await db.query('select user_id,display_name,bio from public.arkid_public_profiles')).rows;
+    assert.equal((await db.query('select count(*)::int n from public.arkid_public_profiles')).rows[0].n,0);
+    const visible=(await db.query('select user_id,display_name,bio from public.arkid_search_players($1)',['Al'])).rows;
     assert.deepEqual(visible,[{user_id:alice,display_name:'Alice',bio:'hello'}]);
     assert.equal((await db.query('select count(*)::int n from public.profiles where id=$1',[alice])).rows[0].n,0);
     await db.exec(`select set_config('request.jwt.claim.sub','${alice}',false);`);

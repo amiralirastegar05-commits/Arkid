@@ -18,9 +18,10 @@ grant select on public.arkid_public_profiles to authenticated;
 grant insert (user_id, display_name, bio, is_public) on public.arkid_public_profiles to authenticated;
 grant update (display_name, bio, is_public) on public.arkid_public_profiles to authenticated;
 
--- Signed-in players can see only opted-in profiles plus their own private row.
+-- Direct table access is private; discovery uses the bounded, rate-limited
+-- security-definer search function introduced in migration 004.
 create policy arkid_public_profiles_read on public.arkid_public_profiles
-  for select to authenticated using (is_public or (select auth.uid()) = user_id);
+  for select to authenticated using ((select auth.uid()) = user_id);
 create policy arkid_public_profiles_insert_own on public.arkid_public_profiles
   for insert to authenticated with check ((select auth.uid()) = user_id);
 create policy arkid_public_profiles_update_own on public.arkid_public_profiles
