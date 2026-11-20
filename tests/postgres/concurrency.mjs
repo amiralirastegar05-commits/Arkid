@@ -14,7 +14,7 @@ const listen=(await admin.query('show listen_addresses')).rows[0].listen_address
 assert.equal(dataDirectory,'/tmp/arkid-pg-test');assert.equal(listen,'');
 const dbname='arkid_test_'+randomBytes(6).toString('hex');
 await admin.query(`create database ${dbname}`);
-for(const role of ['anon','authenticated']){
+for(const role of ['anon','authenticated','service_role']){
   if(!(await admin.query('select 1 from pg_roles where rolname=$1',[role])).rowCount)await admin.query(`create role ${role}`);
 }
 await admin.end();
@@ -24,7 +24,7 @@ try{
  await db.query(`create schema auth; create table auth.users(id uuid primary key,raw_user_meta_data jsonb default '{}');
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
  grant usage on schema auth to authenticated; grant execute on function auth.uid() to authenticated;`);
- for(const f of ['003_public_profiles.sql','004_teams_and_discovery.sql','005_announcements.sql','006_monthly_ranking.sql','007_social_safety.sql'])await db.query(await readFile(new URL('../../supabase/new-project/migrations/'+f,import.meta.url),'utf8'));
+ for(const f of ['003_public_profiles.sql','004_teams_and_discovery.sql','005_announcements.sql','006_monthly_ranking.sql','007_social_safety.sql','008_ranked_sessions.sql','009_moderation.sql','010_my_monthly_points.sql'])await db.query(await readFile(new URL('../../supabase/new-project/migrations/'+f,import.meta.url),'utf8'));
  const id=n=>'00000000-0000-0000-0000-'+String(n).padStart(12,'0');
  for(let n=1;n<=80;n++)await db.query('insert into auth.users(id) values($1)',[id(n)]);
  for(let n=1;n<=80;n++)await db.query('insert into public.arkid_public_profiles(user_id,display_name,is_public) values($1,$2,true)',[id(n),'Player '+n]);
@@ -34,6 +34,13 @@ try{
  }
  async function invite(i,t,sender,recipient){await db.query('insert into public.arkid_team_invites(id,team_id,sender_id,recipient_id) values($1,$2,$3,$4)',[id(i),id(t),id(sender),id(recipient)])}
  async function as(n){const c=new Client(cfg);await c.connect();clients.push(c);await c.query('set role authenticated');await c.query("select set_config('request.jwt.claim.sub',$1,false)",[id(n)]);return c}
+ async function service(){const c=new Client(cfg);await c.connect();clients.push(c);await c.query('set role service_role');return c}
+ async function idempotentRace(first,sql1,args1,second,sql2,args2){
+   await first.query('begin');const initial=(await first.query(sql1,args1)).rows[0].result;
+   let settled=false;const waiting=second.query(sql2,args2).then(result=>{settled=true;return result.rows[0].result});
+   await new Promise(resolve=>setTimeout(resolve,200));assert.equal(settled,false,'second operation must wait');
+   await first.query('commit');return [initial,await waiting];
+ }
  async function blockedRace(first,firstSql,firstArgs,second,secondSql,secondArgs,error){
    await first.query('begin');await first.query(firstSql,firstArgs);
    let settled=false;const waiting=second.query(secondSql,secondArgs).then(x=>({x}),e=>({e})).then(x=>{settled=true;return x});
@@ -71,5 +78,19 @@ try{
  await blockedRace(a,'select public.arkid_set_player_block($1,true)',[id(33)],b,'select public.arkid_respond_team_invite($1,true)',[id(207)],/player_unavailable/);
  assert.equal((await db.query('select count(*)::int n from public.arkid_team_members where user_id=$1 and left_at is null',[id(34)])).rows[0].n,0);
  assert.equal((await db.query('select status from public.arkid_team_invites where id=$1',[id(207)])).rows[0].status,'pending');
- console.log('PostgreSQL 17 multi-connection lock tests: all six races passed');
+ // Concurrent starts share one open challenge; concurrent commits write one event.
+ a=await service();b=await service();
+ const [firstStart,secondStart]=await idempotentRace(a,'select public.arkid_rank_start($1,$2,9) result',[id(41),id(301)],b,'select public.arkid_rank_start($1,$2,11) result',[id(41),id(302)]);
+ assert.equal(firstStart.id,secondStart.id);assert.equal(Number(secondStart.seed),9);
+ await a.query('select public.arkid_rank_begin_verify($1,$2)',[id(41),firstStart.id]);
+ const [firstCommit,secondCommit]=await idempotentRace(a,'select public.arkid_rank_commit($1,$2,100,$3) result',[id(41),firstStart.id,'LR'],b,'select public.arkid_rank_commit($1,$2,999,$3) result',[id(41),firstStart.id,'UD']);
+ assert.equal(firstCommit.points,100);assert.equal(secondCommit.points,100);
+ assert.equal((await db.query('select count(*)::int n from public.arkid_rank_events where user_id=$1',[id(41)])).rows[0].n,1);
+ // Competing reviewers cannot process the same report twice.
+ await db.query('insert into public.arkid_moderators(user_id) values($1)',[id(42)]);
+ const report=(await db.query("insert into public.arkid_social_reports(reporter_id,subject_id,reason,display_name_snapshot,bio_snapshot) values($1,$2,'spam','Player','Bio') returning id",[id(43),id(44)])).rows[0].id;
+ a=await as(42);b=await as(42);
+ await blockedRace(a,"select public.arkid_moderation_resolve('profile',$1,'reviewed')",[report],b,"select public.arkid_moderation_resolve('profile',$1,'dismissed')",[report],/report_unavailable/);
+ assert.equal((await db.query('select count(*)::int n from public.arkid_moderation_actions where report_id=$1',[report])).rows[0].n,1);
+ console.log('PostgreSQL 17 multi-connection lock tests: nine races passed');
 }finally{for(const c of clients)await c.end();await db.end()}

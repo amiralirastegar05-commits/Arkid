@@ -1,6 +1,7 @@
 import './messages.js';
 import {currentUser,socialCall} from './social.js';
 import {requireUser} from './public-profile.js';
+import {monthlyTier} from './rank-tiers.js';
 
 const $ = id => document.getElementById(id);
 const status=$('status'), login=$('login'), loginPanel=$('loginPanel'), content=$('socialContent');
@@ -69,12 +70,24 @@ async function markAnnouncement(id){
   try{await socialCall(auth.getClient(),userId,'arkid_read_announcement',{notice:id});await dashboard();say('خبر به‌عنوان خوانده‌شده ثبت شد.','success')}
   catch(error){say(message(error,'write'),'error')}finally{setBusy(false)}
 }
+function renderMyRank(items){
+  const box=$('myRank');box.replaceChildren();
+  if(!items?.length){box.append(empty('ردهٔ ماهانه فعلاً در دسترس نیست.'));return}
+  try{
+    const tier=monthlyTier(items[0].points),card=document.createElement('article');card.className='social-card';
+    const format=new Intl.NumberFormat('fa-IR');
+    card.append(node('strong','ردهٔ تو: '+tier.name),node('p',format.format(tier.points)+' امتیاز ماهانه'));
+    card.append(node('p',tier.nextName?format.format(tier.pointsToNext)+' امتیاز تا ردهٔ '+tier.nextName:'به بالاترین ردهٔ ماه رسیده‌ای.','hint'));
+    card.append(node('p','این رده برای ماه انتخاب‌شده است و از سکه‌ها جداست.','hint'));box.append(card);
+  }catch{box.append(empty('ردهٔ ماهانه فعلاً در دسترس نیست.'))}
+}
 function renderRankings(items){
   const box=$('rankings');box.replaceChildren();
   if(!items.length){box.append(empty('هنوز رتبه‌ای برای نمایش وجود ندارد.'));return}
   for(const item of items){
     const card=document.createElement('article');card.className='social-card';
     card.append(node('strong',String(item.place)+' · '+item.display_name),node('p',String(item.points)+' امتیاز ماهانه'));
+    try{card.append(node('p','ردهٔ ماه: '+monthlyTier(item.points).name,'hint'))}catch{}
     box.append(card);
   }
 }
@@ -115,13 +128,13 @@ async function blockInviteSender(invite){
   catch(error){say(message(error,'write'),'error')}finally{setBusy(false)}
 }
 async function reportProfile(item,reason){
-  if(busy||!confirm('پروفایل عمومی «'+item.display_name+'» برای بررسی انسانی گزارش شود؟ نام و بیوی فعلی در گزارش ذخیره می‌شوند.'))return;
+  if(busy||!confirm('پروفایل عمومی «'+item.display_name+'» برای بررسی انسانی گزارش شود؟ نام و بیوی فعلی ذخیره می‌شوند و ممکن است بعد از حذف حساب، بدون شناسهٔ آن حساب باقی بمانند.'))return;
   setBusy(true);say('در حال ارسال گزارش…');
   try{await socialCall(auth.getClient(),userId,'arkid_report_profile',{target:item.user_id,report_reason:reason});say('گزارش ثبت شد؛ بررسی آن خودکار نیست.','success')}
   catch(error){say(message(error,'write'),'error')}finally{setBusy(false)}
 }
 async function reportTeam(reference,reason){
-  if(busy||!confirm('نام این تیم برای بررسی انسانی گزارش شود؟ نام فعلی تیم در گزارش ذخیره می‌شود.'))return;
+  if(busy||!confirm('نام این تیم برای بررسی انسانی گزارش شود؟ نام فعلی در گزارش ذخیره می‌شود و ممکن است بعد از حذف حساب گزارش‌دهنده، بدون شناسهٔ او باقی بماند.'))return;
   setBusy(true);say('در حال ارسال گزارش…');
   try{await socialCall(auth.getClient(),userId,'arkid_report_team',{...reference,report_reason:reason});say('گزارش ثبت شد؛ بررسی آن خودکار نیست.','success')}
   catch(error){say(message(error,'write'),'error')}finally{setBusy(false)}
@@ -130,16 +143,18 @@ async function dashboard(){
   const client=auth.getClient();const id=await currentUser(client);
   const month=$('rankMonth').value;
   const rankArgs=month?{period:month+'-01'}:{};
-  const [rows,inbox,announcements,rankings,blocks]=await Promise.all([
+  const [rows,inbox,announcements,rankings,blocks,myRank]=await Promise.all([
     socialCall(client,id,'arkid_my_team'),socialCall(client,id,'arkid_team_inbox'),
     socialCall(client,id,'arkid_announcement_feed').then(value=>({value}),error=>({error})),
     socialCall(client,id,'arkid_monthly_leaderboard',rankArgs).then(value=>({value}),error=>({error})),
-    socialCall(client,id,'arkid_my_blocks').then(value=>({value}),error=>({error}))
+    socialCall(client,id,'arkid_my_blocks').then(value=>({value}),error=>({error})),
+    socialCall(client,id,'arkid_my_monthly_points',rankArgs).then(value=>({value}),error=>({error}))
   ]);
   await requireUser(client,id);
   userId=id;renderTeam(rows?.[0]||null);renderInbox(inbox||[]);
   if(announcements.error)$('announcements').replaceChildren(empty(message(announcements.error)));else renderAnnouncements(announcements.value||[]);
   if(rankings.error)$('rankings').replaceChildren(empty(message(rankings.error)));else renderRankings(rankings.value||[]);
+  if(myRank.error)$('myRank').replaceChildren(empty(message(myRank.error)));else renderMyRank(myRank.value||[]);
   if(blocks.error)$('blocks').replaceChildren(empty(message(blocks.error)));else renderBlocks(blocks.value||[]);
   $('results').replaceChildren();
   loginPanel.hidden=true;content.hidden=false;say('');
@@ -192,12 +207,21 @@ $('search').addEventListener('submit',async e=>{
 });
 $('rankForm').addEventListener('submit',async e=>{
   e.preventDefault();if(busy)return;const month=$('rankMonth').value;setBusy(true);say('در حال دریافت رتبه‌ها…');
-  try{const rows=await socialCall(auth.getClient(),userId,'arkid_monthly_leaderboard',month?{period:month+'-01'}:{});renderRankings(rows||[]);say('')}
-  catch(error){say(message(error),'error')}finally{setBusy(false)}
+  try{
+    const client=auth.getClient(),id=userId,args=month?{period:month+'-01'}:{};
+    const [ranking,mine]=await Promise.all([
+      socialCall(client,id,'arkid_monthly_leaderboard',args).then(value=>({value}),error=>({error})),
+      socialCall(client,id,'arkid_my_monthly_points',args).then(value=>({value}),error=>({error}))
+    ]);
+    await requireUser(client,id);
+    if(ranking.error)$('rankings').replaceChildren(empty(message(ranking.error)));else renderRankings(ranking.value||[]);
+    if(mine.error)$('myRank').replaceChildren(empty(message(mine.error)));else renderMyRank(mine.value||[]);
+    say('');
+  }catch(error){say(message(error),'error')}finally{setBusy(false)}
 });
 $('refresh').addEventListener('click',async()=>{if(busy)return;setBusy(true);say('در حال به‌روزرسانی…');try{await dashboard()}catch(error){say(message(error),'error')}finally{setBusy(false)}});
 $('signout').addEventListener('click',async()=>{if(busy)return;setBusy(true);try{const {error}=await auth.signOut();if(error)throw error;resetUI();say('از حساب خارج شدی.')}catch(error){say(message(error),'error')}finally{setBusy(false)}});
-function resetUI(){userId=null;team=null;content.hidden=true;loginPanel.hidden=false;for(const id of ['team','inbox','announcements','rankings','blocks','results'])$(id).replaceChildren()}
+function resetUI(){userId=null;team=null;content.hidden=true;loginPanel.hidden=false;for(const id of ['team','inbox','announcements','rankings','myRank','blocks','results'])$(id).replaceChildren()}
 setBusy(true);
 try{
   await import('./arcade-auth.js');auth=window.ArkidAuth;

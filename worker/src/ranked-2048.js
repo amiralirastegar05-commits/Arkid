@@ -64,16 +64,23 @@ export function canMove(board){
   }
   return false;
 }
-export function replayRanked2048(seed,moves){
+// Interactive client and verifier share rules, but client state is never trusted.
+export function createRankedGame(seed){
   if(!Number.isInteger(seed)||seed<0||seed>0xffffffff)throw Error('invalid_seed');
+  const state={board:Array(16).fill(0),score:0,rng:seed>>>0};let count=0;
+  spawn(state);spawn(state);
+  const snapshot=()=>({board:state.board.slice(),score:state.score,moves:count,finished:!canMove(state.board)});
+  return {snapshot,step(direction){
+    if(!DIRECTIONS.has(direction)||count>=MAX_MOVES)throw Error('invalid_transcript');
+    if(!canMove(state.board))throw Error('game_already_over');
+    move(state,direction);count++;return snapshot();
+  }};
+}
+export function replayRanked2048(seed,moves){
   if(!Array.isArray(moves)||moves.length>MAX_MOVES)throw Error('invalid_transcript');
   // for...of also checks sparse array slots, unlike Array.prototype.some.
   for(const direction of moves)if(!DIRECTIONS.has(direction))throw Error('invalid_transcript');
-  const state={board:Array(16).fill(0),score:0,rng:seed>>>0};
-  spawn(state);spawn(state);
-  for(const direction of moves){
-    if(!canMove(state.board))throw Error('game_already_over');
-    move(state,direction);
-  }
-  return {board:state.board,score:state.score,moves:moves.length,finished:!canMove(state.board)};
+  const game=createRankedGame(seed);
+  for(const direction of moves)game.step(direction);
+  return game.snapshot();
 }

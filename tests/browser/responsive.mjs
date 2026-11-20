@@ -23,6 +23,9 @@ const mock=`export function createClient(){
  const user={id:'alice',email:'player@example.test'};
  const auth={getSession:async()=>({data:{session:{user}},error:null}),onAuthStateChange:()=>{},signOut:async()=>({error:null})};
  const rpc=async(fn,args={})=>{
+  if(fn==='arkid_is_moderator')return {error:null,data:localStorage.getItem('mock_mod')!=='denied'};
+  if(fn==='arkid_moderation_queue')return {error:null,data:localStorage.getItem('mock_reviewed')==='yes'?[]:[{report_id:'r1',kind:'profile',reason:'spam',subject_id:'bob',name_snapshot:'<img src=x onerror=alert(1)>',bio_snapshot:'B'.repeat(160)}]};
+  if(fn==='arkid_moderation_resolve'){localStorage.setItem('mock_reviewed','yes');return {error:null,data:args.outcome}}
   if(fn==='arkid_set_player_block'){localStorage.setItem('mock_block',args.blocked?'yes':'no');return {error:null,data:args.blocked?'blocked':'unblocked'}}
   if(fn==='arkid_block_invite_sender'){localStorage.setItem('mock_block','yes');return {error:null,data:'blocked'}}
   if(fn==='arkid_report_profile'||fn==='arkid_report_team'){localStorage.setItem('mock_report',fn+':'+args.report_reason);return {error:null,data:'reported'}}
@@ -32,6 +35,7 @@ const mock=`export function createClient(){
   arkid_team_inbox:[{invite_id:'i',team_name:'T'.repeat(32),sender_name:'S'.repeat(40)}],
   arkid_announcement_feed:[{announcement_id:'n',title:'N'.repeat(100),body:'متن '.repeat(80),is_read:false}],
   arkid_monthly_leaderboard:[{place:1,display_name:'P'.repeat(40),points:12345}],
+  arkid_my_monthly_points:[{month_utc:'2025-03-01',points:600}],
   arkid_search_players:[{user_id:'bob',display_name:'B'.repeat(40),bio:'Z'.repeat(160)}]
  })[fn]||[]};};
  const from=()=>{const b={select:()=>b,eq:()=>b,maybeSingle:async()=>({data:{user_id:'alice',display_name:'A'.repeat(40),bio:'B'.repeat(160),is_public:false,revision:'r'},error:null})};return b};
@@ -56,7 +60,7 @@ try{
  for(const width of [320,375,768,1024,1440]){
    await page.setViewportSize({width,height:850});
    await page.goto(`http://127.0.0.1:${port}/cloud/social.html`);
-   await page.locator('#socialContent:not([hidden])').waitFor();
+   await page.locator('#socialContent:not([hidden])').waitFor();await page.locator('#myRank').getByText('ردهٔ تو: برنزی').waitFor();
    await page.locator('#searchText').fill('Bob');await page.locator('#search button').click();await page.locator('#results .social-card').waitFor();
    if(width===375){
      await page.locator('#results select').selectOption('spam');await page.getByRole('button',{name:'گزارش پروفایل'}).click();
@@ -74,7 +78,10 @@ try{
    await page.goto(`http://127.0.0.1:${port}/cloud/public-profile.html`);
    await page.locator('#profileForm:not([hidden])').waitFor();await noOverflow(`profile ${width}`);
    assert.equal(await page.locator('#visibility').isChecked(),false);
-   console.log(`responsive ${width}px: social and profile OK`);
+   await page.goto(`http://127.0.0.1:${port}/cloud/moderation.html`);await page.locator('#reviewPanel:not([hidden])').waitFor();await noOverflow(`moderation ${width}`);
+   if(width===320){assert.equal(await page.locator('#reports img').count(),0);await page.getByRole('button',{name:'بررسی شد'}).click();await page.getByText('نتیجهٔ بررسی ثبت شد.').waitFor();}
+   if(width===375){await page.evaluate(()=>localStorage.setItem('mock_mod','denied'));await page.reload();await page.locator('#deniedPanel:not([hidden])').waitFor();assert.equal(await page.locator('#ownId').innerText(),'alice');await page.evaluate(()=>localStorage.removeItem('mock_mod'))}
+   console.log(`responsive ${width}px: social, profile and moderation OK`);
  }
  assert.deepEqual(errors,[]);
  await context.close();await browser.close();

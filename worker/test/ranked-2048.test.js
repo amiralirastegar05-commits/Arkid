@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {slideLine,canMove,replayRanked2048} from '../src/ranked-2048.js';
+import {slideLine,canMove,replayRanked2048,createRankedGame} from '../src/ranked-2048.js';
 
 test('2048 merges each tile at most once and scores merged values',()=>{
   assert.deepEqual(slideLine([2,2,2,2]),{line:[4,4,0,0],gained:8});
@@ -18,6 +18,9 @@ test('server replay has stable seeded output and rejects forged transcripts',()=
   const result=replayRanked2048(123456,moves);
   assert.deepEqual(result,{board:[4,16,8,2,32,8,2,0,8,4,2,0,16,4,0,0],score:280,moves:50,finished:false});
   assert.deepEqual(replayRanked2048(123456,moves),result);
+  const interactive=createRankedGame(123456);for(const direction of moves)interactive.step(direction);
+  assert.deepEqual(interactive.snapshot(),result);
+  const copy=interactive.snapshot();copy.board[0]=999;assert.equal(interactive.snapshot().board[0],4);
   assert.throws(()=>replayRanked2048(-1,[]),/invalid_seed/);
   assert.throws(()=>replayRanked2048(1,['wat']),/invalid_transcript/);
   assert.throws(()=>replayRanked2048(1,new Array(4097).fill('L')),/invalid_transcript/);
