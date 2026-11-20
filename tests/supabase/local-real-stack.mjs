@@ -58,4 +58,9 @@ assert.ok(state.finished&&state.score>0);const result=await workerCall('/v1/rank
 const repeat=await workerCall('/v1/ranked/submit',alice.token,{sessionId:s.id,moves});assert.equal((await repeat.json()).session.points,state.score);
 assert.equal(Number((await rpc(alice.token,'arkid_my_monthly_points',{}))[0].points),state.score);
 const board=await rpc(bob.token,'arkid_monthly_leaderboard',{});assert.equal(Number(board.find(r=>r.user_id===alice.id).points),state.score);
-console.log('Local Supabase GoTrue + PostgREST + PostgreSQL: three synthetic accounts, privacy, teams, blocks, reports, moderation, snapshot isolation, Worker ranked and leaderboard passed.');
+// Optional staged-launch hold is enforced server-side, not just in the UI.
+execFileSync('psql',['--set','ON_ERROR_STOP=1','--file','supabase/new-project/rollout/hold_reporting.sql'],{stdio:'ignore',env:{...process.env,PGHOST:'127.0.0.1',PGPORT:'54322',PGUSER:'postgres',PGPASSWORD:'postgres',PGDATABASE:'postgres'}});
+assert.ok((await request('/rest/v1/rpc/arkid_report_profile',{method:'POST',token:hidden.token,body:{target:alice.id,report_reason:'spam'}})).status>=400);
+assert.ok((await request('/rest/v1/rpc/arkid_report_team',{method:'POST',token:hidden.token,body:{team,invite:null,report_reason:'spam'}})).status>=400);
+assert.equal(await rpc(bob.token,'arkid_set_player_block',{target:alice.id,blocked:true}),'blocked');
+console.log('Local Supabase GoTrue + PostgREST + PostgreSQL: three synthetic accounts, privacy, teams, blocks, reports, moderation, snapshot isolation, Worker ranked, leaderboard and server-side reporting hold passed.');
