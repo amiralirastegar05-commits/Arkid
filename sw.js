@@ -1,5 +1,5 @@
 /* ★ PWA: نسخهٔ مستقل؛ فایل‌های مفقود مانع نصب نمی‌شوند */
-const CACHE_VERSION='arcade-2026-11-v20';
+const CACHE_VERSION='arcade-2026-11-v21';
 const CORE=CACHE_VERSION+'-core',BANNERS=CACHE_VERSION+'-banners';
 const ROOT=new URL('./',self.location.href);
 const CORE_URLS=['./','index.html','arcade-gamepad.js','arcade-gamepad.css','arcade-upgrade.css','arcade-polish.js','hub-enhancements.js','auth.css','auth.js','cloud/arcade-auth.js','cloud/config.js','cloud/snapshot.js','cloud/messages.js','cloud/entry-gate.js','cloud/entry-gate.css','cloud/restore.html','cloud/restore.css','cloud/restore.js','cloud/worker-diagnostic.js','cloud/worker-check.html','manifest.webmanifest','arcade-icon-192.png','arcade-icon-512.png','Ali_Grapph_medium.woff2','Ali_Grapph_bold.woff2'];

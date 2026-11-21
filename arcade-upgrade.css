@@ -124,3 +124,60 @@ button>.ic+span,button>span+.ic{margin-inline-start:0}
 .au-no-motion .home-card-arrow,.au-no-motion .home-card-icon{transition:none}
 .au-no-motion .home-card summary:active .home-card-icon{transform:none}
 @media(prefers-reduced-motion:reduce){.home-card[open] > .home-card-body{animation:none}.home-card-arrow,.home-card-icon{transition:none}.home-card summary:active .home-card-icon{transform:none}}
+
+/* A softer editorial storefront, inspired by the rounded, colourful ArtaGraph cards. */
+.hero{border:1px solid rgba(158,143,242,.18);border-radius:24px;background:radial-gradient(circle at 18% 15%,rgba(93,83,192,.25),transparent 34%),linear-gradient(120deg,#15182c,#101521 65%,#241c30);margin:20px auto 24px;padding:30px 32px;box-shadow:0 12px 35px #0002}
+.hero::after{display:none}.hero .hero-title{background:linear-gradient(90deg,#fff 20%,#f5d66d 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}.hero .home-kicker{color:#c7b6ff}.hero .hero-sub{color:#c2c8dc}
+.home-collection-head{margin-bottom:15px}.home-eyebrow{color:#b8a5fc}.home-card{border-radius:20px;background:linear-gradient(145deg,#1d2130,#131926);border-color:#ffffff14;box-shadow:0 7px 20px #0002}.home-card[open]{background:var(--bg-1)}
+.home-card-icon{background:#705be12b;border-color:#a797ff40;color:#cbbcff}.home-card:nth-child(2) .home-card-icon{background:#2aabc522;border-color:#58d7e336;color:#92e5ec}.home-card:nth-child(3) .home-card-icon{background:#ecad3324;border-color:#ffd56a3b;color:#ffd67b}.home-card:nth-child(4) .home-card-icon{background:#f0779a24;border-color:#ffacc83b;color:#ffbed3}
+.games .card{border-radius:20px;overflow:hidden}.games .card-cover{border-radius:19px 19px 0 0}.section-head h2::after,.recent h2::after{background:linear-gradient(90deg,#a990ff,#f8cc60);width:32px}
+@media(max-width:700px){.hero{margin:14px 14px 20px;padding:22px 16px;border-radius:20px}.hero .hero-title{font-size:25px}}
+
+/* Permanent home-layout products: no content or game state is removed. */
+:root[data-layout=list] .games .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+:root[data-layout=list] .games .card{display:grid;grid-template-columns:110px minmax(0,1fr);min-height:150px}
+:root[data-layout=list] .games .card-cover{height:100%;min-height:150px;aspect-ratio:auto;border-radius:0}
+:root[data-layout=list] .games .card-body{padding:17px 14px 62px;min-width:0}
+:root[data-layout=list] .games .au-card-tools{top:auto;bottom:9px;left:10px}
+:root[data-layout=gallery] .games .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+:root[data-layout=gallery] .games .card-cover{aspect-ratio:1/1}
+@media(max-width:700px){:root[data-layout=list] .games .grid{grid-template-columns:1fr}:root[data-layout=gallery] .games .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}:root[data-layout=list] .games .card{grid-template-columns:105px minmax(0,1fr)}}
+
+/* Previews are illustrative miniatures, never an applied layout. */
+.layout-shop-preview{height:140px;background:#0f1420;padding:9px;overflow:hidden}.layout-preview-btn{flex:1;min-height:44px;border-radius:10px;border:1px solid var(--border-normal);background:var(--bg-2);color:var(--text-primary);font:700 11px 'Ali_Grapph',sans-serif;cursor:pointer}.layout-preview-btn:focus-visible{outline:2px solid var(--gold-light);outline-offset:2px}.layout-preview-dialog{text-align:right!important;max-width:440px}.layout-preview-dialog h2{font-size:18px;margin:0 0 18px;padding-inline-end:36px}.layout-preview-dialog p{font-size:12px;color:var(--text-secondary);line-height:1.9;margin-top:14px}.layout-preview-dialog .layout-preview-note{font-size:11px}
+.layout-sketch{width:min(100%,190px);height:122px;margin:auto;padding:7px;background:#121625;border:1px solid #a9a1d540;border-radius:10px;display:grid;grid-template-rows:8px 22px 14px 8px minmax(0,1fr);gap:4px;direction:rtl;overflow:hidden}.layout-sketch .sketch-header{border-radius:3px;background:#3d4257}.layout-sketch .sketch-hero{border-radius:4px;background:linear-gradient(100deg,#57408f,#174f70)}.layout-sketch .sketch-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.layout-sketch i{display:block;min-width:0;border-radius:3px;background:#45425b}.layout-sketch .sketch-label{font-size:7px;color:#f2d778;line-height:8px}.layout-sketch .sketch-games{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.layout-sketch .sketch-games i:nth-child(1){background:#4b7796}.layout-sketch .sketch-games i:nth-child(2){background:#96536a}.layout-sketch .sketch-games i:nth-child(3){background:#477763}.layout-sketch .sketch-games i:nth-child(4){background:#8b7452}
+.layout-sketch-list .sketch-games{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}.layout-sketch-list .sketch-games i{background:linear-gradient(90deg,#34384c 55%,#527b8e 55%)}.layout-sketch-gallery .sketch-games{grid-template-columns:repeat(3,1fr)}.layout-sketch-gallery .sketch-games i:last-child{display:none}.layout-preview-dialog .layout-sketch{width:min(100%,300px);height:240px;padding:13px;grid-template-rows:16px 44px 27px 14px minmax(0,1fr);gap:7px;border-radius:14px}.layout-preview-dialog .sketch-label{font-size:10px;line-height:14px}
+
+/* Light and dark are independent of accent colours and purchased layouts. */
+:root[data-scheme=light]{color-scheme:light;--bg-0:#f3f4fa;--bg-1:#ffffff;--bg-2:#edf0f7;--surface:#ffffff;--surface-hover:#f4f1fb;--surface-alt:#e7eaf2;--text-primary:#232538;--text-secondary:#5e6376;--text-tertiary:#6c7184;--text-inverse:#191724;--border-subtle:rgba(36,34,58,.10);--border-normal:rgba(36,34,58,.16);--border-strong:rgba(36,34,58,.25);--gold:#795818;--gold-dim:rgba(125,89,27,.18);--shadow-sm:0 3px 12px #29243d14;--shadow-md:0 10px 28px #29243d20;--shadow-lg:0 20px 60px #29243d33}
+:root[data-scheme=light][data-theme=cyber]{--gold:#08728a;--gold-light:#a5f3fc;--gold-dark:#55bdcf;--gold-dim:#08728a32}
+:root[data-scheme=light][data-theme=matrix]{--gold:#187145;--gold-light:#b8efcb;--gold-dark:#65cd8c;--gold-dim:#18714532}
+:root[data-scheme=light][data-theme=sunset]{--gold:#a03f16;--gold-light:#ffd1a8;--gold-dark:#f39866;--gold-dim:#a03f1632}
+:root[data-scheme=light][data-theme=nowruz]{--gold:#08715a;--gold-light:#b0ecd9;--gold-dark:#69d9bc;--gold-dim:#08715a32}
+:root[data-scheme=light] body{background:#f3f4fa;background-image:radial-gradient(circle at 15% 0%,#e9e4fc,transparent 38%)}
+:root[data-scheme=light] body::before{display:none}
+:root[data-scheme=light] header.lg-glass,:root[data-scheme=light] .bottom-nav-inner,:root[data-scheme=light] .side-menu-panel,:root[data-scheme=light] .about-modal .about-card,:root[data-scheme=light] .sort-menu{background:#fff;color:var(--text-primary);border-color:var(--border-normal);box-shadow:var(--shadow-md)}
+:root[data-scheme=light] #arkidAuthDialog{background:#fff;color:var(--text-primary)}:root[data-scheme=light] .arkid-auth-account{background:var(--bg-2)}
+:root[data-scheme=light] .hero{background:linear-gradient(120deg,#eee9ff,#fff4f2);border-color:#c7bced;box-shadow:var(--shadow-sm)}:root[data-scheme=light] .hero .hero-title{background:none;-webkit-text-fill-color:#28243e;color:#28243e}:root[data-scheme=light] .hero .hero-sub{color:#5d5a72}:root[data-scheme=light] .hero .home-kicker,:root[data-scheme=light] .home-eyebrow{color:#6653a1}
+:root[data-scheme=light] .home-card{background:#fff;border-color:var(--border-normal);box-shadow:var(--shadow-sm)}:root[data-scheme=light] .home-card-icon{color:#6650b0}:root[data-scheme=light] .home-card:nth-child(2) .home-card-icon{color:#077487}:root[data-scheme=light] .home-card:nth-child(3) .home-card-icon{color:#8b6015}:root[data-scheme=light] .home-card:nth-child(4) .home-card-icon{color:#a13f65}
+:root[data-scheme=light] .card-body,:root[data-scheme=light] .shop-item,:root[data-scheme=light] .ach-card,:root[data-scheme=light] .quest-item{background:#fff}
+:root[data-scheme=light] .home-card-body .hero-stats,:root[data-scheme=light] .ach-strip,:root[data-scheme=light] .quests-section{color:var(--text-primary)}
+:root[data-scheme=light] .filter-chip.on,:root[data-scheme=light] .shop-tab.active{color:#201b0f;background:#f5c518;border-color:#d3ad18}
+:root[data-scheme=light] .shop-buy-btn{background:#f5c518;color:#201b0f}:root[data-scheme=light] .shop-buy-btn:disabled{background:#e1e2e8;color:#737684}:root[data-scheme=light] .shop-equip-btn.on{color:#1c724b}
+:root[data-scheme=light] .hub-notice{background:#fff7de;color:#3d3322}:root[data-scheme=light] .hub-notice strong{color:#76571a}:root[data-scheme=light] .hub-notice button{color:#644914}
+:root[data-scheme=light] .game-guide p{color:var(--text-primary)}:root[data-scheme=light] .game-guide-note{color:var(--text-secondary)!important}
+#settingsModal [id^=auScheme][aria-pressed=true]{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold);font-weight:700}
+:root[data-scheme=light] .hub-toast,:root[data-scheme=light] .points-toast,:root[data-scheme=light] .xp-toast{background:#fff;color:#282538;border:1px solid var(--border-normal);box-shadow:var(--shadow-md)}
+:root[data-scheme=light] .xp-toast .xp-reason,:root[data-scheme=light] .points-toast span{color:#555b6c}
+@media(max-width:700px){.layout-sketch-default .sketch-games,.layout-sketch-gallery .sketch-games{grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}.layout-sketch-gallery .sketch-games i:last-child{display:block}}
+:root[data-scheme=light] .game-guide h2{color:var(--gold)}
+@media(max-width:700px){
+  :root[data-layout=gallery] .games .grid{grid-template-columns:1fr}
+  .layout-sketch-list .sketch-games{grid-template-columns:1fr;grid-template-rows:repeat(4,1fr)}
+  .layout-sketch-gallery .sketch-games{grid-template-columns:1fr;grid-template-rows:repeat(2,1fr)}
+  .layout-sketch-gallery .sketch-games i:nth-child(n+3){display:none}
+}
+/* An illustrated feature banner: a static SVG keeps the storefront lively without ongoing animation. */
+.hero{grid-template-columns:minmax(0,1fr) minmax(120px,210px);grid-template-rows:auto;min-height:190px;overflow:hidden}
+.hero .hero-copy{grid-column:1;grid-row:1;min-width:0;text-align:right}.hero .hero-art{grid-column:2;grid-row:1;width:100%;max-width:200px;justify-self:center}.hero-art svg{display:block;width:100%;height:auto;max-height:160px}.hero .hero-copy .home-kicker{margin:0 0 7px}.hero .hero-copy .hero-sub{margin:5px 0 12px}.hero .hero-copy .hero-cta{margin:0;min-height:44px;padding:10px 18px}.hero #auEvent{grid-column:1 / -1}
+@media(max-width:700px){.hero{grid-template-columns:minmax(0,1fr) minmax(92px,130px);min-height:155px;padding:20px 15px}.hero .hero-copy .hero-cta{font-size:10px;max-width:none}.hero-art svg{max-height:130px}.hero .hero-copy .hero-title{font-size:23px}}
