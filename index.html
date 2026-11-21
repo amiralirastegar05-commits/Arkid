@@ -1973,13 +1973,13 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
   </div>
   <!-- ============ Hero ============ -->
   <section class="hero" id="hero">
-    <p class="home-kicker">YOUR LITTLE ARCADE</p>
-    <h1 class="hero-title">آرکید کلاسیک</h1>
-    <div class="hero-line"></div>
-    <p class="hero-sub">یه بازی انتخاب کن و شروع کن.</p>
-    <!-- ★ پولیش UI: Hero CTA -->
-    <!-- ★ فیکس باگ: اتصال رویداد داخل IIFE -->
-    <button class="hero-cta" id="heroRandomBtn" type="button">🎲 شروع بازی تصادفی</button>
+    <div class="hero-copy">
+      <p class="home-kicker">YOUR LITTLE ARCADE</p>
+      <h1 class="hero-title">آرکید کلاسیک</h1>
+      <p class="hero-sub">یه بازی انتخاب کن و شروع کن.</p>
+      <button class="hero-cta" id="heroRandomBtn" type="button">🎲 شروع بازی تصادفی</button>
+    </div>
+    <div class="hero-art" aria-hidden="true"><svg viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="92" cy="79" r="64" fill="#8372E3" fill-opacity=".18"/><circle cx="92" cy="79" r="48" stroke="#B9A9FF" stroke-opacity=".36"/><path d="M41 76c4-17 14-23 32-23h38c18 0 29 6 33 23l6 29c3 14-9 22-20 14l-17-12H72l-18 12c-11 8-23 0-20-14l7-29Z" fill="#F4D570" stroke="#FFF0B6" stroke-width="3"/><path d="M63 73v20M53 83h20" stroke="#43345E" stroke-width="6" stroke-linecap="round"/><circle cx="117" cy="77" r="5" fill="#43345E"/><circle cx="129" cy="90" r="5" fill="#43345E"/><path d="M32 39l3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Zm112-10 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" fill="#D9C8FF"/><circle cx="29" cy="100" r="3" fill="#FD99B8"/><circle cx="150" cy="64" r="3" fill="#83D8E2"/></svg></div>
   </section>
 
   <section class="home-collection" aria-labelledby="homeCollectionTitle">
@@ -2396,6 +2396,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
   </div>
 </div>
 
+<div class="about-modal" id="layoutPreviewModal"><div class="about-backdrop"></div><div class="about-card lg-glass layout-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="layoutPreviewTitle" tabindex="-1"><button class="about-close" data-close="layoutPreviewModal" data-initial-focus type="button" aria-label="بستن پیش‌نمایش">✕</button><h2 id="layoutPreviewTitle"></h2><div id="layoutPreviewBody"></div></div></div>
 <div class="about-modal wide-modal" id="shopModal">
   <div class="about-backdrop"></div>
   <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="shopTitle" tabindex="-1">
@@ -2409,6 +2410,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
     </div>
     <div class="shop-status" id="shopStatus"></div>
     <div class="shop-tabs" id="shopTabs" role="tablist" aria-label="دسته‌بندی فروشگاه">
+      <button class="shop-tab" data-cat="layouts" id="shop-tab-layouts" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">▦ چیدمان صفحه</button>
       <button class="shop-tab active" data-cat="frames" id="shop-tab-frames" role="tab" aria-controls="shopGrid" aria-selected="true" tabindex="0" type="button">🖼️ قاب</button>
       <button class="shop-tab" data-cat="colors" id="shop-tab-colors" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">🎨 نام</button>
       <button class="shop-tab" data-cat="badges" id="shop-tab-badges" role="tab" aria-controls="shopGrid" aria-selected="false" tabindex="-1" type="button">🏅 بج</button>
@@ -2671,6 +2673,8 @@ const POINTS_REWARDS = {
 };
 
 const SHOP_ITEMS = [
+  {id:'home-layout-list',cat:'layouts',name:'چیدمان فهرستی',price:600,kind:'homeLayout',layout:'list',desc:'بازی‌ها به شکل ردیفی و خوانا نمایش داده می‌شوند.'},
+  {id:'home-layout-gallery',cat:'layouts',name:'چیدمان گالری',price:1200,kind:'homeLayout',layout:'gallery',desc:'کاورهای بزرگ‌تر و نمای تصویری‌تر برای بازی‌ها.'},
   /* ★ فروشگاه: آیتم‌های جدید */
 {"id": "gp-skin-neon", "name": "اسکین نئون دسته", "price": 800, "cat": "gamepad", "kind": "gamepadSkin"},
 {"id": "gp-skin-gold", "name": "اسکین طلایی دسته", "price": 1500, "cat": "gamepad", "kind": "gamepadSkin"},
@@ -3374,7 +3378,7 @@ function addItem(id) { if (!SHOP_ITEMS.some(item => item.id === id)) return; con
 function getEquipped() {
   const raw = LS.get('arcade_equipped',{}), equipped = {}, owned = getInventory().items;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return equipped;
-  ['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme'].forEach(kind => { if (owned.includes(raw[kind]) && SHOP_ITEMS.some(item => item.id === raw[kind] && item.kind === kind)) equipped[kind] = raw[kind]; });
+  ['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme','homeLayout'].forEach(kind => { if (owned.includes(raw[kind]) && SHOP_ITEMS.some(item => item.id === raw[kind] && item.kind === kind)) equipped[kind] = raw[kind]; });
   return equipped;
 }
 function setEquipped(value) { LS.set('arcade_equipped',value); applyCosmetics(); }
@@ -3410,11 +3414,11 @@ function equipItem(value) {
   const item = SHOP_ITEMS.find(it => it.id === (typeof value === 'string' ? value : value && value.id));
   /* ★ دسته: انتخاب خریدها در پیکربندی */
   if(item&&hasItem(item.id)&&item.cat==='gamepad'){gpCommit();const patch=item.kind==='gamepadSkin'?{skin:item.id.replace('gp-skin-','')}:item.kind==='gamepadLayout'?{layout:item.id.replace('gp-layout-','')}:item.kind==='gamepadHaptic'?{hapticPro:true}:{};setGamepadConfig(patch);closeModal('shopModal',false);openGamepadConfig();return true;}
-  if (!item || !hasItem(item.id) || !['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme'].includes(item.kind)) return false;
+  if (!item || !hasItem(item.id) || !['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme','homeLayout'].includes(item.kind)) return false;
   const eq = getEquipped(); eq[item.kind] = item.id; setEquipped(eq); renderShop(); return true;
 }
 function unequip(kind) {
-  if (!['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme'].includes(kind)) return;
+  if (!['frame','nameColor','badge','cursorTrail','bgTheme','soundPack','borderTheme','homeLayout'].includes(kind)) return;
   const eq = getEquipped(); delete eq[kind]; setEquipped(eq); renderShop();
 }
 let currentShopCat = 'frames';
@@ -3424,28 +3428,41 @@ function renderShopStatus() {
   if (boost) { const minutes = Math.ceil((boost.expiresAt - Date.now()) / 60000); text += ' · ⚡ XP ' + faNum(boost.multiplier) + '× تا ' + faNum(Math.floor(minutes / 60)) + ' ساعت و ' + faNum(minutes % 60) + ' دقیقهٔ دیگر'; }
   el.textContent = text;
 }
+function layoutPreviewMarkup(layout) {
+  return `<div class="layout-sketch layout-sketch-${esc(layout)}" aria-hidden="true"><div class="sketch-header"></div><div class="sketch-hero"></div><div class="sketch-tiles"><i></i><i></i><i></i><i></i></div><div class="sketch-label">بازی‌ها</div><div class="sketch-games"><i></i><i></i><i></i><i></i></div></div>`;
+}
+function showLayoutPreview(id) {
+  const item = id === 'default' ? {name:'چیدمان اصلی',layout:'default',desc:'چهار کارت جمع‌وجور و بازی‌ها در نمای استاندارد.'} : SHOP_ITEMS.find(i=>i.id===id && i.kind==='homeLayout');
+  if (!item) return;
+  document.getElementById('layoutPreviewTitle').textContent = 'پیش‌نمایش ' + item.name;
+  document.getElementById('layoutPreviewBody').innerHTML = layoutPreviewMarkup(item.layout) + '<p>' + esc(item.desc) + '</p><p class="layout-preview-note">نمای نمونه است؛ پیش‌نمایش چیزی را خریداری یا فعال نمی‌کند.</p>';
+  showModal('layoutPreviewModal');
+}
 function renderShop() {
   const grid = document.getElementById('shopGrid'), eq = getEquipped(), owned = getInventory().items, pts = getPoints(), profile = getProfile(), avatar = ALL_AVATARS[profile.avatar];
   const focused = grid.contains(document.activeElement) ? { action: document.activeElement.dataset.buy ? 'buy' : document.activeElement.dataset.equip ? 'equip' : 'unequip', id: document.activeElement.dataset.buy || document.activeElement.dataset.equip || document.activeElement.dataset.unequip } : null;
   document.getElementById('shopPointsValue').textContent = faNum(pts); renderShopStatus();
   document.querySelectorAll('#shopTabs .shop-tab').forEach(tab => { const active = tab.dataset.cat === currentShopCat; tab.classList.toggle('active',active); tab.setAttribute('aria-selected',String(active)); tab.tabIndex = active ? 0 : -1; });
   grid.setAttribute('aria-labelledby','shop-tab-' + currentShopCat);
-  grid.innerHTML = SHOP_ITEMS.filter(item => item.cat === currentShopCat).map(item => {
+  const defaultLayout = currentShopCat === 'layouts' ? '<div class="shop-item layout-shop-default"><div class="shop-item-preview layout-shop-preview">'+layoutPreviewMarkup('default')+'</div><div class="shop-item-info"><div class="shop-item-name">چیدمان اصلی</div><div class="shop-item-desc">نمای استاندارد؛ همیشه رایگان</div><div class="shop-item-price">رایگان</div></div><div class="shop-item-actions"><button type="button" class="layout-preview-btn" data-layout-preview="default">پیش‌نمایش</button><button type="button" class="shop-equip-btn" data-unequip="homeLayout" '+(!eq.homeLayout?'disabled':'')+'>'+(!eq.homeLayout?'✓ فعال':'فعال کن')+'</button></div></div>' : '';
+  grid.innerHTML = defaultLayout + SHOP_ITEMS.filter(item => item.cat === currentShopCat).map(item => {
     const isOwned = owned.includes(item.id), isEquipped = eq[item.kind] === item.id, canAfford = pts >= item.price;
     let preview = '', desc = '', actions = '';
-    if (item.kind === 'frame') { preview = '<div class="sample-avatar framed" style="border-color:' + item.color + ';background:linear-gradient(135deg,' + avatar.bg[0] + ',' + avatar.bg[1] + ')">' + avatar.svg + '</div>'; desc = 'قاب دور آواتارت'; }
+    if (item.kind === 'homeLayout') { preview = layoutPreviewMarkup(item.layout); desc = esc(item.desc); }
+    else if (item.kind === 'frame') { preview = '<div class="sample-avatar framed" style="border-color:' + item.color + ';background:linear-gradient(135deg,' + avatar.bg[0] + ',' + avatar.bg[1] + ')">' + avatar.svg + '</div>'; desc = 'قاب دور آواتارت'; }
     else if (item.kind === 'nameColor') { preview = '<div class="sample-name ' + (item.color === 'rainbow' ? 'cosmetic-rainbow' : '') + '"' + (item.color === 'rainbow' ? '' : ' style="color:' + item.color + '"') + '>' + esc(profile.name) + '</div>'; desc = 'رنگ نام در پروفایل و کارت‌های اشتراک'; }
     else if (item.kind === 'badge') { preview = '<div class="sample-badge">' + item.icon + '</div>'; desc = 'یک بج کنار نامت'; }
     else if (item.kind === 'xpBoost') { preview = '<div class="sample-icon">⚡</div>'; desc = '۲۴ ساعت XP بیشتر؛ جایگزین تقویت قبلی می‌شود'; }
     else if(item.cat==='gamepad'){preview='<div class="sample-icon">🎮</div>';desc='قابل انتخاب در تنظیمات دسته';}
-    else if(['cursorTrail','bgTheme','soundPack','borderTheme'].includes(item.kind)){preview='<div class="sample-icon">✨</div>';desc='جلوهٔ اختیاری هاب؛ قابل فعال و غیرفعال کردن';}
+    else if(['cursorTrail','bgTheme','soundPack','borderTheme','homeLayout'].includes(item.kind)){preview='<div class="sample-icon">✨</div>';desc='جلوهٔ اختیاری هاب؛ قابل فعال و غیرفعال کردن';}
     else { preview = '<div class="sample-icon">🔒</div>'; desc = 'حفظ استریک بازی هنگام وقفه؛ مصرف خودکار یک قفل'; }
     if (!isOwned) actions = '<button class="shop-buy-btn" type="button" data-buy="' + item.id + '" aria-label="خرید ' + esc(item.name) + '؛ ' + faNum(item.price) + ' امتیاز"' + (!canAfford || economyBusy ? ' disabled' : '') + '>' + (canAfford ? '💰 خرید' : '💰 ' + faNum(item.price)) + '</button>';
     else if (['xpBoost','streakFreeze'].includes(item.kind)) actions = '<button class="shop-equip-btn on" type="button" disabled>✓ خریداری شده</button>';
     else if (isEquipped) actions = '<button class="shop-equip-btn on" type="button" data-unequip="' + item.kind + '" aria-label="غیرفعال کردن ' + esc(item.name) + '">✓ فعال · برداشتن</button>';
     else actions = '<button class="shop-equip-btn" type="button" data-equip="' + item.id + '">فعال کن</button>';
+    if (item.kind === 'homeLayout') actions = '<button type="button" class="layout-preview-btn" data-layout-preview="' + item.id + '">پیش‌نمایش</button>' + actions;
     const rareIds = ['frame-gold','frame-diamond','name-rainbow','badge-diamond','badge-goat','xp-3']; const rare = rareIds.includes(item.id);
-    return '<div class="shop-item' + (rare ? ' rarity-rare' : '') + '" data-shop-item="' + item.id + '">' + (rare ? '<span class="rarity-label">💎 کمیاب</span>' : '') + '<div class="shop-item-preview" aria-hidden="true">' + preview + '</div><div class="shop-item-info"><div class="shop-item-name">' + esc(item.name) + '</div><div class="shop-item-desc">' + desc + '</div><div class="shop-item-price">💰 ' + faNum(item.price) + '</div></div><div class="shop-item-actions">' + actions + '</div></div>';
+    return '<div class="shop-item' + (rare ? ' rarity-rare' : '') + '" data-shop-item="' + item.id + '">' + (rare ? '<span class="rarity-label">💎 کمیاب</span>' : '') + '<div class="shop-item-preview ' + (item.kind === 'homeLayout' ? 'layout-shop-preview' : '') + '" aria-hidden="true">' + preview + '</div><div class="shop-item-info"><div class="shop-item-name">' + esc(item.name) + '</div><div class="shop-item-desc">' + desc + '</div><div class="shop-item-price">💰 ' + faNum(item.price) + '</div></div><div class="shop-item-actions">' + actions + '</div></div>';
   }).join('');
   if (focused) {
     const selector = '[data-' + focused.action + '="' + focused.id + '"]', button = grid.querySelector(selector);
@@ -3578,6 +3595,8 @@ function getCosmetics() {
   return { frameColor: frame ? frame.color : null, nameColor: name ? name.color : null, badgeIcon: badge ? badge.icon : null, badgeName: badge ? badge.name : '' };
 }
 function applyCosmetics() {
+  const pageLayout = SHOP_ITEMS.find(item => item.id === getEquipped().homeLayout && item.kind === 'homeLayout');
+  document.documentElement.dataset.layout = pageLayout ? pageLayout.layout : 'default';
   /* ★ فروشگاه: جلوه‌های جدید */
   gpApplyExtras();
   const c = getCosmetics();
@@ -3652,7 +3671,8 @@ function bindEconomyControls() {
   });
   document.getElementById('shopGrid').addEventListener('click',event => {
     const button = event.target.closest('button'); if (!button || button.disabled) return;
-    if (button.dataset.buy) buyItem(button.dataset.buy);
+    if (button.dataset.layoutPreview) showLayoutPreview(button.dataset.layoutPreview);
+    else if (button.dataset.buy) buyItem(button.dataset.buy);
     else if (button.dataset.equip) equipItem(button.dataset.equip);
     else if (button.dataset.unequip) unequip(button.dataset.unequip);
   });
@@ -6217,15 +6237,16 @@ function auModal(id,title,body){const el=document.createElement('div');el.classN
 function auOpen(id){const open=()=>showModal(id);if(document.startViewTransition&&auMotion())document.startViewTransition(open);else open()}
 function auEmpty(message,cta,action){return '<div class="au-empty"><svg viewBox="0 0 64 48" fill="currentColor" aria-hidden="true"><path d="M8 18h8V8h8v8h24V8h8v30H8zM2 30h8v8H2z"/><path d="M22 25h8v3h-8zm17 0h8v3h-8z" fill="var(--bg-0)"/></svg><p>'+message+'</p>'+(cta?auButton(cta,action):'')+'</div>'}
 /* ★ تنظیمات و تم؛ override حرکت هرگز ترجیح کاهش حرکت سیستم را دور نمی‌زند */
-function auApplySettings(){AU.settings={...AU.settings,...auSafeObject(LS.get('arcade_settings',{}))};AU.settings.sound=AU.settings.sound!==false;AU.settings.motion=AU.settings.motion!==false;document.body.classList.toggle('au-no-motion',!auMotion());document.documentElement.dataset.auMotion=auMotion()?'on':'off';parallaxEnabled=auMotion()&&!coarsePointerQuery.matches;if(!auMotion())pauseVisualEffects();document.body.style.fontSize=({small:'13px',medium:'15px',large:'17px'})[AU.settings.font]||'15px';const raw=LS.get('arcade_theme',null),theme=AU.themes.includes(raw)?raw:(LS.get('arcade_event_active',null)==='nowruz'?'nowruz':'gold');document.documentElement.dataset.theme=theme;auSeason();}
+function auApplySettings(){const saved=auSafeObject(LS.get('arcade_settings',{}));AU.settings={...AU.settings,...saved};AU.settings.scheme=saved.scheme==='light'?'light':'dark';document.documentElement.dataset.scheme=AU.settings.scheme;AU.settings.sound=AU.settings.sound!==false;AU.settings.motion=AU.settings.motion!==false;document.body.classList.toggle('au-no-motion',!auMotion());document.documentElement.dataset.auMotion=auMotion()?'on':'off';parallaxEnabled=auMotion()&&!coarsePointerQuery.matches;if(!auMotion())pauseVisualEffects();document.body.style.fontSize=({small:'13px',medium:'15px',large:'17px'})[AU.settings.font]||'15px';const raw=LS.get('arcade_theme',null),theme=AU.themes.includes(raw)?raw:(LS.get('arcade_event_active',null)==='nowruz'?'nowruz':'gold');document.documentElement.dataset.theme=theme;auSeason();}
 function auSaveSettings(patch){AU.settings={...AU.settings,...patch};if(patch.sound===false){const eq=getEquipped();if(eq.soundPack){AU.settings.savedSoundPack=eq.soundPack;delete eq.soundPack;setEquipped(eq)}}else if(patch.sound===true&&AU.settings.savedSoundPack&&hasItem(AU.settings.savedSoundPack)){setEquipped({...getEquipped(),soundPack:AU.settings.savedSoundPack})}LS.set('arcade_settings',AU.settings);auApplySettings();auTrailState()}
 function auSetTheme(theme){if(!AU.themes.includes(theme))return;LS.set('arcade_theme',theme);document.documentElement.dataset.theme=theme;playUI('success')}
-function auSettings(){const pet=auPet();auEl('settingsModalBody').innerHTML='<label>صدای افکت <input type="checkbox" id="auSound" '+(AU.settings.sound?'checked':'')+'></label><label>افکت حرکت <input type="checkbox" id="auMotion" '+(AU.settings.motion?'checked':'')+'></label><p class="au-muted">کاهش حرکت سیستم همیشه اولویت دارد.</p><label>CRT <input id="auCRT" type="checkbox" '+(LS.get('arcade_crt_enabled',false)&&!reducedMotionQuery.matches?'checked':'')+' '+(reducedMotionQuery.matches?'disabled':'')+'></label><h3>تم رنگی</h3><div class="au-row">'+AU.themes.map((t,i)=>'<button type="button" data-theme="'+t+'" data-au-theme="'+t+'" class="au-theme '+(document.documentElement.dataset.theme===t?'au-selected':'')+'" aria-label="'+AU.themeNames[i]+'" title="'+AU.themeNames[i]+'">'+['✦','◈','▦','◒','❀'][i]+'</button>').join('')+'</div><h3>اندازهٔ فونت</h3><div class="au-row">'+[['small','کوچک'],['medium','متوسط'],['large','بزرگ']].map(([v,t])=>'<button type="button" data-au-font="'+v+'" aria-pressed="'+(AU.settings.font===v)+'">'+t+'</button>').join('')+'</div><h3>همراه پیکسلی</h3><label>نوع <select id="auPetType">'+[['cat','گربه'],['dog','سگ'],['dragon','اژدها'],['robot','ربات']].map(([v,t])=>'<option value="'+v+'" '+(pet.type===v?'selected':'')+'>'+t+'</option>').join('')+'</select></label><label>نام <input id="auPetName" maxlength="20" value="'+esc(pet.name)+'"></label><label>نمایش همراه <input id="auPetVisible" type="checkbox" '+(AU.settings.petVisible!==false?'checked':'')+'></label>'+auButton('میان‌برهای صفحه‌کلید','shortcuts')+' '+auButton('دیدن راهنمای شروع','onboarding');
+function auSettings(){const pet=auPet();auEl('settingsModalBody').innerHTML='<label>صدای افکت <input type="checkbox" id="auSound" '+(AU.settings.sound?'checked':'')+'></label><label>افکت حرکت <input type="checkbox" id="auMotion" '+(AU.settings.motion?'checked':'')+'></label><p class="au-muted">کاهش حرکت سیستم همیشه اولویت دارد.</p><label>CRT <input id="auCRT" type="checkbox" '+(LS.get('arcade_crt_enabled',false)&&!reducedMotionQuery.matches?'checked':'')+' '+(reducedMotionQuery.matches?'disabled':'')+'></label><h3>روشنایی صفحه</h3><div class="au-row"><button type="button" id="auSchemeDark" aria-pressed="'+(AU.settings.scheme!=='light')+'">🌙 تیره</button><button type="button" id="auSchemeLight" aria-pressed="'+(AU.settings.scheme==='light')+'">☀️ روشن</button></div><h3>رنگ تأکیدی</h3><div class="au-row">'+AU.themes.map((t,i)=>'<button type="button" data-theme="'+t+'" data-au-theme="'+t+'" class="au-theme '+(document.documentElement.dataset.theme===t?'au-selected':'')+'" aria-label="'+AU.themeNames[i]+'" title="'+AU.themeNames[i]+'">'+['✦','◈','▦','◒','❀'][i]+'</button>').join('')+'</div><h3>اندازهٔ فونت</h3><div class="au-row">'+[['small','کوچک'],['medium','متوسط'],['large','بزرگ']].map(([v,t])=>'<button type="button" data-au-font="'+v+'" aria-pressed="'+(AU.settings.font===v)+'">'+t+'</button>').join('')+'</div><h3>همراه پیکسلی</h3><label>نوع <select id="auPetType">'+[['cat','گربه'],['dog','سگ'],['dragon','اژدها'],['robot','ربات']].map(([v,t])=>'<option value="'+v+'" '+(pet.type===v?'selected':'')+'>'+t+'</option>').join('')+'</select></label><label>نام <input id="auPetName" maxlength="20" value="'+esc(pet.name)+'"></label><label>نمایش همراه <input id="auPetVisible" type="checkbox" '+(AU.settings.petVisible!==false?'checked':'')+'></label>'+auButton('میان‌برهای صفحه‌کلید','shortcuts')+' '+auButton('دیدن راهنمای شروع','onboarding');
+ const setScheme=scheme=>{auSaveSettings({scheme});auEl('auSchemeDark').setAttribute('aria-pressed',String(scheme==='dark'));auEl('auSchemeLight').setAttribute('aria-pressed',String(scheme==='light'));};auEl('auSchemeDark').onclick=()=>setScheme('dark');auEl('auSchemeLight').onclick=()=>setScheme('light');
  auEl('auSound').onchange=e=>{auSaveSettings({sound:e.target.checked});LS.set('arcade_sound',e.target.checked?1:0)};auEl('auMotion').onchange=e=>auSaveSettings({motion:e.target.checked});auEl('auCRT').onchange=()=>{toggleCRT();auEl('auCRT').checked=LS.get('arcade_crt_enabled',false)&&!reducedMotionQuery.matches};auEl('auPetType').onchange=e=>{LS.set('arcade_pet',{...auPet(),type:e.target.value});auRenderPet()};auEl('auPetName').oninput=e=>{LS.set('arcade_pet',{...auPet(),name:cleanProfileName(e.target.value)});auRenderPet()};auEl('auPetVisible').onchange=e=>{auSaveSettings({petVisible:e.target.checked});auRenderPet()};auOpen('settingsModal');}
 let auAudio=null,auLastHover=0;
 function playUI(name){if(!AU.settings.sound||!soundEnabled()||!audioUnlocked)return;try{auAudio=auAudio||new(window.AudioContext||window.webkitAudioContext)();if(auAudio.state==='suspended')auAudio.resume().catch(()=>{});const t=auAudio.currentTime,spec={hover:[800,800,.03],click:[600,300,.06],open:[400,800,.1],close:[800,400,.1],success:[660,880,.15],error:[200,200,.1],spin:[220,880,.5]}[name]||[600,300,.06];const n=name==='success'?2:1;for(let i=0;i<n;i++){const o=auAudio.createOscillator(),g=auAudio.createGain();o.type=name==='error'||getEquipped().soundPack==='sound-pack-8bit'?'square':'sine';const time=t+i*.12;o.frequency.setValueAtTime(name==='success'?(i?880:660):spec[0],time);if(name!=='success')o.frequency.exponentialRampToValueAtTime(spec[1],time+spec[2]);g.gain.setValueAtTime(.025,time);g.gain.exponentialRampToValueAtTime(.001,time+spec[2]);o.connect(g);g.connect(auAudio.destination);o.start(time);o.stop(time+spec[2]+.02)}}catch(_){}}
 /* ★ فروشگاه: مسیرهای جدید، تخفیف و مصرف تنها زیر قفل اقتصاد */
-function auStoreItems(){return SHOP_ITEMS.filter(i=>!['xpBoost','streakFreeze','bundle','lootBox','gamepadProfile','gamepadHaptic','gamepadColor','petAccessory'].includes(i.kind))}
+function auStoreItems(){return SHOP_ITEMS.filter(i=>!['xpBoost','streakFreeze','bundle','lootBox','gamepadProfile','gamepadHaptic','gamepadColor','petAccessory','homeLayout'].includes(i.kind))}
 function auDeals(){let rotating=auSafeObject(LS.get('arcade_rotating',{}));if(rotating.date!==dateKey()||!Array.isArray(rotating.items)||rotating.items.length!==3||rotating.items.some(id=>!SHOP_ITEMS.some(i=>i.id===id))){const random=auRandom(dateKey()),pool=auStoreItems().slice();const items=[];while(items.length<3&&pool.length)items.push(pool.splice(Math.floor(random()*pool.length),1)[0].id);rotating={date:dateKey(),items};LS.set('arcade_rotating',rotating)}let rare=auSafeObject(LS.get('arcade_weekly_rare',{}));if(rare.weekKey!==auWeek()||!SHOP_ITEMS.some(i=>i.id===rare.itemId)){const pool=auStoreItems().filter(i=>i.price>=3000),r=auRandom(auWeek());rare={weekKey:auWeek(),itemId:pool[Math.floor(r()*pool.length)]?.id};LS.set('arcade_weekly_rare',rare)}return{rotating,rare}}
 function auPrice(item){const d=auDeals();return Math.round(item.price*(d.rotating.items.includes(item.id)?.7:d.rare.itemId===item.id?.85:1))}
 function auLootKey(){const k='arcade_lootbox_count_'+dateKey();if(!ARCADE_KNOWN_STATIC_KEYS.includes(k))ARCADE_KNOWN_STATIC_KEYS.push(k);return k}
