@@ -11,11 +11,26 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[char]);
 
+  function updateBackupNotice() {
+    const notice = document.getElementById('backupNotice');
+    if (!notice) return;
+    const user = session?.user?.id;
+    let state = 'unknown', dismissed = false;
+    try {
+      state = window.ArkidHubEnhancements.backupState(localStorage, user);
+      const snooze = JSON.parse(localStorage.getItem('arkid_backup_snooze_v1') || 'null');
+      dismissed = !!(snooze && snooze.user === user && Number.isFinite(snooze.until) && snooze.until > Date.now());
+    } catch (_) {}
+    notice.hidden = !user || state === 'recent' || dismissed;
+    document.getElementById('backupNoticeText').textContent = state === 'old' ? 'بیش از یک هفته از آخرین پشتیبان تأییدشده در این دستگاه گذشته است. پشتیبان دستی است.' : 'زمان آخرین پشتیبان تأییدشده در این دستگاه مشخص نیست. پشتیبان دستی است.';
+  }
+
   function setMenuState(user) {
     const label = document.querySelector('#arkidAccountButton .arkid-account-state');
     if (label) label.textContent = user?.email || (configured ? 'ورود / ثبت‌نام' : 'موقتاً در دسترس نیست');
     const button = document.getElementById('arkidAccountButton');
     if (button) button.setAttribute('aria-label', user ? `حساب ${user.email}` : 'ورود یا ساخت حساب آرکید');
+    updateBackupNotice();
   }
 
   function setStatus(message, kind = '') {
@@ -149,6 +164,10 @@
     try {
       const result = await auth.snapshots.upload(auth.getClient(), user, localStorage);
       if (window.arkidHasVolatileData?.()) return setStatus('پشتیبان ذخیره شد، اما داده‌های جدید فقط در حافظه هستند؛ پیش از بستن صفحه از آن‌ها نسخه بگیر.', 'error');
+      if (!result.localChanged && session?.user?.id === user) {
+        try { window.ArkidHubEnhancements.recordBackup(localStorage, user); } catch (_) {}
+        updateBackupNotice();
+      }
       setStatus(result.localChanged ? 'پشتیبان ذخیره شد، اما داده محلی در حین ذخیره تغییر کرد؛ دوباره پشتیبان بگیر.' : 'پشتیبان ابری ذخیره شد.', 'success');
     } catch (error) {
       setStatus(window.ArkidMessages.message(error, 'upload'), 'error');
@@ -165,6 +184,17 @@
   }
 
   function init() {
+    const noticeOpen = document.getElementById('backupNoticeOpen');
+    if (noticeOpen && !noticeOpen.dataset.bound) {
+      noticeOpen.dataset.bound = 'true';
+      noticeOpen.addEventListener('click', openDialog);
+      document.getElementById('backupNoticeDismiss').addEventListener('click', () => {
+        try { localStorage.setItem('arkid_backup_snooze_v1', JSON.stringify({user:session?.user?.id, until:Date.now()+86400000})); } catch (_) {}
+        document.getElementById('backupNotice').hidden = true;
+      });
+      window.addEventListener('storage', updateBackupNotice);
+      window.addEventListener('focus', updateBackupNotice);
+    }
     const sideMenu = document.querySelector('.side-menu-panel');
     const profileButton = sideMenu?.querySelector('[data-action="profile"]');
     if (sideMenu && profileButton && !document.getElementById('arkidAccountButton')) {
