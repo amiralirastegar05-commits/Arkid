@@ -1858,6 +1858,15 @@ body.attract-mode .banners-section { opacity: .35; }
 .hero-cta{display:inline-flex;align-items:center;justify-content:center;margin:28px auto 0;padding:14px 32px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));color:#1a1500;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 8px 26px rgba(245,197,24,.28),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .22s var(--ease-out),box-shadow .22s var(--ease-out)}
 .hero-cta:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(245,197,24,.42),inset 0 1px 0 rgba(255,255,255,.45)}
 .hero-cta:focus-visible{outline:2px solid var(--gold-light);outline-offset:4px}
+.messenger-trigger{display:block;margin:12px auto 0;padding:9px 14px;border:1px solid rgba(245,197,24,.3);border-radius:999px;background:rgba(245,197,24,.07);color:var(--gold-light);font:inherit;font-size:12px;cursor:pointer}
+.messenger-trigger:focus-visible,.messenger-link:focus-visible{outline:2px solid var(--gold-light);outline-offset:3px}
+.messenger-intro{color:var(--text-secondary);font-size:13px;line-height:1.9;margin:8px 0 16px}
+.messenger-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.messenger-link{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:56px;padding:12px 14px;border:1px solid var(--border-normal);border-radius:14px;background:rgba(255,255,255,.04);color:var(--text-primary);text-decoration:none;font-size:13px;font-weight:700}
+.messenger-link:hover{border-color:rgba(245,197,24,.55);background:rgba(245,197,24,.08)}
+.messenger-link span:last-child{color:var(--gold)}
+.messenger-note{color:var(--text-tertiary);font-size:11px;line-height:1.9;margin:16px 0 0}
+@media(max-width:350px){.messenger-links{grid-template-columns:1fr}}
 
 /* ★ پولیش UI: کارت‌ها و ژانر */
 .card[data-genre="shooter"] .genre{background:rgba(239,68,68,.15);color:#fca5a5}.card[data-genre="classic"] .genre{background:rgba(59,130,246,.15);color:#93c5fd}.card[data-genre="puzzle"] .genre{background:rgba(139,92,246,.15);color:#c4b5fd}.card[data-genre="racing"] .genre{background:rgba(249,115,22,.15);color:#fdba74}.card[data-genre="all"] .genre{background:rgba(255,255,255,.05)}
@@ -1973,6 +1982,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
     <!-- ★ پولیش UI: Hero CTA -->
     <!-- ★ فیکس باگ: اتصال رویداد داخل IIFE -->
     <button class="hero-cta" id="heroRandomBtn" type="button">🎲 شروع بازی تصادفی</button>
+    <button class="messenger-trigger" id="heroMessengersBtn" type="button" aria-haspopup="dialog" aria-controls="messengersModal">💬 آرکید در پیام‌رسان‌ها</button>
     <div class="quests-section" id="questsSection">
       <div class="quests-head"><span>🎯 مأموریت‌های امروز</span><small id="questsCount">۰ از ۳</small></div>
       <div class="quests-list" id="questsList"></div>
@@ -2118,6 +2128,23 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
 <div class="about-modal wide-modal" id="statsModal"><div class="about-backdrop"></div><div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="statsTitle" tabindex="-1"><button class="about-close" data-close="statsModal" type="button" aria-label="بستن">✕</button><div class="modal-title" id="statsTitle">📊 آمار من</div><div id="statsContent"></div></div></div>
 <div class="about-modal wide-modal" id="shareModal"><div class="about-backdrop"></div><div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="shareTitle" tabindex="-1"><button class="about-close" data-close="shareModal" type="button" aria-label="بستن">✕</button><div class="modal-title" id="shareTitle">✨ کارت رکورد</div><div id="shareContent"></div></div></div>
 
+<!-- لینک‌های رسمی مینی‌اپ -->
+<div class="about-modal" id="messengersModal">
+  <div class="about-backdrop"></div>
+  <div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="messengersTitle" tabindex="-1">
+    <button class="about-close" data-close="messengersModal" type="button" aria-label="بستن">✕</button>
+    <h2 class="modal-title" id="messengersTitle">🎮 آرکید در پیام‌رسان‌ها</h2>
+    <p class="messenger-intro">پیام‌رسان موردعلاقه‌ات رو انتخاب کن و آرکید رو اونجا تجربه کن!</p>
+    <div class="messenger-links">
+      <a class="messenger-link" href="https://t.me/arcade_ir_bot" target="_blank" rel="noopener noreferrer"><span>تلگرام</span><span aria-hidden="true">↗</span></a>
+      <a class="messenger-link" href="https://ble.ir/arcade_ir_bot" target="_blank" rel="noopener noreferrer"><span>بله</span><span aria-hidden="true">↗</span></a>
+      <a class="messenger-link" href="https://splus.ir/arcade_ir_bot" target="_blank" rel="noopener noreferrer"><span>سروش پلاس</span><span aria-hidden="true">↗</span></a>
+      <a class="messenger-link" href="https://eitaa.com/arcade_ir_app" target="_blank" rel="noopener noreferrer"><span>ایتا</span><span aria-hidden="true">↗</span></a>
+    </div>
+    <p class="messenger-note">ممکن است پیشرفت در مرورگرهای داخلی پیام‌رسان‌ها جدا باشد؛ برای انتقال، از حساب و پشتیبان ابری استفاده کن.</p>
+  </div>
+</div>
+
 <!-- ============ منوی شیشه‌ای از سمت چپ ============ -->
 <div class="side-menu" id="sideMenu">
   <div class="side-menu-backdrop"></div>
@@ -2136,6 +2163,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
       <button class="sm-item" type="button" data-action="profile"><span aria-hidden="true">👤</span><span>پروفایل</span></button>
       <button class="sm-item" type="button" data-action="achievements"><span aria-hidden="true">🏆</span><span>دستاوردها</span><span class="sm-badge" id="achCount">۰/۱۵</span></button>
       <button class="sm-item" type="button" data-action="stats"><span aria-hidden="true">📊</span><span>آمار کامل</span></button>
+      <button class="sm-item" type="button" data-action="messengers" aria-haspopup="dialog" aria-controls="messengersModal"><span aria-hidden="true">💬</span><span>آرکید در پیام‌رسان‌ها</span></button>
       <button class="sm-item" id="smRefresh" type="button" data-action="refresh"><span aria-hidden="true">🔄</span><span>بررسی بازی‌های جدید</span></button>
       <button class="sm-item" id="smInstall" type="button" data-action="install" hidden><span aria-hidden="true">📥</span><span>نصب برنامه</span></button>
     </div>
@@ -2308,6 +2336,16 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
           <small>+۸۰ امتیاز</small>
         </span>
         <span class="eb-status" id="channelDrPlusStatus"></span>
+      </button>
+      <button class="earn-btn channel-btn" id="channelArkidTelegramBtn" type="button">
+        <span class="eb-icon">✈️</span>
+        <span class="eb-text"><b>کانال آرکید در تلگرام</b><small>+۸۰ امتیاز</small></span>
+        <span class="eb-status" id="channelArkidTelegramStatus"></span>
+      </button>
+      <button class="earn-btn channel-btn" id="channelArkidEitaaBtn" type="button">
+        <span class="eb-icon">📢</span>
+        <span class="eb-text"><b>کانال آرکید در ایتا</b><small>+۸۰ امتیاز</small></span>
+        <span class="eb-status" id="channelArkidEitaaStatus"></span>
       </button>
     </div>
 
@@ -2585,7 +2623,9 @@ const POINTS_REWARDS = {
   weeklyBoss: 150,      // شکست باس هفته
   tournament: 80,       // تکمیل مسابقه
   channelAliGraph: 80,  // عضویت کانال علی گراف
-  channelDrPlus: 80     // عضویت کانال دکتر پلاس
+  channelDrPlus: 80,    // عضویت کانال دکتر پلاس
+  channelArkidTelegram: 80,
+  channelArkidEitaa: 80
 };
 
 const SHOP_ITEMS = [
@@ -3047,11 +3087,13 @@ function bindProfileControls() {
       case 'refresh': refreshGames(); break;
       case 'install': installApp(); break;
       case 'about': openAboutModal(); break;
+      case 'messengers': showModal('messengersModal'); break;
       case 'gamepad': openGamepadConfig(); break;
       case 'toggleCRT': toggleCRT(); break;
     }
   });
   document.getElementById('achStripBtn').addEventListener('click',openAchievements);
+  document.getElementById('heroMessengersBtn').addEventListener('click',() => showModal('messengersModal'));
   document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click',() => requestCloseModal(button.dataset.close)));
   document.querySelectorAll('.about-backdrop').forEach(backdrop => backdrop.addEventListener('click',() => requestCloseModal(backdrop.parentElement.id)));
   window.addEventListener('storage',event => {
@@ -3192,7 +3234,7 @@ async function economyAction(action) {
 function getEarnClaimed() {
   const raw = LS.get('arcade_earn_claimed',{});
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
-  return Object.fromEntries(Object.entries(raw).filter(([key,at]) => /^(daily-\d{4}-\d{2}-\d{2}|channel-aligraph|channel-drplus)$/.test(key) && Number.isFinite(Number(at)) && Number(at) > 0).map(([key,at]) => [key,Number(at)]));
+  return Object.fromEntries(Object.entries(raw).filter(([key,at]) => /^(daily-\d{4}-\d{2}-\d{2}|channel-aligraph|channel-drplus|channel-arkid-telegram|channel-arkid-eitaa)$/.test(key) && Number.isFinite(Number(at)) && Number(at) > 0).map(([key,at]) => [key,Number(at)]));
 }
 function setEarnClaimed(value) { LS.set('arcade_earn_claimed',value); }
 function getHubDailyStreak() {
@@ -3221,7 +3263,9 @@ function claimDailyPoints() {
 }
 const EARN_CHANNELS = [
   { key: 'channel-aligraph', url: 'https://eitaa.com/Ali_Grapph', button: 'channelAliGraphBtn', status: 'channelAliGraphStatus', reward: POINTS_REWARDS.channelAliGraph },
-  { key: 'channel-drplus', url: 'https://eitaa.com/dr_plus_ir', button: 'channelDrPlusBtn', status: 'channelDrPlusStatus', reward: POINTS_REWARDS.channelDrPlus }
+  { key: 'channel-drplus', url: 'https://eitaa.com/dr_plus_ir', button: 'channelDrPlusBtn', status: 'channelDrPlusStatus', reward: POINTS_REWARDS.channelDrPlus },
+  { key: 'channel-arkid-telegram', url: 'https://t.me/arcade_ir_Channel', button: 'channelArkidTelegramBtn', status: 'channelArkidTelegramStatus', reward: POINTS_REWARDS.channelArkidTelegram },
+  { key: 'channel-arkid-eitaa', url: 'https://eitaa.com/arcade_ir_Channel', button: 'channelArkidEitaaBtn', status: 'channelArkidEitaaStatus', reward: POINTS_REWARDS.channelArkidEitaa }
 ];
 let channelPending = readSessionJSON('arcade_channel_pending',{});
 if (!channelPending || typeof channelPending !== 'object' || Array.isArray(channelPending)) channelPending = {};
