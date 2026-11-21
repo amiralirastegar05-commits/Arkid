@@ -1963,6 +1963,10 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
 </header>
 
 <main>
+  <div class="hub-notices">
+    <div id="connectionNotice" class="hub-notice" role="status" aria-live="polite" hidden><strong>📴 آفلاین هستی</strong><span>بازی‌هایی که قبلاً ذخیره شده‌اند ممکن است در دسترس باشند؛ پشتیبان ابری به اینترنت نیاز دارد.</span></div>
+    <div id="backupNotice" class="hub-notice" role="status" hidden><div><strong>☁️ یادآوری پشتیبان</strong><span id="backupNoticeText"></span></div><button id="backupNoticeOpen" type="button">حساب و پشتیبان</button><button id="backupNoticeDismiss" type="button" aria-label="بستن یادآوری تا فردا">✕</button></div>
+  </div>
   <div class="tournament-banner" id="tournamentBanner" hidden>
     <div class="tb-info"><span class="tb-badge">🏆 مسابقه در جریان</span><div class="tb-games" id="tbGames" aria-label="نوبت‌های مسابقه"></div></div>
     <div class="tb-actions"><button class="gold-btn" id="tbContinueBtn" type="button">ادامه بازی</button><button class="subtle-btn" id="tbCancelBtn" type="button">انصراف</button></div>
@@ -2132,6 +2136,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
 
 <!-- Boot Screen: فقط یک بار در هر session -->
 <div id="bootScreen" hidden><div class="boot-inner"><div class="crt-line"></div><div class="boot-logo">ARCADE</div><div class="boot-sub">CLASSIC GAMES · MODERN EXPERIENCE</div><div class="boot-track"><div class="boot-fill" id="bootFill"></div></div><div class="boot-status" id="bootStatus">LOADING... 0%</div><div class="press-start" id="pressStart">PRESS START</div></div></div>
+<div class="about-modal" id="gameGuideModal"><div class="about-backdrop"></div><div class="about-card lg-glass game-guide" role="dialog" aria-modal="true" aria-labelledby="gameGuideTitle" tabindex="-1"><button class="about-close" data-close="gameGuideModal" type="button" aria-label="بستن راهنما">✕</button><h2 id="gameGuideTitle"></h2><p><strong>🎯 هدف:</strong> <span id="gameGuideGoal"></span></p><p><strong>🎮 کنترل:</strong> <span id="gameGuideControls"></span></p><p class="game-guide-note">جزئیات کنترل‌ها و تنظیمات را داخل خود بازی ببین.</p><div class="game-guide-actions"><button type="button" data-close="gameGuideModal">انصراف</button><button type="button" id="gameGuideStart" data-initial-focus>شروع بازی ←</button></div></div></div>
 <div class="about-modal wide-modal" id="achModal"><div class="about-backdrop"></div><div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="achTitle" tabindex="-1"><button class="about-close" data-close="achModal" type="button" aria-label="بستن">✕</button><div class="modal-title" id="achTitle">🏆 دستاوردها</div><div class="modal-sub" id="achModalSub"></div><div class="progress"><div class="progress-fill" id="achProgress"></div></div><div class="ach-grid" id="achGrid"></div></div></div>
 <div class="about-modal wide-modal" id="statsModal"><div class="about-backdrop"></div><div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="statsTitle" tabindex="-1"><button class="about-close" data-close="statsModal" type="button" aria-label="بستن">✕</button><div class="modal-title" id="statsTitle">📊 آمار من</div><div id="statsContent"></div></div></div>
 <div class="about-modal wide-modal" id="shareModal"><div class="about-backdrop"></div><div class="about-card lg-glass" role="dialog" aria-modal="true" aria-labelledby="shareTitle" tabindex="-1"><button class="about-close" data-close="shareModal" type="button" aria-label="بستن">✕</button><div class="modal-title" id="shareTitle">✨ کارت رکورد</div><div id="shareContent"></div></div></div>
@@ -2567,6 +2572,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
 <!-- ★ دسته: از الگوی مودال و تنها سطح about-card استفاده می‌کند -->
 <div class="about-modal" id="gamepadConfigModal"><div class="about-backdrop"></div><div class="about-card lg-glass gp-hub" role="dialog" aria-modal="true" aria-labelledby="gpTitle" tabindex="-1"><button class="about-close" type="button" data-close="gamepadConfigModal" aria-label="بستن">✕</button><h2 id="gpTitle">🎮 دستهٔ بازی</h2><div id="gpHubContent"></div></div></div>
 <!-- ★ دسته: حالت هاب، بدون ایجاد کنترل روی هاب -->
+<script src="hub-enhancements.js"></script>
 <script src="arcade-gamepad.js" data-hub></script>
 <script>
 (async function(){
@@ -2933,6 +2939,7 @@ function closeModal(id, restoreFocus = true) {
   modal.classList.remove('show');
   if (id === 'tournamentResultModal') acknowledgeTournamentResult();
   if (id === 'tournamentConfirmModal') tournamentConfirmAction = null;
+  if (id === 'gameGuideModal') pendingGameGuide = null;
   modalStack = modalStack.filter(item => item.id !== id);
   syncOverlayState();
   if (restoreFocus && wasTop) {
@@ -4365,6 +4372,7 @@ async function checkGameFiles(opts) {
       if (!previous && game.available) { changed.push(game); newFoundGames.add(game.id); }
     });
     filesChecked = true; checkAchievements(); renderAll();
+    if (document.getElementById('achModal').classList.contains('show')) renderAchievementCards();
     if (changed.length && !silent) {
       if (changed.length === 1) showToast('بازی جدید پیدا شد: ' + changed[0].title,'✨');
       else showToast(faNum(changed.length) + ' بازی جدید پیدا شد!','🎮');
@@ -4494,7 +4502,25 @@ function renderAll() {
   if (document.getElementById('tournamentModal').classList.contains('show')) renderTournamentPicker();
 }
 
-async function launch(g, forceGotd, tournamentContext = null) {
+let pendingGameGuide = null;
+function launch(g, forceGotd, tournamentContext = null) {
+  if (!g || !g.available || launchInProgress || pendingGameGuide) return;
+  const guide = ArkidHubEnhancements.guides[g.id] || ['برای کسب امتیاز و پیشروی بازی کن.', 'از کنترل‌های داخل صفحه یا راهنمای بازی استفاده کن.'];
+  pendingGameGuide = {g, forceGotd, tournamentContext};
+  document.getElementById('gameGuideTitle').textContent = '🎮 راهنمای ' + g.title;
+  document.getElementById('gameGuideGoal').textContent = guide[0];
+  document.getElementById('gameGuideControls').textContent = guide[1];
+  showModal('gameGuideModal');
+}
+document.getElementById('gameGuideStart').addEventListener('click', () => {
+  const pending = pendingGameGuide;
+  if (!pending) return;
+  launchInProgress = true; // تا زمان شروع، صف پیام‌ها نباید روی راهنما باز شود.
+  closeModal('gameGuideModal', false);
+  launchInProgress = false;
+  launchConfirmed(pending.g, pending.forceGotd, pending.tournamentContext);
+});
+async function launchConfirmed(g, forceGotd, tournamentContext = null) {
   if (!g || !g.available || launchInProgress) return;
   launchInProgress = true;
   pauseVisualEffects();
@@ -4602,7 +4628,18 @@ function checkAchievements() {
   updateAchievementUI(false);
 }
 function updateAchievementUI(pulse){const n=Object.keys(achievements()).length,total=ACHIEVEMENTS.length,pct=n/total*100;const c=document.getElementById('achCount');if(c){c.textContent=faNum(n)+'/'+faNum(total);if(pulse){c.classList.remove('pulse');void c.offsetWidth;c.classList.add('pulse')}}document.getElementById('achStripText').textContent='🏆 '+faNum(n)+' از '+faNum(total)+' دستاورد باز شد';document.getElementById('achStripFill').style.width=pct+'%'}
-function openAchievements(){const u=achievements(),n=Object.keys(u).length;document.getElementById('achModalSub').textContent=faNum(n)+' از '+faNum(ACHIEVEMENTS.length)+' باز شده';document.getElementById('achProgress').style.width=(n/ACHIEVEMENTS.length*100)+'%';document.getElementById('achGrid').innerHTML=ACHIEVEMENTS.map(a=>`<div class="ach-card ${u[a.id]?'':'locked'}" data-ach="${esc(a.id)}"><span class="ach-icon">${a.icon}</span>${u[a.id]?'<span class="ach-check">✓</span>':''}<div class="ach-name">${esc(a.name)}</div><div class="ach-desc">${esc(a.desc)}</div>${u[a.id]?`<div class="ach-date">${esc(new Date(u[a.id]).toLocaleDateString('fa-IR'))}</div>`:''}</div>`).join('');document.querySelectorAll('[data-ach]').forEach(x=>x.onclick=()=>x.classList.toggle('reveal'));showModal('achModal')}
+function renderAchievementCards(){
+  const u=achievements(), st=getStats(), n=Object.keys(u).length;
+  document.getElementById('achModalSub').textContent=faNum(n)+' از '+faNum(ACHIEVEMENTS.length)+' باز شده · شمارنده‌ها هنگام باز کردن به‌روز می‌شوند؛ تعداد بازی‌ها بر اساس فهرست فعلی است.';
+  document.getElementById('achProgress').style.width=(n/ACHIEVEMENTS.length*100)+'%';
+  document.getElementById('achGrid').innerHTML=ACHIEVEMENTS.map(a=>{
+    const p=ArkidHubEnhancements.achievementProgress(a.id,st,GAMES,u,filesChecked,Date.now());
+    const progress=u[a.id] ? '<div class="ach-detail">✓ باز شده</div>' : p.hint ? `<div class="ach-detail">${esc(p.hint)}</div>` : `<div class="ach-detail">${faNum(p.value)} از ${faNum(p.goal)} ${esc(p.unit)}</div><div class="ach-meter" role="progressbar" aria-label="پیشرفت ${esc(a.name)}" aria-valuemin="0" aria-valuemax="${p.goal}" aria-valuenow="${p.value}"><span style="width:${p.value/p.goal*100}%"></span></div>`;
+    return `<div class="ach-card ${u[a.id]?'':'locked'}" data-ach="${esc(a.id)}"><span class="ach-icon">${a.icon}</span>${u[a.id]?'<span class="ach-check">✓</span>':''}<div class="ach-name">${esc(a.name)}</div><div class="ach-desc">${esc(a.desc)}</div>${progress}${u[a.id]?`<div class="ach-date">${esc(new Date(u[a.id]).toLocaleDateString('fa-IR'))}</div>`:''}</div>`;
+  }).join('');
+  document.querySelectorAll('[data-ach]').forEach(x=>x.onclick=()=>x.classList.toggle('reveal'));
+}
+function openAchievements(){renderAchievementCards();showModal('achModal')}
 let hubSessionId = safeSessionGet('arcade_hub_id');
 if (!hubSessionId) { hubSessionId = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2); safeSessionSet('arcade_hub_id',hubSessionId); }
 let reconcilePromise = null;
@@ -6312,6 +6349,8 @@ function auInit(){
 }
 function auSync(force=false){if(!auMotion())pauseVisualEffects();const sig=getProfile().xp+':'+getPoints()+':'+getInventory().items.join(',')+':'+JSON.stringify(getEquipped())+':'+dateKey()+':'+Object.keys(achievements()).length;if(force||sig!==AU.lastState){AU.lastState=sig;auRenderPet();auRenderChallenge();auProfileExtras();auEnhanceShop();auTrailState();document.body.classList.toggle('au-glass-bg',getEquipped().bgTheme==='bg-theme-glass');document.querySelectorAll('.cosmetic-frame').forEach(el=>el.classList.toggle('au-frame-animated',getEquipped().frame==='frame-animated'));const unread=Math.max(0,Object.keys(achievements()).length-safeXP(LS.get('arcade_notification_seen',0)));auEl('auBell').classList.toggle('au-unread',unread>0);auEl('auBell').querySelector('b').textContent=faNum(unread);auEl('auBell').setAttribute('aria-label',faNum(unread)+' دستاورد جدید');auSeason()}document.querySelectorAll('[data-au-clock]').forEach(el=>el.textContent=auCountdown());auRenderPet();auRecordCheck();if(!bootIsActive()&&feedbackReady&&!modalStack.length&&!launchInProgress&&!AU.onboardShown){AU.onboardShown=true;if(LS.get('arcade_onboarded',false)!==true)auOnboarding();else{const pending=LS.get('arcade_reward_pending',null);if(pending){LS.remove('arcade_reward_pending');auPrizeModal(pending.label,'این جایزه پیش‌تر در حساب ثبت شده است.')}}}auUpdateSpinReminder()}
 auInit();
+function updateConnectionNotice(){ document.getElementById('connectionNotice').hidden = navigator.onLine !== false; }
+window.addEventListener('online',updateConnectionNotice); window.addEventListener('offline',updateConnectionNotice); updateConnectionNotice();
 
 saveProfile(getProfile());
 updateProfileUI(); updateHeaderProfile();
