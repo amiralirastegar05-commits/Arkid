@@ -181,3 +181,54 @@ button>.ic+span,button>span+.ic{margin-inline-start:0}
 .hero{grid-template-columns:minmax(0,1fr) minmax(120px,210px);grid-template-rows:auto;min-height:190px;overflow:hidden}
 .hero .hero-copy{grid-column:1;grid-row:1;min-width:0;text-align:right}.hero .hero-art{grid-column:2;grid-row:1;width:100%;max-width:200px;justify-self:center}.hero-art svg{display:block;width:100%;height:auto;max-height:160px}.hero .hero-copy .home-kicker{margin:0 0 7px}.hero .hero-copy .hero-sub{margin:5px 0 12px}.hero .hero-copy .hero-cta{margin:0;min-height:44px;padding:10px 18px}.hero #auEvent{grid-column:1 / -1}
 @media(max-width:700px){.hero{grid-template-columns:minmax(0,1fr) minmax(92px,130px);min-height:155px;padding:20px 15px}.hero .hero-copy .hero-cta{font-size:10px;max-width:none}.hero-art svg{max-height:130px}.hero .hero-copy .hero-title{font-size:23px}}
+
+/* Companion stays inside its own card: only the artwork moves, not the hit target. */
+#homePetSlot{flex:0 0 100px;width:100px;height:110px}
+#homePetSlot .au-pet{width:100px;height:110px;position:relative;padding:0;overflow:hidden;display:grid;place-items:center;border:1px solid var(--border-subtle);border-radius:18px;background:color-mix(in srgb,var(--gold) 7%,var(--bg-1));animation:none;box-shadow:none}
+#homePetSlot .au-pet:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#homePetSlot .au-pet .au-ghost{display:block;width:62px;height:68px;animation:au-pet-walk .68s ease-in-out infinite alternate;pointer-events:none}
+#homePetSlot .au-pet .au-pet-level{position:absolute;bottom:5px;right:7px;min-width:20px;line-height:20px;border-radius:10px;background:var(--bg-1);color:var(--text-primary);font-size:10px}
+.shop-item-preview .au-ghost{width:64px;height:70px}
+@keyframes au-ghost-float{0%,100%{transform:translate3d(0,2px,0) rotate(-2deg)}25%{transform:translate3d(5px,-4px,0) rotate(2deg)}50%{transform:translate3d(-3px,-7px,0) rotate(-1deg)}75%{transform:translate3d(-5px,-1px,0) rotate(2deg)}}
+@media(prefers-reduced-motion:reduce){#homePetSlot .au-pet .au-ghost{animation:none}}
+
+/* The roaming duplicate is decorative: the stationary card remains the feeding control. */
+.au-roaming-pet{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden;opacity:1;transition:opacity .14s ease}
+.au-roaming-pet[hidden],.au-no-motion .au-roaming-pet{display:none}
+.au-roaming-path{position:absolute;left:14px;top:86px;width:44px;height:50px;animation:au-roam 42s ease-in-out infinite;pointer-events:none}
+.au-roaming-path .au-ghost{display:block;width:100%;height:100%;opacity:.9;animation:au-ghost-float 5.5s ease-in-out infinite;filter:drop-shadow(0 3px 7px rgba(113,94,184,.45))}
+.overlay-open .au-roaming-pet{visibility:hidden}
+.overlay-open .au-roaming-path,.overlay-open .au-roaming-path .au-ghost,.overlay-open .au-roaming-path .au-ghost-eye,.au-pet-paused .au-roaming-path,.au-pet-paused .au-roaming-path .au-ghost,.au-pet-paused .au-roaming-path .au-ghost-eye{animation-play-state:paused}
+@keyframes au-roam{
+  0%,100%{transform:translate3d(max(0px,calc(12vw - 11px)),max(0px,calc(10vh - 25px)),0)}
+  16%{transform:translate3d(max(0px,calc(75vw - 66px)),max(0px,calc(23vh - 58px)),0)}
+  34%{transform:translate3d(max(0px,calc(90vw - 79px)),max(0px,calc(72vh - 180px)),0)}
+  50%{transform:translate3d(max(0px,calc(43vw - 38px)),max(0px,calc(90vh - 225px)),0)}
+  67%{transform:translate3d(max(0px,calc(5vw - 4px)),max(0px,calc(65vh - 163px)),0)}
+  83%{transform:translate3d(max(0px,calc(55vw - 48px)),max(0px,calc(40vh - 100px)),0)}
+}
+@media(prefers-reduced-motion:reduce){.au-roaming-pet{display:none}}
+
+/* Subtle blink is independent of the floating path, for every companion type. */
+.au-ghost-eye{transform-box:fill-box;transform-origin:center;animation:au-ghost-blink 6.5s ease-in-out infinite}
+@keyframes au-ghost-blink{0%,44%,48%,100%{transform:scaleY(1)}46%{transform:scaleY(.12)}}
+@media(prefers-reduced-motion:reduce){.au-ghost-eye{animation:none}}
+
+/* The animal companions walk, rather than floating: alternate feet and a gentle gait. */
+.au-pet-leg{transform-box:fill-box;transform-origin:center top;animation:au-pet-step .68s ease-in-out infinite alternate}
+.au-pet-leg-right{animation-direction:alternate-reverse}
+.au-pet-tail{transform-box:fill-box;transform-origin:left center;animation:au-pet-tail 1.3s ease-in-out infinite alternate}
+.au-roaming-path .au-ghost{animation:au-pet-walk .68s ease-in-out infinite alternate}
+@keyframes au-pet-step{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}
+@keyframes au-pet-tail{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+@keyframes au-pet-walk{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-2px) rotate(2deg)}}
+@media(prefers-reduced-motion:reduce){.au-pet-leg,.au-pet-tail,.au-roaming-path .au-ghost{animation:none}}
+
+/* On approach to important text and controls, walk underneath the page rather than covering them. */
+.au-roaming-pet.au-roam-obscured{z-index:0}
+.overlay-open .au-roaming-path .au-pet-leg,.overlay-open .au-roaming-path .au-pet-tail,.au-pet-paused .au-roaming-path .au-pet-leg,.au-pet-paused .au-roaming-path .au-pet-tail{animation-play-state:paused}
+
+/* The roaming companion leaves during scrolling and returns after the page settles. */
+.au-roaming-pet{transition:opacity .18s ease,transform .18s ease,visibility 0s linear 0s}
+.au-pet-scrolling .au-roaming-pet{opacity:0;transform:translateY(16px);visibility:hidden;transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s}
+.au-pet-scrolling .au-roaming-path,.au-pet-scrolling .au-roaming-path .au-ghost,.au-pet-scrolling .au-roaming-path .au-ghost-eye,.au-pet-scrolling .au-roaming-path .au-pet-leg,.au-pet-scrolling .au-roaming-path .au-pet-tail{animation-play-state:paused}
