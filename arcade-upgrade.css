@@ -67,3 +67,31 @@ button>.ic+span,button>span+.ic{margin-inline-start:0}
 .ap-card h2{margin:4px 0 16px;min-height:44px}
 .ap-note{margin-top:4px}
 #shopModal [data-au=inventory]+*{margin-top:10px}
+
+/* Daily wheel reminder: a soft, non-modal glass card. */
+.au-spin-reminder{position:fixed;z-index:160;inset-inline-start:18px;top:calc(74px + env(safe-area-inset-top,0px));width:min(340px,calc(100vw - 36px));display:grid;grid-template-columns:52px minmax(0,1fr);gap:4px 13px;align-items:center;padding:19px 17px 16px;border:1px solid rgba(255,222,153,.25);border-radius:22px;background:linear-gradient(135deg,rgba(43,48,65,.94),rgba(13,19,30,.96));box-shadow:0 20px 50px #0009,inset 0 1px 0 #ffffff1c;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);animation:spin-reminder-enter .5s cubic-bezier(.2,.8,.2,1) both}
+.au-spin-reminder[hidden]{display:none}
+.au-spin-reminder-icon{grid-row:1 / 3;width:50px;height:50px;display:grid;place-items:center;border-radius:17px;background:radial-gradient(circle at 30% 20%,#ffe4a0,#bd8631);color:#33220b;font-size:28px;box-shadow:0 8px 24px #e9b83b33}
+.au-spin-reminder-copy{padding-inline-end:22px}.au-spin-reminder-copy strong{display:block;color:#ffdf92;font-size:14px;line-height:1.7}.au-spin-reminder-copy p{margin:3px 0 0;color:#d7dce7;font-size:11px;line-height:1.8}
+.au-spin-reminder-close{position:absolute;top:7px;inset-inline-end:7px;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:#b5bfce;cursor:pointer;font:inherit}
+.au-spin-reminder-close:hover{background:#ffffff10;color:#fff}
+.au-spin-reminder-action{grid-column:2;width:fit-content;min-height:42px;margin-top:7px;padding:8px 16px;border:1px solid #ffd77b66;border-radius:12px;background:linear-gradient(130deg,#ffe094,#d7a741);color:#211907;font:700 12px 'Ali_Grapph',sans-serif;cursor:pointer}
+.au-spin-reminder-action:focus-visible,.au-spin-reminder-close:focus-visible{outline:2px solid #ffe4a0;outline-offset:2px}
+@keyframes spin-reminder-enter{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:480px){.au-spin-reminder{inset-inline-start:12px;width:min(340px,calc(100vw - 24px))}}
+
+/* Wheel: fixed pointer, decorative halo and an eased, prize-aligned spin. */
+#spinModal .au-modal{text-align:center}
+.au-spin-intro{color:var(--gold-light);font-weight:700;font-size:14px;margin:10px 0 8px}
+#spinModal .au-muted{line-height:1.8;font-size:11px}
+.au-wheel-wrap{width:min(308px,75vw,42vh);margin:28px auto 16px;filter:drop-shadow(0 14px 20px #0008)}
+.au-wheel-wrap:before{content:'';top:-15px;left:50%;width:0;height:0;transform:translateX(-50%);border-left:11px solid transparent;border-right:11px solid transparent;border-top:23px solid #ffe7a5;filter:drop-shadow(0 3px 3px #0009);z-index:2}
+.au-wheel-wrap:after{content:'';position:absolute;inset:7%;z-index:-1;border-radius:50%;box-shadow:0 0 50px 18px #f1bc4230;animation:spin-glow 3s ease-in-out infinite alternate;pointer-events:none}
+#auWheel{width:100%;display:block;transform-origin:50% 50%;transition:transform 4s cubic-bezier(.12,.72,.12,1);will-change:transform}
+#auWheel text{font:700 10px 'Ali_Grapph',sans-serif;fill:#fff8e8;paint-order:stroke;stroke:#1a1b26;stroke-width:2.5px;stroke-linejoin:round}
+#auWheel .au-wheel-star{font-size:26px;fill:#59350e;stroke:none}
+.au-spin-caption{font-size:12px;color:var(--text-secondary);margin:4px 0 14px}
+#spinModal .au-spin-button{min-height:48px;border-radius:14px}
+@keyframes spin-glow{from{opacity:.45}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.au-spin-reminder,.au-wheel-wrap:after{animation:none!important}}
+.au-no-motion .au-spin-reminder,.au-no-motion .au-wheel-wrap:after{animation:none!important}
