@@ -1973,9 +1973,33 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
   </div>
   <!-- ============ Hero ============ -->
   <section class="hero" id="hero">
+    <p class="home-kicker">YOUR LITTLE ARCADE</p>
     <h1 class="hero-title">آرکید کلاسیک</h1>
     <div class="hero-line"></div>
-    <p class="hero-sub">به یاد روزهای طلایی بازی‌های آرکید — بازسازی مدرن، تجربه نوستالژیک</p>
+    <p class="hero-sub">یه بازی انتخاب کن و شروع کن.</p>
+    <!-- ★ پولیش UI: Hero CTA -->
+    <!-- ★ فیکس باگ: اتصال رویداد داخل IIFE -->
+    <button class="hero-cta" id="heroRandomBtn" type="button">🎲 شروع بازی تصادفی</button>
+  </section>
+
+  <section class="home-collection" aria-labelledby="homeCollectionTitle">
+    <div class="home-collection-head"><div><span class="home-eyebrow">همه‌چیز سر جای خودش</span><h2 id="homeCollectionTitle">گوشه‌های آرکید</h2></div><p>برای دیدن جزئیات، روی هر کارت بزن</p></div>
+    <div class="home-cards">
+      <details class="home-card" id="homeToday">
+        <summary><span class="home-card-icon" aria-hidden="true">✦</span><span class="home-card-copy"><strong>امروز در آرکید</strong><small>بازی روز و چالش‌ها</small></span><span class="home-card-arrow" aria-hidden="true">⌄</span></summary>
+        <div class="home-card-body home-today-body">
+    <div id="gameOfDay"></div>
+    <div class="quests-section" id="questsSection">
+      <div class="quests-head"><span>🎯 مأموریت‌های امروز</span><small id="questsCount">۰ از ۳</small></div>
+      <div class="quests-list" id="questsList"></div>
+      <div class="quests-footer" id="questsBonus">تکمیل هر سه مأموریت: ۱۰۰ XP پاداش بیشتر</div>
+    </div>
+    <div class="weekly-boss" id="weeklyBoss"></div>
+        </div>
+      </details>
+      <details class="home-card" id="homeProgress">
+        <summary><span class="home-card-icon" aria-hidden="true">◈</span><span class="home-card-copy"><strong>پیشرفت من</strong><small>آمار و دستاوردها</small></span><span class="home-card-arrow" aria-hidden="true">⌄</span></summary>
+        <div class="home-card-body">
     <div class="hero-stats">
       <div class="stat"><div class="stat-main"><svg class="stat-pixel-icon" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="1" y="5" width="10" height="5"/><rect x="3" y="3" width="2" height="4"/><rect x="2" y="6" width="4" height="1" fill="#1a1500"/><rect x="4" y="5" width="1" height="3" fill="#1a1500"/><rect x="8" y="6" width="1" height="1" fill="#1a1500"/><rect x="9" y="8" width="1" height="1" fill="#1a1500"/></svg><b id="statGames">۰</b></div><span>بازی</span></div>
       <div class="stat-div"></div>
@@ -1983,16 +2007,32 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
       <div class="stat-div"></div>
       <div class="stat"><div class="stat-main"><svg class="stat-pixel-icon" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="3" y="1" width="6" height="5"/><rect x="1" y="2" width="2" height="3"/><rect x="9" y="2" width="2" height="3"/><rect x="5" y="6" width="2" height="3"/><rect x="3" y="9" width="6" height="2"/></svg><b id="statBest">۰</b></div><span>بهترین امتیاز</span></div>
     </div>
-    <!-- ★ پولیش UI: Hero CTA -->
-    <!-- ★ فیکس باگ: اتصال رویداد داخل IIFE -->
-    <button class="hero-cta" id="heroRandomBtn" type="button">🎲 شروع بازی تصادفی</button>
+    <div class="ach-strip" id="achStrip"><span class="ach-strip-text" id="achStripText"></span><div class="ach-strip-track"><div class="ach-strip-fill" id="achStripFill"></div></div><button type="button" id="achStripBtn">مشاهده</button></div>
+          <div class="home-actions"><button type="button" id="homeProfileBtn">پروفایل من</button><button type="button" id="homeStatsBtn">آمار کامل</button></div>
+        </div>
+      </details>
+      <details class="home-card" id="homeRewards">
+        <summary><span class="home-card-icon" aria-hidden="true">✺</span><span class="home-card-copy"><strong>جوایز و فروشگاه</strong><small>گردونه، امتیاز و همراه</small></span><span class="home-card-arrow" aria-hidden="true">⌄</span></summary>
+        <div class="home-card-body"><p class="home-card-description">هر روز به گردونه سر بزن یا برای همراهت وقت بذار.</p><div class="home-actions"><button type="button" data-au="spin">گردونهٔ روزانه</button><button type="button" data-au="wallet">امتیاز من</button><button type="button" data-au="shop">فروشگاه</button></div><div class="home-pet"><span><strong>همراه آرکیدی</strong><small>برای غذا دادن روی همراهت بزن. نمایش آن را می‌توانی در تنظیمات تغییر بدهی.</small></span><div id="homePetSlot"></div></div></div>
+      </details>
+      <details class="home-card" id="homeMore">
+        <summary><span class="home-card-icon" aria-hidden="true">☰</span><span class="home-card-copy"><strong>بیشتر</strong><small>پیام‌رسان‌ها و تنظیمات</small></span><span class="home-card-arrow" aria-hidden="true">⌄</span></summary>
+        <div class="home-card-body"><div class="home-actions">
     <button class="messenger-trigger" id="heroMessengersBtn" type="button" aria-haspopup="dialog" aria-controls="messengersModal">💬 آرکید در پیام‌رسان‌ها</button>
-    <div class="quests-section" id="questsSection">
-      <div class="quests-head"><span>🎯 مأموریت‌های امروز</span><small id="questsCount">۰ از ۳</small></div>
-      <div class="quests-list" id="questsList"></div>
-      <div class="quests-footer" id="questsBonus">تکمیل هر سه مأموریت: ۱۰۰ XP پاداش بیشتر</div>
+      <button class="menu-btn" id="startTournamentBtn" type="button" aria-haspopup="dialog" aria-controls="tournamentModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v5a4 4 0 0 1-8 0V3zM8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4M12 12v6M8 21h8M9 18h6v3"/></svg><span>مسابقه جدید</span></button>
+          <button type="button" data-au="settings">تنظیمات</button></div>
+<section class="banners-section" id="bannersSection" aria-labelledby="bannersTitle" hidden>
+  <h2 id="bannersTitle">📢 اطلاعیه‌ها</h2>
+  <div class="banner-carousel" id="bannerCarousel" role="region" aria-roledescription="اسلایدشو" aria-label="بنر اطلاعیه‌ها" tabindex="0">
+    <div class="banner-slides" id="bannerSlides"></div>
+    <button class="banner-nav prev" id="bannerPrev" type="button" aria-label="بنر قبلی">‹</button>
+    <button class="banner-nav next" id="bannerNext" type="button" aria-label="بنر بعدی">›</button>
+  </div>
+  <div class="banner-dots" id="bannerDots"></div>
+</section>
+        </div>
+      </details>
     </div>
-    <div class="weekly-boss" id="weeklyBoss"></div>
   </section>
 
   <!-- ============ ادامه بده ============ -->
@@ -2006,7 +2046,6 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
     <div class="section-head">
       <h2>همه بازی‌ها</h2>
       <div class="section-controls">
-      <button class="menu-btn" id="startTournamentBtn" type="button" aria-haspopup="dialog" aria-controls="tournamentModal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v5a4 4 0 0 1-8 0V3zM8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4M12 12v6M8 21h8M9 18h6v3"/></svg><span>مسابقه جدید</span></button>
       <div class="filter-row" id="filters">
         <button type="button" class="filter-chip on" data-filter="all">همه</button>
         <button type="button" class="filter-chip" data-filter="shooter">شوتر</button>
@@ -2016,7 +2055,6 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
       </div>
       </div>
     </div>
-    <div id="gameOfDay"></div>
     <div class="games-toolbar">
       <div class="search-wrap">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -2042,18 +2080,8 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
         </ul>
       </div>
     </div>
-    <div class="ach-strip" id="achStrip"><span class="ach-strip-text" id="achStripText"></span><div class="ach-strip-track"><div class="ach-strip-fill" id="achStripFill"></div></div><button type="button" id="achStripBtn">مشاهده</button></div>
     <div class="grid" id="grid"></div>
   </section>
-<section class="banners-section" id="bannersSection" aria-labelledby="bannersTitle" hidden>
-  <h2 id="bannersTitle">📢 اطلاعیه‌ها</h2>
-  <div class="banner-carousel" id="bannerCarousel" role="region" aria-roledescription="اسلایدشو" aria-label="بنر اطلاعیه‌ها" tabindex="0">
-    <div class="banner-slides" id="bannerSlides"></div>
-    <button class="banner-nav prev" id="bannerPrev" type="button" aria-label="بنر قبلی">‹</button>
-    <button class="banner-nav next" id="bannerNext" type="button" aria-label="بنر بعدی">›</button>
-  </div>
-  <div class="banner-dots" id="bannerDots"></div>
-</section>
 
 </main>
 
@@ -3108,6 +3136,8 @@ function bindProfileControls() {
     }
   });
   document.getElementById('achStripBtn').addEventListener('click',openAchievements);
+  document.getElementById('homeProfileBtn').addEventListener('click',openProfileModal);
+  document.getElementById('homeStatsBtn').addEventListener('click',openStats);
   document.getElementById('heroMessengersBtn').addEventListener('click',() => showModal('messengersModal'));
   document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click',() => requestCloseModal(button.dataset.close)));
   document.querySelectorAll('.about-backdrop').forEach(backdrop => backdrop.addEventListener('click',() => requestCloseModal(backdrop.parentElement.id)));
@@ -6238,7 +6268,7 @@ async function auSpin(){if(AU.spinBusy)return;AU.spinBusy=true;let index=0,again
 /* ★ علاقه‌مندی‌ها و لیدربورد محلی، نه سرویس آنلاین و نه بازیکن واقعی */
 function auFavorites(){const raw=LS.get('arcade_favorites',[]);return Array.isArray(raw)?[...new Set(raw.filter(id=>GAMES.some(g=>g.id===id)))]:[]}
 function auFavorite(id){const f=auFavorites();LS.set('arcade_favorites',f.includes(id)?f.filter(x=>x!==id):[...f,id]);auRenderPins();auEnhanceCards();playUI('click')}
-function auRenderPins(){const list=auFavorites().map(id=>GAMES.find(g=>g.id===id)).filter(Boolean);auEl('auPins').innerHTML='<h2>⭐ پین‌شده‌ها</h2>'+(list.length?'<div>'+list.map(g=>'<button type="button" class="recent-card" data-au="play" data-game="'+g.id+'"><span class="recent-card-cover">'+(COVERS[g.cover]?.()||'')+'</span><span class="recent-card-body"><b>'+esc(g.title)+'</b><small>'+faNum(getTop(g.id))+'</small></span></button>').join('')+'</div>':auEmpty('گربه منتظر اولین بازی محبوب توست!','انتخاب بازی','games'))}
+function auRenderPins(){const list=auFavorites().map(id=>GAMES.find(g=>g.id===id)).filter(Boolean);auEl('auPins').hidden=!list.length;auEl('auPins').innerHTML='<h2>⭐ پین‌شده‌ها</h2>'+(list.length?'<div>'+list.map(g=>'<button type="button" class="recent-card" data-au="play" data-game="'+g.id+'"><span class="recent-card-cover">'+(COVERS[g.cover]?.()||'')+'</span><span class="recent-card-body"><b>'+esc(g.title)+'</b><small>'+faNum(getTop(g.id))+'</small></span></button>').join('')+'</div>':auEmpty('گربه منتظر اولین بازی محبوب توست!','انتخاب بازی','games'))}
 const auNames=['آرمان','نیکا','آوا','سامان','رها','کیان','ماهان','نیلوفر','بردیا','پرهام','سارا','دانیال','هانا','نوید','یلدا','مانی','آرین','سپهر','شیدا','باران','علی','مریم','سینا','نگار','پویا','روژان','رادین','ترانه','کسری','بیتا'];
 function auLeaderboard(id){const game=GAMES.find(g=>g.id===id)||GAMES.find(g=>getTop(g.id)>0)||GAMES[0];let bots;try{bots=JSON.parse(safeSessionGet('arcade_lb_'+game.id)||'null')}catch(_){}if(!Array.isArray(bots)||bots.length!==5||bots.some(b=>!b||typeof b.name!=='string'||!Number.isFinite(b.score)||b.score<0)){const random=auRandom(game.id),base=Math.max(100,getTop(game.id));const names=auNames.slice();bots=Array.from({length:5},()=>({name:names.splice(Math.floor(random()*names.length),1)[0],score:Math.round(base*(.4+random()*1.2))}));safeSessionSet('arcade_lb_'+game.id,JSON.stringify(bots))}const rows=[...bots.map(b=>({...b,me:false})),{name:getProfile().name,score:getTop(game.id),me:true}].sort((a,b)=>b.score-a.score);auEl('leaderboardModalBody').innerHTML='<label>بازی <select id="auLeaderboardGame">'+GAMES.map(g=>'<option value="'+g.id+'" '+(g.id===game.id?'selected':'')+'>'+esc(g.title)+'</option>').join('')+'</select></label><p class="au-ai-note">این جدول محلی است؛ پنج رقیب شبیه‌سازی‌شده‌اند، نه بازیکنان آنلاین. نمرات رقبا در این نشست ثابت می‌مانند.</p>'+(getTop(game.id)?'':auEmpty('هنوز رکوردی نداری؛ اولین امتیاز را ثبت کن.','بازی کن','play',''))+rows.map((row,i)=>'<div class="au-rank '+(row.me?'au-me':'')+'"><b>'+faNum(i+1)+'</b><span>'+esc(row.name)+(row.me?' (شما)':' · AI')+'</span><strong>'+faNum(row.score)+'</strong></div>').join('');auEl('auLeaderboardGame').onchange=e=>auLeaderboard(e.target.value);auEl('leaderboardModalBody').querySelector('[data-au=play]')?.setAttribute('data-game',game.id);auOpen('leaderboardModal')}
 function auEnhanceCards(){const f=auFavorites();auEl('grid').querySelectorAll('.card').forEach(card=>{const game=GAMES.find(g=>g.id===card.dataset.id);if(!game)return;let tools=card.querySelector('.au-card-tools');if(!tools){tools=document.createElement('div');tools.className='au-card-tools';tools.innerHTML='<button type="button" class="au-star" data-au="favorite" data-game="'+game.id+'" aria-label="پین کردن '+esc(game.title)+'">☆</button><button type="button" class="au-leader" data-au="leaderboard" data-game="'+game.id+'" aria-label="لیدربورد '+esc(game.title)+'">🏆</button>';card.append(tools);const light=document.createElement('div');light.className='au-light';card.append(light);card.classList.add('au-arrive');card.addEventListener('pointermove',e=>{if(!auMotion()||coarsePointerQuery.matches)return;const r=card.getBoundingClientRect();light.style.setProperty('--au-x',(e.clientX-r.left)+'px');light.style.setProperty('--au-y',(e.clientY-r.top)+'px')});card.addEventListener('pointerenter',()=>{auPrefetch(game);if(Date.now()-auLastHover>120){auLastHover=Date.now();playUI('hover')}});if(!card.hasAttribute('tabindex')){card.tabIndex=0;card.setAttribute('role','group');card.setAttribute('aria-label',game.title+'؛ Enter برای بازی');card.addEventListener('keydown',e=>{if(e.target===card&&e.key==='Enter'){e.preventDefault();auLoad(game)}})}}const star=tools.querySelector('.au-star');star.textContent=f.includes(game.id)?'★':'☆';star.setAttribute('aria-pressed',String(f.includes(game.id)))});}
@@ -6332,7 +6362,7 @@ function auInit(){
  const pins=document.createElement('section');pins.id='auPins';pins.className='au-pins';document.querySelector('.games').before(pins);const challenge=document.createElement('section');challenge.id='auChallenge';challenge.className='au-challenge';auEl('questsSection').after(challenge);
  const event=document.createElement('div');event.id='auEvent';event.className='au-event';auEl('hero').append(event);const season=document.createElement('div');season.className='au-season-particles';season.id='auSeasonParticles';season.setAttribute('aria-hidden','true');document.body.append(season);
  const fab=document.createElement('button');fab.id='auShopFab';fab.type='button';fab.className='au-fab';fab.dataset.au='shop';fab.textContent='🛒';fab.setAttribute('aria-label','فروشگاه');document.body.append(fab);const top=document.createElement('button');top.id='auTop';top.type='button';top.className='au-fab lg-glass';top.textContent='↑';top.setAttribute('aria-label','بازگشت به بالا');top.onclick=()=>window.scrollTo({top:0,behavior:auMotion()?'smooth':'auto'});document.body.append(top);
- const pet=document.createElement('button');pet.id='auPet';pet.type='button';pet.className='au-pet lg-glass';pet.dataset.au='pet-feed';document.body.append(pet);const pull=document.createElement('div');pull.id='auPull';pull.className='au-pull lg-glass';pull.hidden=true;pull.setAttribute('aria-hidden','true');document.body.append(pull);
+ const pet=document.createElement('button');pet.id='auPet';pet.type='button';pet.className='au-pet lg-glass';pet.dataset.au='pet-feed';auEl('homePetSlot').append(pet);const pull=document.createElement('div');pull.id='auPull';pull.className='au-pull lg-glass';pull.hidden=true;pull.setAttribute('aria-hidden','true');document.body.append(pull);
  const bell=document.createElement('button');bell.type='button';bell.className='header-btn au-bell';bell.dataset.au='notifications';bell.setAttribute('aria-label','اعلان دستاوردها');bell.id='auBell';bell.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5zM10 20h4"/></svg><b></b>';shop.before(bell);
  const shortcuts=document.querySelector('.about-shortcuts');shortcuts.insertAdjacentHTML('beforeend','<div class="shortcut"><kbd>S</kbd><span>فروشگاه</span></div><div class="shortcut"><kbd>L</kbd><span>لیدربورد محلی</span></div><div class="shortcut"><kbd>Ctrl/Cmd+K</kbd><span>فرمان سریع</span></div>');const aboutRow=[...shortcuts.querySelectorAll('.shortcut')].find(el=>el.querySelector('kbd')?.textContent==='?');if(aboutRow)aboutRow.querySelector('span').textContent='تنظیمات (درباره: F1)';
  /* ★ ناظرهای DOM فقط تغییرات برنامهٔ موجود را دنبال می‌کنند */
@@ -6349,6 +6379,10 @@ function auInit(){
 }
 function auSync(force=false){if(!auMotion())pauseVisualEffects();const sig=getProfile().xp+':'+getPoints()+':'+getInventory().items.join(',')+':'+JSON.stringify(getEquipped())+':'+dateKey()+':'+Object.keys(achievements()).length;if(force||sig!==AU.lastState){AU.lastState=sig;auRenderPet();auRenderChallenge();auProfileExtras();auEnhanceShop();auTrailState();document.body.classList.toggle('au-glass-bg',getEquipped().bgTheme==='bg-theme-glass');document.querySelectorAll('.cosmetic-frame').forEach(el=>el.classList.toggle('au-frame-animated',getEquipped().frame==='frame-animated'));const unread=Math.max(0,Object.keys(achievements()).length-safeXP(LS.get('arcade_notification_seen',0)));auEl('auBell').classList.toggle('au-unread',unread>0);auEl('auBell').querySelector('b').textContent=faNum(unread);auEl('auBell').setAttribute('aria-label',faNum(unread)+' دستاورد جدید');auSeason()}document.querySelectorAll('[data-au-clock]').forEach(el=>el.textContent=auCountdown());auRenderPet();auRecordCheck();if(!bootIsActive()&&feedbackReady&&!modalStack.length&&!launchInProgress&&!AU.onboardShown){AU.onboardShown=true;if(LS.get('arcade_onboarded',false)!==true)auOnboarding();else{const pending=LS.get('arcade_reward_pending',null);if(pending){LS.remove('arcade_reward_pending');auPrizeModal(pending.label,'این جایزه پیش‌تر در حساب ثبت شده است.')}}}auUpdateSpinReminder()}
 auInit();
+// One open card at a time keeps the home screen compact; native details provide keyboard support.
+document.querySelectorAll('.home-card').forEach(card=>card.querySelector('summary').addEventListener('click',()=>{
+  if(!card.open) document.querySelectorAll('.home-card').forEach(other=>{if(other!==card) other.open=false;});
+}));
 function updateConnectionNotice(){ document.getElementById('connectionNotice').hidden = navigator.onLine !== false; }
 window.addEventListener('online',updateConnectionNotice); window.addEventListener('offline',updateConnectionNotice); updateConnectionNotice();
 
