@@ -74,7 +74,20 @@
     'external': '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
     'image': '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
     'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
-    'info': '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'
+    'info': '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    'sun': '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>',
+    'cloud': '<path d="M7 18h10a4 4 0 0 0 .6-8 6 6 0 0 0-11.4-1.2A4.6 4.6 0 0 0 7 18z"/>',
+    'message': '<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5A9 9 0 0 1 4 11.5 8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11h8M8 14h5"/>',
+    'code': '<path d="m8 8-4 4 4 4m8-8 4 4-4 4m-3-10-2 12"/>',
+    'plane': '<path d="M22 2 9 15"/><path d="m22 2-7 20-4-9-9-4 20-7Z"/>',
+    'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    'flag': '<path d="M5 22V3m0 1h13l-2 4 2 4H5"/>',
+    'phone': '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 19h4"/>',
+    'mushroom': '<path d="M4 12a8 8 0 0 1 16 0H4Zm5 0v6a3 3 0 0 0 6 0v-6"/><path d="M8 8h.01M15 7h.01"/>',
+    'magnet': '<path d="M6 13V8a6 6 0 0 1 12 0v5h-4V8a2 2 0 0 0-4 0v5zM6 16h4m4 0h4"/>',
+    'brick': '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20M2 15h20M9 4v6m6 0v5m-6 0v5"/>',
+    'orbit': '<circle cx="12" cy="12" r="3"/><path d="M3 15c-1-3 2-7 7-9s10-2 11 1-2 7-7 9-10 2-11-1Z"/>',
+    'tree': '<path d="M12 22v-5M5 17l4-6H7l5-8 5 8h-2l4 6H5Z"/>'
   };
 
   /* ایموجی/نویسه → [نام آیکون، پر؟]. ستاره‌ها و قلب پر می‌شوند. */
@@ -89,20 +102,30 @@
     '🎓': ['graduation-cap'], '🖼': ['image'], '🔗': ['link'], '🎬': ['clapperboard'], '👇': ['chevron-down'], '🕹': ['joystick'],
     '🏃': ['activity'], '🌙': ['moon'], '🎪': ['tent'], '♿': ['accessibility'], '🧪': ['flask-conical'], '🚨': ['siren'],
     '✦': ['sparkle', 1], '◈': ['diamond'], '▦': ['grid-3x3'], '◒': ['contrast'], '❀': ['flower-2'], '🕶': ['glasses'],
-    '🎩': ['hat'], '🍉': ['melon'], '🥚': ['egg'], '🍎': ['apple'], '🔇': ['volume-x']
+    '🎩': ['hat'], '🍉': ['melon'], '🥚': ['egg'], '🍎': ['apple'], '🔇': ['volume-x'],
+    '☀': ['sun'], '☁': ['cloud'], '📴': ['phone'], '📵': ['phone'], '📱': ['phone'], '☰': ['grid-3x3'], '✺': ['sparkles'],
+    '💬': ['message'], '🧑‍💻': ['code'], '💻': ['code'], '✈': ['plane'], '🔐': ['lock'], '🎖': ['medal'], '🌟': ['star', 1],
+    '🌊': ['activity'], '🛸': ['orbit'], '🧭': ['target'], '🔮': ['orbit'], '🧱': ['brick'], '🧲': ['magnet'], '🪙': ['coins'],
+    '☠': ['triangle-alert'], '⚔': ['zap'], '🌲': ['tree'], '🍄': ['mushroom'], '🏁': ['flag'], '🚩': ['flag'], '🏦': ['coins'],
+    '🛡': ['shield'], '🪶': ['sprout'], '🍒': ['apple'], '👻': ['ghost'], '🏓': ['target'], '⚓': ['target'], '⛽': ['zap'],
+    '🐍': ['activity'], '🐲': ['sparkles'], '✅': ['check'], '💯': ['award'], '⛰': ['triangle-alert'], '❄': ['sparkle'],
+    '➡': ['external'], '🌧': ['cloud'], '🍃': ['sprout'], '💨': ['activity'], '🗺': ['grid-3x3']
   };
 
-  var RE = new RegExp('(' + Object.keys(MAP).sort(function (a, b) { return b.length - a.length; })
-    .map(function (k) { return k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')\\uFE0F?', 'g');
+  var pattern = Object.keys(MAP).sort(function (a, b) { return b.length - a.length; })
+    .map(function (k) { return k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|');
+  var RE;
+  try { RE = new RegExp('(' + pattern + '|[\\u{1F300}-\\u{1FAFF}](?:\\uFE0F|\\u200D[\\u{1F300}-\\u{1FAFF}])*)\\uFE0F?', 'gu'); }
+  catch (_) { RE = new RegExp('(' + pattern + ')\\uFE0F?', 'g'); }
   var NS = 'http://www.w3.org/2000/svg';
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, OPTION: 1, TITLE: 1, NOSCRIPT: 1, CANVAS: 1, INPUT: 1 };
 
-  function symbolId(name) { return 'ap-i-' + name; }
+  function symbolId(name) { return 'apx-i-' + name; }
 
   function injectSprite() {
-    if (document.getElementById('apSprite')) return;
+    if (document.getElementById('apExternalSprite')) return;
     var svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('id', 'apSprite'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
+    svg.setAttribute('id', 'apExternalSprite'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
     svg.setAttribute('aria-hidden', 'true'); svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
     svg.innerHTML = Object.keys(P).map(function (n) {
       return '<symbol id="' + symbolId(n) + '" viewBox="0 0 24 24">' + P[n] + '</symbol>';
@@ -111,7 +134,7 @@
   }
 
   function makeIcon(key) {
-    var m = MAP[key]; if (!m) return null;
+    var m = MAP[key] || ['sparkle'];
     var el = document.createElementNS(NS, 'svg');
     el.setAttribute('class', 'ic' + (m[1] ? ' ic-fill' : ''));
     el.setAttribute('viewBox', '0 0 24 24'); el.setAttribute('aria-hidden', 'true'); el.setAttribute('focusable', 'false');
@@ -170,8 +193,15 @@
     if (!window.MutationObserver) return;
     observer = new MutationObserver(function (records) {
       records.forEach(function (r) {
-        if (r.type === 'characterData') queue.add(r.target);
-        else r.addedNodes.forEach(function (n) { if (n.nodeType === 1 || n.nodeType === 3) queue.add(n); });
+        function maybeQueue(n) {
+          if (n.nodeType !== 1 && n.nodeType !== 3) return;
+          if (n.nodeType === 1 && (SKIP[n.nodeName] || n.namespaceURI === NS)) return;
+          var text = n.nodeType === 3 ? n.nodeValue : n.textContent;
+          RE.lastIndex = 0;
+          if (text && RE.test(text)) queue.add(n);
+        }
+        if (r.type === 'characterData') maybeQueue(r.target);
+        else r.addedNodes.forEach(maybeQueue);
       });
       if (queue.size) schedule();
     });
@@ -196,7 +226,13 @@
     });
   }
 
-  window.ArcadeIcons = { convert: convertTree, image: iconImage, has: function (k) { return !!MAP[String(k || '').replace(/️/g, '')]; }, paths: P };
+  if (!window.ArcadeIcons) window.ArcadeIcons = { convert: convertTree, image: iconImage, has: function (k) { return !!MAP[String(k || '').replace(/️/g, '')]; }, paths: P };
+
+  // Game pages only need the lightweight icon conversion, not hub save handlers.
+  if (document.currentScript && document.currentScript.hasAttribute('data-icons-only')) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+    return;
+  }
 
   /* ───────── ذخیرهٔ فایل در مرورگرهای داخلی ─────────
      در WebView برنامه‌هایی مثل ایتا و تلگرام، دانلود blob/data با <a download> کار نمی‌کند.

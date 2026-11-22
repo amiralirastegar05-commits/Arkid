@@ -1,0 +1,71 @@
+/* Liquid-inspired surfaces: gradients and borders do most of the work. */
+:root{--liquid-surface:#171c2a;--liquid-panel:#202637;--liquid-line:rgba(255,255,255,.11);--liquid-shadow:0 16px 38px rgba(0,0,0,.18);--liquid-muted:#aab4c9}
+:root[data-scheme=light]{--liquid-surface:#f7f8ff;--liquid-panel:#fff;--liquid-line:rgba(39,42,72,.12);--liquid-shadow:0 12px 34px rgba(59,52,108,.10);--liquid-muted:#626b80}
+/* One blur on each persistent chrome layer, not on every card. */
+header.lg-glass,.bottom-nav{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+header.lg-glass{border-bottom:1px solid var(--liquid-line);box-shadow:0 6px 22px #0002}
+.header-btn,.profile-chip,.points-pill{border-radius:16px;border-color:var(--liquid-line)}
+.logo-icon{border-radius:16px;box-shadow:0 5px 16px color-mix(in srgb,var(--gold) 25%,transparent)}
+.hero{border-radius:30px;border:1px solid rgba(198,183,255,.22);background:radial-gradient(circle at 17% 26%,rgba(134,110,227,.24),transparent 35%),linear-gradient(120deg,#171b32,#111827 64%,#30243c);box-shadow:var(--liquid-shadow),inset 0 1px 0 #ffffff16}
+.hero .home-kicker{letter-spacing:.19em}.hero .hero-cta{border-radius:99px;box-shadow:0 8px 22px color-mix(in srgb,var(--gold) 20%,transparent)}
+.home-card{border-radius:24px;background:linear-gradient(150deg,#242a3c,#161c2b);box-shadow:var(--liquid-shadow),inset 0 1px 0 #ffffff0c;border-color:var(--liquid-line)}
+.home-card[open]{background:var(--liquid-surface)}.home-card summary{min-height:88px}.home-card-icon{border-radius:15px}.home-actions button{border-radius:15px}
+.games .card{border-radius:25px;border:1px solid var(--liquid-line);background:var(--liquid-surface);box-shadow:var(--liquid-shadow);transition:transform .18s ease,border-color .18s ease}
+.games .card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--gold) 45%,var(--liquid-line))}.games .card-cover{border-radius:24px 24px 0 0}.games .card-body{background:var(--liquid-surface);padding:16px}
+.games .genre,.filter-chip{border-radius:99px}.search-input,.sort-btn{border-radius:16px}.bottom-nav{border-radius:28px;border:1px solid var(--liquid-line)}
+/* Modal shell uses a single soft shadow; translucent depth without nested filters. */
+.about-modal .about-card,.about-modal.wide-modal .about-card{border-radius:30px;border:1px solid var(--liquid-line);box-shadow:0 24px 75px #0006,inset 0 1px 0 #ffffff1c;background:var(--liquid-surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+.about-modal .about-backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(3,6,13,.64)}
+.about-close{border-radius:50%;background:color-mix(in srgb,var(--text-primary) 7%,transparent);border:1px solid var(--liquid-line)}
+.liquid-eyebrow{display:block;direction:ltr;text-align:right;letter-spacing:.18em;font:700 10px/1.5 system-ui,sans-serif;color:var(--gold);margin-bottom:7px}
+/* Store: clear hierarchy, swipeable categories and tactile merchandise. */
+#shopModal .about-card{width:min(960px,94vw);max-height:90dvh;padding:30px;text-align:right}
+#shopModal .shop-header{align-items:flex-start;padding-inline-end:45px;margin-bottom:14px;gap:18px}
+.shop-heading h2{margin:0;font-size:clamp(22px,3vw,30px)}.shop-heading p{margin:6px 0 0;color:var(--liquid-muted);font-size:12px;line-height:1.8}
+#shopModal .shop-balance{border-radius:18px;padding:10px 15px;background:color-mix(in srgb,var(--gold) 11%,var(--liquid-surface));border:1px solid color-mix(in srgb,var(--gold) 28%,transparent)}
+#shopModal .shop-status{border:0;background:transparent;margin:0 0 10px;padding:4px 2px;color:var(--liquid-muted)}
+#shopModal [data-au=wallet].au-full,#shopModal [data-au=inventory]{display:inline-flex;width:auto;min-height:42px;margin:0 0 10px 7px;padding-inline:15px;border-radius:14px;background:var(--liquid-panel);border-color:var(--liquid-line)}
+#auDeals{padding:15px;border:1px solid var(--liquid-line);border-radius:22px;background:linear-gradient(130deg,color-mix(in srgb,var(--gold) 10%,var(--liquid-panel)),var(--liquid-panel));margin:4px 0 18px}
+#auDeals .au-clock{margin:0 0 8px;font-weight:700}#auDeals .au-deals{gap:9px;padding:2px 0 5px}
+#auDeals .au-deal{flex-basis:180px;background:var(--liquid-surface);border:1px solid var(--liquid-line);border-radius:16px;padding:12px}
+#auDeals .au-deal strong{font-size:12px;line-height:1.6}#auDeals .au-deal button{min-height:38px;border-radius:12px}
+#shopModal .shop-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;gap:8px;padding:2px 1px 12px;margin:0 0 15px;border:0}
+#shopModal .shop-tab{white-space:nowrap;flex:none;min-height:42px;border-radius:14px;padding:8px 14px;background:var(--liquid-panel);border:1px solid var(--liquid-line);color:var(--text-secondary)}
+#shopModal .shop-tab.active{background:var(--gold);border-color:var(--gold);color:var(--text-inverse)}
+#shopModal .shop-grid{grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:12px}
+#shopModal .shop-item{border-radius:22px;padding:12px;background:var(--liquid-panel);border:1px solid var(--liquid-line);box-shadow:inset 0 1px 0 #ffffff0d}
+#shopModal .shop-item-preview{height:110px;margin:0 0 2px;border-radius:16px;background:radial-gradient(circle at 50% 12%,color-mix(in srgb,var(--gold) 14%,transparent),transparent 65%),color-mix(in srgb,var(--liquid-surface) 85%,transparent)}
+#shopModal .shop-item-preview.layout-shop-preview{height:125px}#shopModal .shop-item-name{font-size:13px;line-height:1.65}#shopModal .shop-item-desc{min-height:32px;color:var(--liquid-muted);line-height:1.7}
+#shopModal .shop-item-price{padding-top:2px}#shopModal .shop-item-actions{gap:6px}#shopModal .shop-item-actions button{min-height:42px;border-radius:13px;font-size:11px}
+/* Settings */
+#settingsModal .about-card{width:min(600px,94vw);max-height:90dvh;padding:28px}
+#settingsModal h2{font-size:25px;margin:0;padding-inline-end:38px}.settings-intro{margin:7px 0 18px;color:var(--liquid-muted);font-size:12px;line-height:1.8}
+.settings-group{padding:16px;margin:11px 0;border:1px solid var(--liquid-line);border-radius:21px;background:var(--liquid-panel)}
+#settingsModal .settings-group h3{margin:0 0 10px;font-size:13px}#settingsModal .settings-group h3:not(:first-child){margin-top:20px}
+#settingsModal .settings-group label{min-height:48px;margin:0;gap:12px;border-top:1px solid var(--liquid-line);font-size:12px}
+#settingsModal .settings-group label:first-of-type{border-top:0}#settingsModal .settings-group select,#settingsModal .settings-group input:not([type=checkbox]){max-width:55%;border-radius:12px;background:var(--liquid-surface)}
+#settingsModal input[type=checkbox]{appearance:none;-webkit-appearance:none;width:45px;height:26px;min-width:45px;min-height:26px;border:0;border-radius:30px;background:#737b8b;position:relative;cursor:pointer;transition:background .15s}
+#settingsModal input[type=checkbox]::before{content:'';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px #0003;transition:transform .15s}
+#settingsModal input[type=checkbox]:checked{background:var(--gold)}#settingsModal input[type=checkbox]:checked::before{transform:translateX(19px)}#settingsModal input[type=checkbox]:disabled{opacity:.45}
+#settingsModal .scheme-row,#settingsModal .font-row{display:flex;flex-wrap:nowrap}#settingsModal .scheme-row button,#settingsModal .font-row button{flex:1;border-radius:13px;background:var(--liquid-surface);border-color:var(--liquid-line)}
+#settingsModal .scheme-row button[aria-pressed=true],#settingsModal .font-row button[aria-pressed=true]{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--gold) 9%,var(--liquid-surface));box-shadow:inset 0 0 0 1px var(--gold)}
+#settingsModal .theme-row{gap:10px}#settingsModal .theme-row .au-theme{width:42px;height:42px;min-height:42px}.settings-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.settings-links button{flex:1;min-width:180px}
+/* Profile */
+#profileModal .about-card{width:min(680px,94vw);height:auto;max-height:90dvh;padding:30px;text-align:right}
+#profileModal .profile-heading{margin:0;padding-inline-end:40px;font-size:25px}#profileModal .profile-body{width:100%;max-width:460px;margin:24px auto 0;padding:24px 18px;border-radius:24px;background:linear-gradient(150deg,color-mix(in srgb,var(--gold) 10%,var(--liquid-panel)),var(--liquid-panel));border:1px solid var(--liquid-line)}
+#profileModal .profile-avatar{box-shadow:0 10px 30px #0003,0 0 0 5px color-mix(in srgb,var(--gold) 14%,transparent)}
+#profileModal .profile-xp{width:100%;padding:16px;border-radius:17px;background:var(--liquid-surface);border:1px solid var(--liquid-line)}
+#profileModal .profile-actions{width:100%;gap:8px}#profileModal .profile-actions button{border-radius:13px;min-height:44px}
+#auShowcaseProfile{margin:16px auto 0;max-width:460px;text-align:center}#auShowcaseProfile .au-showcase{justify-content:center}
+:root[data-scheme=light] .hero{background:radial-gradient(circle at 20% 20%,#d7ccfa 0,transparent 40%),linear-gradient(120deg,#eeeafb,#fff2ed);border-color:#c9bbec}
+:root[data-scheme=light] .hero .hero-title{background:none;-webkit-text-fill-color:initial;color:#24213c}:root[data-scheme=light] .hero .hero-sub{color:#535971}
+:root[data-scheme=light] .home-card{background:linear-gradient(150deg,#fff,#f3f3fc);border-color:var(--liquid-line)}
+:root[data-scheme=light] .about-modal .about-backdrop{background:rgba(28,30,52,.42)}
+@media(max-width:700px){.home-card summary{min-height:78px}.hero{border-radius:24px}.games .card{border-radius:20px}.games .card-cover{border-radius:19px 19px 0 0}#shopModal .about-card,#profileModal .about-card,#settingsModal .about-card{width:100%;height:auto;max-height:min(92dvh,900px);border-radius:26px;padding:22px 17px 24px}#shopModal .shop-header{padding-inline-end:38px}.shop-heading h2{font-size:23px}#shopModal .shop-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}#shopModal .shop-item{padding:10px}#shopModal .shop-item-preview{height:86px}#shopModal .shop-item-preview.layout-shop-preview{height:95px}#shopModal .shop-item-actions{flex-wrap:wrap}#shopModal .shop-item-actions button{min-width:100%;min-height:40px}.settings-links button{min-width:130px}}
+@media(max-width:360px){#shopModal .shop-grid{grid-template-columns:1fr 1fr}#shopModal .shop-item-name{font-size:11px}#shopModal .shop-item-desc{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.games .card,#settingsModal input[type=checkbox],#settingsModal input[type=checkbox]::before{transition:none!important}.games .card:hover{transform:none}}
+.au-no-motion .games .card,.au-no-motion #settingsModal input[type=checkbox],.au-no-motion #settingsModal input[type=checkbox]::before{transition:none!important}
+/* The close affordance and selected icons must remain visible on light surfaces. */
+#settingsModal .about-close{color:var(--text-primary)}
+#settingsModal .scheme-row .ic,#settingsModal .font-row .ic{color:inherit}
+:root[data-scheme=light] #settingsModal .about-close{color:#30384d}
