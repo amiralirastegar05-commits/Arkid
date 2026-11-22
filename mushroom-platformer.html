@@ -1944,13 +1944,21 @@ main {
     c.save(); c.globalAlpha = alpha;
     const cx = wl.camX, t = wl.t;
     const gr = c.createLinearGradient(0, 0, 0, VH);
-    if (b === 0) { gr.addColorStop(0, '#5ab4f5'); gr.addColorStop(1, '#dff6ff'); }
+    if (b === 0) { gr.addColorStop(0, '#3996de'); gr.addColorStop(.58, '#f9aac2'); gr.addColorStop(1, '#ffdea4'); }
     else if (b === 1) { gr.addColorStop(0, '#1b120d'); gr.addColorStop(1, '#4a3322'); }
     else if (b === 2) { gr.addColorStop(0, '#79c8ff'); gr.addColorStop(1, '#ffe3f1'); }
     else { gr.addColorStop(0, '#220808'); gr.addColorStop(0.65, '#7a2410'); gr.addColorStop(1, '#d9531a'); }
     c.fillStyle = gr; c.fillRect(0, 0, VW, VH);
     if (b === 0) {
       c.fillStyle = 'rgba(255,246,190,.9)'; c.beginPath(); c.arc(660, 80, 36, 0, TAU); c.fill();
+      // Distant floating islands echo the cover, but are deliberately soft scenery, not platforms.
+      c.save(); c.globalAlpha *= .42;
+      for (let i = 0; i < 5; i++) {
+        const x = mod(i * 240 + 70 - cx * .1, VW + 220) - 110, y = 115 + (i % 3) * 35;
+        c.fillStyle = '#52687c'; c.beginPath(); c.moveTo(x-42,y); c.lineTo(x+42,y); c.lineTo(x+20,y+32); c.lineTo(x-8,y+51); c.lineTo(x-30,y+30); c.closePath(); c.fill();
+        c.fillStyle = '#7bb46d'; c.beginPath(); c.ellipse(x,y,42,9,0,0,TAU); c.fill();
+      }
+      c.restore();
       c.fillStyle = 'rgba(255,255,255,.8)';
       for (let i = 0; i < 6; i++) cloudShape(c, mod(i * 220 - cx * 0.15, VW + 300) - 130, 46 + (i % 3) * 34, 0.8 + (i % 2) * 0.3);
       hills(c, cx, 0.25, 292, 28, 0.004, '#9ad99d');

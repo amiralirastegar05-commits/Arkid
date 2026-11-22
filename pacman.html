@@ -1353,8 +1353,10 @@ main {
       Object.assign(makeGhost('inky'),   { color: '#4dd0e1', tileX: 11, tileY: 14, state: 'house',  dir: { x: 0, y: -1 }, progress: 0 }),
       Object.assign(makeGhost('clyde'),  { color: '#ffb347', tileX: 15, tileY: 14, state: 'house',  dir: { x: 0, y: -1 }, progress: 0 })
     ];
-    world.ghosts[0].x = (13.5) * world.TILE;
-    world.ghosts[0].y = (11.5) * world.TILE;
+    for (const ghost of world.ghosts) {
+      ghost.x = (ghost.tileX + 0.5) * world.TILE;
+      ghost.y = (ghost.tileY + 0.5) * world.TILE;
+    }
     resetGhostHouseTimers();
     world.ghostMode = 'scatter';
     world.ghostModeTimer = 7;
@@ -1414,15 +1416,24 @@ main {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const hudH = 54;
-    const availH = H - hudH;
+    // Keep the maze clear of the touch controls on tall screens.
+    const padH = settings.controls === 'dpad' && H >= 480 ? 142 : 0;
+    const availH = Math.max(1, H - hudH - padH);
     const tW = W / MW;
     const tH = availH / MH;
-    world.TILE = Math.max(10, Math.floor(Math.min(tW, tH)));
+    const oldTile = world.TILE;
+    world.TILE = Math.max(1, Math.floor(Math.min(tW, tH)));
     world.OX = Math.floor((W - MW * world.TILE) / 2);
     world.OY = hudH + Math.floor((availH - MH * world.TILE) / 2);
     // update entity render positions
     syncPacPos();
-    for (const g of world.ghosts) syncGhostPos(g);
+    const ratio = world.TILE / oldTile;
+    for (const g of world.ghosts) {
+      if (g.state === 'exiting') { g.x *= ratio; g.y *= ratio; }
+      else syncGhostPos(g);
+    }
+    if (world.fruit) { world.fruit.x *= ratio; world.fruit.y *= ratio; }
+    for (const particle of world.particles) { particle.x *= ratio; particle.y *= ratio; }
     buildMazeCanvas();
   }
 
@@ -1433,7 +1444,11 @@ main {
     p.y = (p.tileY + 0.5 + p.dir.y * p.progress) * world.TILE;
   }
   function syncGhostPos(g) {
-    if (g.state === 'house') return; // position set directly
+    if (g.state === 'house') {
+      g.x = (g.tileX + 0.5) * world.TILE;
+      g.y = (g.tileY + 0.5) * world.TILE;
+      return;
+    }
     if (g.state === 'exiting') return;
     g.x = (g.tileX + 0.5 + g.dir.x * g.progress) * world.TILE;
     g.y = (g.tileY + 0.5 + g.dir.y * g.progress) * world.TILE;
@@ -1446,37 +1461,31 @@ main {
     mazeCanvas.width = MW * T;
     mazeCanvas.height = MH * T;
     const mc = mazeCanvas.getContext('2d');
-    mc.fillStyle = '#000';
+    // One continuous silhouette, with outlines only where a wall meets a path.
+    mc.fillStyle = '#0a1025';
     mc.fillRect(0, 0, mazeCanvas.width, mazeCanvas.height);
-
+    mc.fillStyle = '#171e48';
+    for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+      if (MAZE_STR[y][x] === '#') mc.fillRect(x * T, y * T, T, T);
+    }
     mc.save();
-    mc.shadowColor = '#2563cc';
-    mc.shadowBlur = Math.max(4, T * 0.4);
-    mc.fillStyle = '#0a1a3a';
-    for (let y = 0; y < MH; y++) {
-      for (let x = 0; x < MW; x++) {
-        if (MAZE_STR[y][x] === '#') {
-          const px = x * T, py = y * T;
-          const r = Math.min(3, T * 0.15);
-          roundRect(mc, px, py, T, T, r);
-          mc.fill();
-        }
-      }
+    mc.strokeStyle = '#748dff';
+    mc.lineWidth = Math.max(1.2, T * 0.13);
+    mc.lineCap = 'round';
+    mc.shadowColor = '#5a72ff';
+    mc.shadowBlur = T * 0.5;
+    mc.beginPath();
+    const wall = (x, y) => y >= 0 && y < MH && x >= 0 && x < MW && MAZE_STR[y][x] === '#';
+    for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+      if (!wall(x,y)) continue;
+      const x0=x*T, y0=y*T;
+      if (!wall(x,y-1)) { mc.moveTo(x0,y0); mc.lineTo(x0+T,y0); }
+      if (!wall(x,y+1)) { mc.moveTo(x0,y0+T); mc.lineTo(x0+T,y0+T); }
+      if (!wall(x-1,y)) { mc.moveTo(x0,y0); mc.lineTo(x0,y0+T); }
+      if (!wall(x+1,y)) { mc.moveTo(x0+T,y0); mc.lineTo(x0+T,y0+T); }
     }
+    mc.stroke();
     mc.restore();
-
-    mc.strokeStyle = '#2a6bc4';
-    mc.lineWidth = 1;
-    for (let y = 0; y < MH; y++) {
-      for (let x = 0; x < MW; x++) {
-        if (MAZE_STR[y][x] === '#') {
-          const px = x * T, py = y * T;
-          const r = Math.min(3, T * 0.15);
-          roundRect(mc, px + 0.5, py + 0.5, T - 1, T - 1, r);
-          mc.stroke();
-        }
-      }
-    }
 
     // ghost house door
     for (let y = 0; y < MH; y++) {
@@ -1503,7 +1512,8 @@ main {
      TILE CHECKING
      ============================================================ */
   function isWall(tx, ty, forGhost) {
-    if (tx < 0 || tx >= MW || ty < 0 || ty >= MH) return false; // tunnel wraps
+    if (ty < 0 || ty >= MH) return true;
+    if (tx < 0 || tx >= MW) return ty !== 14; // only the middle tunnel wraps
     const ch = world.maze[ty][tx];
     if (ch === '#') return true;
     if (ch === '-') return !forGhost; // door: wall for pac, but ghosts can't enter anyway
@@ -1547,10 +1557,16 @@ main {
         wrapPac(p);
         p.dir = nd;
         p.nextDir = null;
+        syncPacPos();
         return; // consume this frame
       }
     }
 
+    // Never start a step into a wall; allow a queued turn to be taken in place.
+    if (p.progress === 0 && isWall(p.tileX + p.dir.x, p.tileY + p.dir.y, false)) {
+      syncPacPos();
+      return;
+    }
     const spd = pacSpeed() * dt;
     p.progress += spd;
 
@@ -1783,26 +1799,27 @@ main {
       g.x = (g.tileX + 0.5) * world.TILE;
       // Release check
       g.houseTimer += dt;
-      if (world.globalT >= g.releaseAt) {
+      if (g.houseTimer >= g.releaseAt) {
         g.state = 'exiting';
       }
       return;
     }
     if (g.state === 'exiting') {
-      const tx = 13.5 * world.TILE;
-      const ty = 11.5 * world.TILE;
-      const dx = tx - g.x, dy = ty - g.y;
-      const dist = Math.hypot(dx, dy);
-      const spd = 3.5 * world.TILE * dt;
-      if (dist < spd) {
-        g.x = tx; g.y = ty;
+      const tx = 13.5 * world.TILE, ty = 11.5 * world.TILE;
+      const step = 3.5 * world.TILE * dt;
+      // Align with the centre of the door before ascending.
+      const dx = tx - g.x;
+      if (Math.abs(dx) > 0.5) {
+        g.x += Math.sign(dx) * Math.min(Math.abs(dx), step);
+        return;
+      }
+      g.x = tx;
+      g.y = Math.max(ty, g.y - step);
+      if (g.y <= ty) {
         g.tileX = 13; g.tileY = 11;
         g.progress = 0;
         g.dir = { x: -1, y: 0 };
         g.state = world.frightTimer > 0 ? 'frightened' : world.ghostMode;
-      } else {
-        g.x += (dx / dist) * spd;
-        g.y += (dy / dist) * spd;
       }
       return;
     }
@@ -2081,7 +2098,9 @@ main {
     const T = world.TILE;
     ctx.setTransform(world.dpr, 0, 0, world.dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#000';
+    const background = ctx.createLinearGradient(0, 0, 0, H);
+    background.addColorStop(0, '#1f194c'); background.addColorStop(1, '#081328');
+    ctx.fillStyle = background;
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
@@ -2189,17 +2208,21 @@ main {
     const a2 = baseAngle - mouth * Math.PI;
 
     ctx.save();
-    ctx.translate(world.OX + p.x, world.OY + p.y);
+    ctx.translate(p.x, p.y);
     // glow
     ctx.shadowColor = '#ffd700';
     ctx.shadowBlur = T * 0.4;
-    ctx.fillStyle = '#ffd700';
+    const gold = ctx.createLinearGradient(-r, -r, r, r);
+    gold.addColorStop(0, '#fff2a2'); gold.addColorStop(.5, '#ffc52f'); gold.addColorStop(1, '#ef8b16');
+    ctx.fillStyle = gold;
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.arc(0, 0, r, a1, a2, false);
     ctx.closePath();
     ctx.fill();
     ctx.shadowBlur = 0;
+    ctx.fillStyle = '#48365d';
+    ctx.beginPath(); ctx.arc(0, -r * .52, Math.max(.8, r * .1), 0, TAU); ctx.fill();
     ctx.restore();
   }
 
@@ -2211,7 +2234,7 @@ main {
     if (r < 0.5) return;
     const mouth = Math.min(1, k * 1.5) * 0.9;
     ctx.save();
-    ctx.translate(world.OX + p.x, world.OY + p.y);
+    ctx.translate(p.x, p.y);
     ctx.fillStyle = '#ffd700';
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -2224,8 +2247,8 @@ main {
   function drawGhost(g) {
     const T = world.TILE;
     const r = T * 0.42;
-    const cx = world.OX + g.x;
-    const cy = world.OY + g.y;
+    const cx = g.x;
+    const cy = g.y;
 
     let bodyColor = g.color;
     let isFright = g.state === 'frightened';
@@ -2309,8 +2332,8 @@ main {
 
   function drawFruit(f) {
     const T = world.TILE;
-    const x = world.OX + f.x;
-    const y = world.OY + f.y;
+    const x = f.x;
+    const y = f.y;
     const info = FRUITS[f.type];
     const pulse = 1 + Math.sin(world.globalT * 5) * 0.08;
     const r = T * 0.35 * pulse;
@@ -2664,6 +2687,7 @@ main {
     Snd.setMuted(!settings.sound);
     gameWrap.classList.toggle('crt', !!settings.crt);
     gameWrap.dataset.controls = settings.controls;
+    if (!gameWrap.hidden) resize();
   }
 
   muteBtn.addEventListener('click', () => {

@@ -21,7 +21,7 @@ test('all game artworks exist, can fall back offline and are included in the new
  const map=between('const GAME_ART =','Object.keys(GAME_ART)');
  const files=[...map.matchAll(/'([a-z0-9-]+\.(?:webp|svg))'/g)].map(m=>m[1]);assert.equal(files.length,13);
  for(const file of files){await access(new URL('../assets/game-covers/'+file,import.meta.url));assert.ok(sw.includes('assets/game-covers/'+file));}
- assert.match(html,/ORIGINAL_COVERS\[image\.dataset\.cover\]/);assert.match(sw,/arcade-2026-11-v24/);
+ assert.match(html,/ORIGINAL_COVERS\[image\.dataset\.cover\]/);assert.match(sw,/arcade-2026-11-v25/);
 });
 
 test('per-game accent is scoped to hero and guide without mutating purchased theme',()=>{

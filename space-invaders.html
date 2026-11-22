@@ -1896,10 +1896,10 @@ html.no-touch .move-btn, html.no-touch #fireBtn { display: none; }
 
   /* رنگ هر اسپرایت */
   const SPR_COLOR = {
-    squidA: '#f5d742', squidB: '#f5d742',
-    crabA: '#e8f1ff',  crabB: '#e8f1ff',
-    octoA: '#5ef29a',  octoB: '#5ef29a',
-    ship: '#63e89b',
+    squidA: '#b284ff', squidB: '#b284ff',
+    crabA: '#80d4ff',  crabB: '#80d4ff',
+    octoA: '#ac78ff',  octoB: '#ac78ff',
+    ship: '#63eaff',
     ufo: '#ff5d7a',
     boom: '#ffd27a',
     ebulA: '#cfd8ff',  ebulB: '#cfd8ff',
@@ -3218,9 +3218,10 @@ html.no-touch .move-btn, html.no-touch #fireBtn { display: none; }
     const W = G.W, H = G.H, S = G.S;
     c.imageSmoothingEnabled = false;
 
-    /* --- پس‌زمینه: سیاه مطلق + هاله سبز بسیار خفیف --- */
-    c.fillStyle = '#000';
-    c.fillRect(0, 0, W, H);
+    /* Violet nebula echoes the cover while keeping the sprites readable. */
+    const nebula = c.createRadialGradient(W*.5, H*.32, 0, W*.5, H*.32, Math.max(W,H)*.75);
+    nebula.addColorStop(0, '#211a55'); nebula.addColorStop(.55, '#0a1233'); nebula.addColorStop(1, '#030817');
+    c.fillStyle = nebula; c.fillRect(0, 0, W, H);
 
     /* لرزش دوربین */
     let sx = 0, sy = 0;

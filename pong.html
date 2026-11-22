@@ -1797,7 +1797,7 @@ main {
       bestVal.textContent = faNum(bv);
     }
     if (g.mode === 'wall') {
-      if (!livesItem.hidden) livesItem.hidden = false;
+      if (livesItem.hidden) livesItem.hidden = false;
       if (hudCache.lives !== g.lives) {
         hudCache.lives = g.lives;
         livesVal.textContent = faNum(Math.max(0, g.lives));
@@ -1888,8 +1888,8 @@ main {
 
     /* Court background */
     const bg = c.createRadialGradient(W / 2, H / 2, 30, W / 2, H / 2, Math.max(W, H) * 0.8);
-    bg.addColorStop(0, '#0a0f18');
-    bg.addColorStop(1, '#000');
+    bg.addColorStop(0, '#092743');
+    bg.addColorStop(1, '#020918');
     c.fillStyle = bg;
     c.fillRect(0, 0, W, H);
 
@@ -1956,15 +1956,15 @@ main {
       const t = g.trail[i];
       const k = t.life / t.maxLife;
       c.globalAlpha = k * 0.42;
-      c.fillStyle = '#fff';
-      c.fillRect(t.x - t.size / 2, t.y - t.size / 2, t.size, t.size);
+      c.fillStyle = '#65eaff';
+      c.beginPath(); c.arc(t.x, t.y, t.size / 2, 0, TAU); c.fill();
     }
     c.globalAlpha = 1;
 
     /* Paddles with glow */
-    c.shadowColor = '#fff';
+    c.shadowColor = '#41e9ff';
     c.shadowBlur = 22;
-    c.fillStyle = '#fff';
+    c.fillStyle = '#8bf6ff';
 
     /* Left paddle */
     c.fillRect(
@@ -1985,6 +1985,7 @@ main {
         c.fillRect(W - 10, y, 10, 2);
       }
     } else {
+      c.shadowColor = '#ffad55'; c.fillStyle = '#ffd493';
       c.fillRect(
         g.paddleR.x - g.paddleR.w / 2,
         g.paddleR.y - g.paddleR.h / 2,
@@ -1994,11 +1995,11 @@ main {
 
     /* Ball */
     const b = g.ball;
-    c.shadowColor = '#fff';
+    c.shadowColor = '#5defff';
     c.shadowBlur = 26;
-    c.fillStyle = '#fff';
+    c.fillStyle = '#e7ffff';
     const r = b.r;
-    c.fillRect(b.x - r, b.y - r, r * 2, r * 2);
+    c.beginPath(); c.arc(b.x, b.y, r, 0, TAU); c.fill();
     c.shadowBlur = 0;
 
     /* Particles */
@@ -2423,46 +2424,37 @@ main {
     };
   }
 
+  // Each finger owns its paddle until release, even if it crosses mid-court.
+  const touchOwners = new Map();
+  function updateTouches(ev) {
+    input.touchL = input.touchR = null;
+    for (let i = 0; i < ev.touches.length; i++) {
+      const t = ev.touches[i], side = touchOwners.get(t.identifier);
+      if (side === 'left') input.touchL = touchPos(t).y;
+      if (side === 'right') input.touchR = touchPos(t).y;
+    }
+  }
   canvas.addEventListener('touchstart', function (ev) {
     if (gameWrap.hidden || G.state !== 'PLAYING') return;
     ev.preventDefault();
-    for (let i = 0; i < ev.touches.length; i++) {
-      const t = ev.touches[i];
-      const p = touchPos(t);
-      if (p.x < G.W / 2) input.touchL = p.y;
-      else if (G.mode === 'two') input.touchR = p.y;
-      else input.touchL = p.y; /* single player: touch anywhere moves left */
+    for (let i = 0; i < ev.changedTouches.length; i++) {
+      const t = ev.changedTouches[i];
+      touchOwners.set(t.identifier, G.mode === 'two' && touchPos(t).x >= G.W / 2 ? 'right' : 'left');
     }
+    updateTouches(ev);
   }, { passive: false });
-
   canvas.addEventListener('touchmove', function (ev) {
     if (gameWrap.hidden || G.state !== 'PLAYING') return;
     ev.preventDefault();
-    for (let i = 0; i < ev.touches.length; i++) {
-      const t = ev.touches[i];
-      const p = touchPos(t);
-      if (p.x < G.W / 2) input.touchL = p.y;
-      else if (G.mode === 'two') input.touchR = p.y;
-      else input.touchL = p.y;
-    }
+    updateTouches(ev);
   }, { passive: false });
-
-  canvas.addEventListener('touchend', function (ev) {
-    if (ev.touches.length === 0) {
-      input.touchL = null;
-      input.touchR = null;
-    } else {
-      /* Reset touches that ended */
-      const remaining = ev.touches;
-      let hasL = false, hasR = false;
-      for (let i = 0; i < remaining.length; i++) {
-        const p = touchPos(remaining[i]);
-        if (p.x < G.W / 2) hasL = true; else hasR = true;
-      }
-      if (!hasL) input.touchL = null;
-      if (!hasR && G.mode === 'two') input.touchR = null;
-    }
-  });
+  function endTouch(ev) {
+    for (let i = 0; i < ev.changedTouches.length; i++) touchOwners.delete(ev.changedTouches[i].identifier);
+    updateTouches(ev);
+  }
+  canvas.addEventListener('touchend', endTouch);
+  canvas.addEventListener('touchcancel', endTouch);
+  window.addEventListener('blur', function () { touchOwners.clear(); input.touchL = input.touchR = null; });
 
   /* ============================================================
      ۲۵) Gamepad
@@ -2645,7 +2637,7 @@ main {
 
   /* Visibility: pause automatically */
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden && G.state === 'PLAYING') pauseGame();
+    if (document.hidden) { touchOwners.clear(); input.touchL = input.touchR = null; if (G.state === 'PLAYING') pauseGame(); }
   });
 
   /* ============================================================

@@ -1856,7 +1856,8 @@ main {
   function stepSnake(wl) {
     if (wl.pendingDir) {
       wl.dir = wl.pendingDir;
-      wl.pendingDir = null;
+      wl.pendingDir = wl.nextPendingDir || null;
+      wl.nextPendingDir = null;
     }
 
     const head = wl.snake[0];
@@ -2149,7 +2150,28 @@ main {
     if (!n) return;
 
     const t = wl.dead ? 1 : clamp(wl.moveAcc / wl.moveTime, 0, 1);
-    const snakeColor1 = wl.dead ? '#7a1010' : null;
+    // Connect adjacent segments, including during interpolation, without drawing
+    // a line across the board when a segment wraps around an edge.
+    const points = wl.snake.map((cur, i) => {
+      let x=cur.x, y=cur.y;
+      const prev=wl.prevSnake[i];
+      if (!wl.dead && prev) {
+        let px=prev.x, py=prev.y;
+        if (Math.abs(cur.x-px)>1) px=cur.x;
+        if (Math.abs(cur.y-py)>1) py=cur.y;
+        x=lerp(px,cur.x,t); y=lerp(py,cur.y,t);
+      }
+      return {x:ox+(x+.5)*cell,y:oy+(y+.5)*cell};
+    });
+    c.save();
+    c.lineWidth=cell*.60; c.lineCap='round'; c.lineJoin='round';
+    c.strokeStyle=wl.dead?'#b91c1c':'#22b987';
+    for (let i=1;i<points.length;i++) {
+      const a=points[i-1], b=points[i];
+      if (Math.hypot(a.x-b.x,a.y-b.y)>cell*1.5) continue;
+      c.beginPath(); c.moveTo(a.x,a.y); c.lineTo(b.x,b.y); c.stroke();
+    }
+    c.restore();
 
     // draw from tail to head so head is on top
     for (let i = n - 1; i >= 0; i--) {
@@ -2223,6 +2245,8 @@ main {
         roundRect(c, cx - cell/2 + pad, cy - cell/2 + pad, cell - pad*2, cell - pad*2, cell * 0.22);
         c.fill();
         c.shadowBlur = 0;
+        c.fillStyle = 'rgba(180,255,218,.24)';
+        roundRect(c, cx-cell*.22, cy-cell*.25, cell*.44, cell*.10, cell*.05); c.fill();
       }
       c.restore();
     }
@@ -2450,6 +2474,7 @@ main {
     wl.prevSnake = [];
     wl.dir = { x: 1, y: 0 };
     wl.pendingDir = null;
+    wl.nextPendingDir = null;
     wl.food = null;
     wl.maze = [];
     wl.applesEaten = 0;
@@ -2753,10 +2778,12 @@ main {
      ============================================================ */
   function queueDir(dx, dy) {
     if (G.state !== 'PLAYING') return;
-    if (G.snake.length > 1 && G.dir.x === -dx && G.dir.y === -dy) return;
-    if (G.pendingDir && G.pendingDir.x === dx && G.pendingDir.y === dy) return;
-    if (!G.pendingDir && G.dir.x === dx && G.dir.y === dy) return;
-    G.pendingDir = { x: dx, y: dy };
+    // Buffer up to two valid turns, so quick corners are not lost between ticks.
+    const last = G.nextPendingDir || G.pendingDir || G.dir;
+    if ((last.x === dx && last.y === dy) || (last.x === -dx && last.y === -dy)) return;
+    if (!G.pendingDir) G.pendingDir = { x: dx, y: dy };
+    else if (!G.nextPendingDir) G.nextPendingDir = { x: dx, y: dy };
+    else return;
     Snd.init();
     Snd.tick();
   }

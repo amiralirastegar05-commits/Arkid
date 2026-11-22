@@ -12,3 +12,8 @@
 .runner-cover{height:150px;overflow:hidden;border-radius:18px;margin:0 0 16px;background:#151b30}.runner-cover img{width:100%;height:100%;object-fit:cover;object-position:center 55%}
 @media(hover:hover){.landing .glass-card:hover .landing-cover-art{transform:scale(1.025)}}
 @media(prefers-reduced-motion:reduce){.landing .art-half>.landing-cover-art{transition:none!important}.landing .glass-card:hover .landing-cover-art{transform:none!important}}
+
+/* Clear keyboard focus and tactile feedback inside the game, without changing themes or layouts. */
+#gameWrap button:focus-visible,.app-container button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (hover:hover){#gameWrap button:not(:disabled):hover{filter:brightness(1.15)}}
+#gameWrap button:active{filter:brightness(1.2)}
