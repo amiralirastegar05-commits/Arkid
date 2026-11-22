@@ -2232,6 +2232,11 @@ main {
     roundRect(c, x + pad, y + pad, size - pad * 2, size - pad * 2, r);
     c.fillStyle = color;
     c.fill();
+    var sheen = c.createLinearGradient(x, y, x, y + size);
+    sheen.addColorStop(0, 'rgba(255,255,255,.28)');
+    sheen.addColorStop(.5, 'rgba(255,255,255,.02)');
+    sheen.addColorStop(1, 'rgba(0,0,0,.18)');
+    c.fillStyle = sheen; c.fill();
     c.strokeStyle = dark;
     c.lineWidth = Math.max(1, size * 0.06);
     c.stroke();
@@ -2381,8 +2386,8 @@ main {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     var bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, '#050a18');
-    bg.addColorStop(1, '#081428');
+    bg.addColorStop(0, '#1c2149');
+    bg.addColorStop(1, '#080e24');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
@@ -2583,6 +2588,9 @@ main {
     if (G.state !== 'PLAYING' && G.state !== 'LINE_CLEAR' && G.state !== 'COUNTDOWN') return;
     G.prevState = G.state;
     G.state = 'PAUSED';
+    keys = {};
+    G.softDrop = false;
+    touchState.left = touchState.right = touchState.down = false;
     pauseOverlay.classList.add('show');
     Snd.musicStop();
   }
@@ -2659,7 +2667,8 @@ main {
     }
     if (k === 'p' || k === 'P') { togglePause(); return; }
 
-    if (keys[k] && !ev.repeat) return;
+    // Repeating left/right is useful; rotation, hard drop and hold must fire once per press.
+    if ((ev.repeat && ['ArrowUp','w','W',' ','c','C','Shift'].includes(k)) || (keys[k] && !ev.repeat)) return;
     keys[k] = true;
 
     if (G.state !== 'PLAYING') return;
@@ -2683,6 +2692,7 @@ main {
   });
 
   window.addEventListener('blur', function () {
+    keys = {};
     if (G) G.softDrop = false;
     touchState.left = touchState.right = touchState.down = false;
   });

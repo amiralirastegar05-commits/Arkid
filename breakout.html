@@ -2380,8 +2380,8 @@ main {
 
     // Background gradient
     const bgGrad = c.createRadialGradient(W * 0.5, H * 0.4, 20, W * 0.5, H * 0.5, Math.max(W, H) * 0.7);
-    bgGrad.addColorStop(0, '#0a1424');
-    bgGrad.addColorStop(1, '#03060e');
+    bgGrad.addColorStop(0, '#211343');
+    bgGrad.addColorStop(1, '#030719');
     c.fillStyle = bgGrad;
     c.fillRect(0, 0, W, H);
 
@@ -2436,13 +2436,16 @@ main {
       c.shadowColor = b.glow;
       c.shadowBlur = 6;
       c.fillStyle = b.color;
-      c.globalAlpha = alpha;
+      c.globalAlpha = alpha * 0.58;
       roundRect(c, b.x, b.y, b.w, b.h, 3);
       c.fill();
+      c.globalAlpha = alpha;
+      c.strokeStyle = b.color; c.lineWidth = 1.4;
+      roundRect(c, b.x + .7, b.y + .7, b.w - 1.4, b.h - 1.4, 3); c.stroke();
       c.shadowBlur = 0;
-      // Highlight
-      c.fillStyle = 'rgba(255,255,255,.28)';
-      c.fillRect(b.x + 2, b.y + 2, b.w - 4, 2);
+      // Glass-like upper edge keeps each brick distinct.
+      c.fillStyle = 'rgba(255,255,255,.34)';
+      c.fillRect(b.x + 3, b.y + 2, Math.max(0,b.w - 6), 2);
       // HP indicator
       if (b.maxHp > 1 && b.hp < b.maxHp) {
         c.fillStyle = 'rgba(0,0,0,.4)';

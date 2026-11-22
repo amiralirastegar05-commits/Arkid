@@ -122,7 +122,7 @@ main {
   position: fixed; inset: 0; z-index: 100; background: #000; display: flex; align-items: center; justify-content: center;
   touch-action: none; overscroll-behavior: none;
 }
-#stage { position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: #1a1a1a; }
+#stage { position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: linear-gradient(#12152b, #090c1b); }
 #gameCanvas { display: block; touch-action: none; }
 #crtOverlay {
   position: absolute; inset: 0; z-index: 28; pointer-events: none; display: none;
@@ -1509,26 +1509,24 @@ main {
      Render
      ============================================================ */
   function renderWorld(wl, c, demo) {
-    c.clearRect(0, 0, VW, VH);
-
-    // Background gradient
-    const bg = c.createLinearGradient(0, 0, 0, VH);
-    bg.addColorStop(0, '#241708');
-    bg.addColorStop(1, '#0e0803');
-    c.fillStyle = bg;
-    c.fillRect(0, 0, VW, VH);
+    if (demo || !portraitView) {
+      c.clearRect(0, 0, VW, VH);
+      const bg = c.createLinearGradient(0, 0, 0, VH);
+      bg.addColorStop(0, '#17192e'); bg.addColorStop(1, '#0b0d1c');
+      c.fillStyle = bg; c.fillRect(0, 0, VW, VH);
+    }
 
     // Board background
     c.save();
     // Slight outer glow
     c.shadowColor = 'rgba(251,146,60,.25)';
     c.shadowBlur = 30;
-    c.fillStyle = '#2a1c0e';
+    c.fillStyle = '#393042';
     roundRect(c, BG_X - 8, BG_Y - 8, BOARD + 16, BOARD + 16, 14);
     c.fill();
     c.restore();
 
-    c.fillStyle = '#2a1c0e';
+    c.fillStyle = '#393042';
     roundRect(c, BG_X, BG_Y, BOARD, BOARD, 10);
     c.fill();
 
@@ -1651,11 +1649,13 @@ main {
   let swipeStart = null;
   function handlePointerDown(ev) {
     Snd.init();
-    if (G.state !== 'PLAYING') return;
+    if (G.state !== 'PLAYING' || ev.target.closest('button')) return;
+    if (swipeStart) return;
     swipeStart = { x: ev.clientX, y: ev.clientY, id: ev.pointerId };
+    try { gameWrap.setPointerCapture(ev.pointerId); } catch (e) {}
   }
   function handlePointerUp(ev) {
-    if (!swipeStart || swipeStart.id !== ev.pointerId) { swipeStart = null; return; }
+    if (!swipeStart || swipeStart.id !== ev.pointerId) return;
     const dx = ev.clientX - swipeStart.x;
     const dy = ev.clientY - swipeStart.y;
     swipeStart = null;
@@ -1666,7 +1666,8 @@ main {
   }
   gameWrap.addEventListener('pointerdown', handlePointerDown);
   gameWrap.addEventListener('pointerup', handlePointerUp);
-  gameWrap.addEventListener('pointercancel', () => { swipeStart = null; });
+  gameWrap.addEventListener('pointercancel', ev => { if (swipeStart && swipeStart.id === ev.pointerId) swipeStart = null; });
+  gameWrap.addEventListener('lostpointercapture', ev => { if (swipeStart && swipeStart.id === ev.pointerId) swipeStart = null; });
 
   // Tap buttons
   tapBtns.forEach(function (btn) {
@@ -1688,11 +1689,13 @@ main {
   /* ============================================================
      Resize
      ============================================================ */
-  let vDpr = 1;
+  let vDpr = 1, portraitView = false, viewW = 0, viewH = 0;
   function resize() {
     const aw = window.innerWidth, ah = window.innerHeight;
-    const sw = Math.max(200, Math.floor(Math.min(aw, ah * 16 / 9, 1280)));
-    const sh = Math.floor(sw * 9 / 16);
+    portraitView = ah > aw * 1.1;
+    const sw = portraitView ? aw : Math.max(200, Math.floor(Math.min(aw, ah * 16 / 9, 1280)));
+    const sh = portraitView ? ah : Math.floor(sw * 9 / 16);
+    viewW = sw; viewH = sh;
     stage.style.width = sw + 'px';
     stage.style.height = sh + 'px';
     vDpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1724,7 +1727,17 @@ main {
       let n = 0;
       while (accG >= DT && n < 5) { stepWorld(G); accG -= DT; n++; }
       if (n >= 5) accG = 0;
-      ctx.setTransform(canvas.width / VW, 0, 0, canvas.height / VH, 0, 0);
+      if (portraitView) {
+        // Fit the actual square board, rather than shrinking an 800×450 scene to phone width.
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bg.addColorStop(0, '#17192e'); bg.addColorStop(1, '#0b0d1c');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min((viewW - 24) / (BOARD + 16), (viewH - 210) / (BOARD + 16), 1.5);
+        const ox = viewW / 2 - (BG_X + BOARD / 2) * scale;
+        const oy = viewH * .43 - (BG_Y + BOARD / 2) * scale;
+        ctx.setTransform(vDpr * scale, 0, 0, vDpr * scale, vDpr * ox, vDpr * oy);
+      } else ctx.setTransform(canvas.width / VW, 0, 0, canvas.height / VH, 0, 0);
       renderWorld(G, ctx, false);
     } else if (!document.hidden) {
       accD += dt;

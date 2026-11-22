@@ -218,6 +218,11 @@
             gap: 6px;
         }
 
+        .runner-controls { display:flex; justify-content:center; align-items:center; gap:12px; margin:12px auto; direction:ltr; }
+        .runner-controls button { min-width:72px; min-height:48px; justify-content:center; font-size:1.1rem; background:#203c58; border:1px solid #ffffff45; touch-action:none; user-select:none; }
+        .runner-controls button:active { background:#df7831; transform:scale(.96); }
+        .runner-hint { text-align:center; margin:8px 0 12px; font-size:.82rem; opacity:.85; }
+        .game-area canvas { border:2px solid #ffffff28; }
         .car-grid, .upgrade-grid {
             display: flex;
             flex-direction: column;
@@ -330,9 +335,9 @@
             font-size: 0.85rem;
         }
         @media (max-width: 550px) {
-            .tab-btn span { display: none; }
-            .tab-btn i { margin: 0; font-size: 1.3rem; }
-            .tab-btn { min-width: 55px; padding: 8px 4px; }
+            .tab-btn span { display: inline; }
+            .tab-btn i { margin: 0; font-size: 1rem; }
+            .tab-btn { min-width: 52px; padding: 10px 4px; font-size: .75rem; }
             .car-card { flex-direction: column; align-items: stretch; text-align: center; }
             .car-card button { align-self: center; }
         }
@@ -366,9 +371,10 @@
     </div>
 
     <div id="play" class="section">
-        <div class="game-header"><span><i class="fas fa-tachometer-alt"></i> سرعت: <span id="currentSpeedVal">0</span></span><span><i class="fas fa-coins"></i> سکه دور: <span id="runCoinsVal">0</span></span><span id="gotdBadge" style="display:none;background:#f5c518;color:#000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:800;">⭐ ×۲</span><button id="quickRestartBtn" class="restart-btn"><i class="fas fa-sync-alt"></i> نو</button></div>
+        <div class="game-header"><span><i class="fas fa-tachometer-alt"></i> سرعت: <span id="currentSpeedVal">0</span></span><span><i class="fas fa-coins"></i> سکه دور: <span id="runCoinsVal">0</span></span><span id="gotdBadge" style="display:none;background:#f5c518;color:#000;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:800;">⭐ ×۲</span><button id="pauseRunnerBtn" type="button" aria-label="مکث بازی">مکث</button><button id="quickRestartBtn" class="restart-btn"><i class="fas fa-sync-alt"></i> نو</button></div>
         <div class="game-area"><canvas id="gameCanvas" width="650" height="800" style="width:100%; height:auto; max-width:650px; aspect-ratio:650/800"></canvas></div>
-        <p style="text-align:center; margin-top:12px;"><i class="fas fa-hand-peace"></i> انگشت خود را بکشید (چپ/راست)</p>
+        <div class="runner-controls" aria-label="کنترل خودرو"><button id="runnerLeft" type="button" aria-label="حرکت به چپ">◀</button><button id="runnerRight" type="button" aria-label="حرکت به راست">▶</button></div>
+        <p class="runner-hint">برای هدایت، جاده را لمس کنید یا دکمه‌ها را نگه دارید؛ در دسکتاپ از کلیدهای جهت استفاده کنید.</p>
     </div>
 
     <div id="settings" class="section">
@@ -430,7 +436,9 @@
         ];
         
         // ---------- متغیرهای بازی ----------
-        let gameActive = false;
+        let gameActive = false, gamePaused = false, runStarted = false;
+        let lastFrame = 0, accumulator = 0, roadOffset = 0, runTicks = 0;
+        const steering = { left:false, right:false };
         let animationId = null;
         let playerX = 290;
         let playerY = 730;
@@ -625,25 +633,68 @@
             attachControls();
         }
         function attachControls(){
-            canvas.addEventListener("touchmove", (e)=>{
-                e.preventDefault();
+            function steerAt(e){
+                if(!gameActive || gamePaused) return;
                 const rect = canvas.getBoundingClientRect();
-                let newX = (e.touches[0].clientX - rect.left) / rect.width * canvas.width;
-                newX = Math.min(roadMaxX - CAR_W/2, Math.max(roadMinX + CAR_W/2, newX));
-                playerX = newX;
-            }, {passive:false});
-            canvas.addEventListener("mousemove", (e)=>{
-                if(!gameActive) return;
-                const rect = canvas.getBoundingClientRect();
-                let mouseX = (e.clientX - rect.left) / rect.width * canvas.width;
-                mouseX = Math.min(roadMaxX - CAR_W/2, Math.max(roadMinX + CAR_W/2, mouseX));
-                playerX = mouseX;
+                if (!rect.width) return;
+                playerX = Math.min(roadMaxX-CAR_W/2, Math.max(roadMinX+CAR_W/2, (e.clientX-rect.left)/rect.width*canvas.width));
+            }
+            let pointerId = null;
+            canvas.addEventListener('pointerdown', e=>{
+                if (!gameActive || gamePaused) return;
+                pointerId=e.pointerId; steerAt(e);
+                try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
             });
+            canvas.addEventListener('pointermove', e=>{
+                if (e.pointerId===pointerId || (e.pointerType==='mouse' && e.buttons===0)) steerAt(e);
+            });
+            function release(e){ if(e.pointerId===pointerId) pointerId=null; }
+            canvas.addEventListener('pointerup',release);
+            canvas.addEventListener('pointercancel',release);
+            canvas.addEventListener('lostpointercapture',release);
+            for (const side of ['left','right']) {
+                const btn=document.getElementById(side==='left'?'runnerLeft':'runnerRight');
+                btn.addEventListener('pointerdown',e=>{ e.preventDefault(); if (!gameActive || gamePaused) return; steering[side]=true; try { btn.setPointerCapture(e.pointerId); } catch (_) {} });
+                for (const event of ['pointerup','pointercancel','lostpointercapture']) btn.addEventListener(event,()=>{steering[side]=false;});
+                btn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){ e.preventDefault(); steering[side]=true; }});
+                btn.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter') steering[side]=false;});
+            }
+            window.addEventListener('keydown',e=>{
+                if(!document.getElementById('play').classList.contains('active-section')) return;
+                if(['ArrowLeft','ArrowRight','a','A','d','D'].includes(e.key)) {
+                    e.preventDefault(); steering[e.key==='ArrowLeft'||e.key==='a'||e.key==='A'?'left':'right']=true;
+                } else if ((e.key==='p'||e.key==='P'||e.key==='Escape') && !e.repeat) togglePause();
+            });
+            window.addEventListener('keyup',e=>{
+                if(['ArrowLeft','a','A'].includes(e.key)) steering.left=false;
+                if(['ArrowRight','d','D'].includes(e.key)) steering.right=false;
+            });
+            window.addEventListener('blur',()=>{steering.left=steering.right=false;});
+            window.addEventListener('pagehide',()=>{if(runStarted) saveGame();});
+            document.addEventListener('visibilitychange',()=>{if(document.hidden && gameActive && !gamePaused) pauseGame();});
         }
-        
+        function pauseGame(){
+            if (!gameActive || gamePaused) return;
+            gamePaused=true; steering.left=steering.right=false;
+            cancelAnimationFrame(animationId); animationId=null;
+            saveGame();
+            updateUI();
+            document.getElementById('pauseRunnerBtn').textContent='ادامه';
+        }
+        function togglePause(){
+            if(!gameActive) return;
+            if(!gamePaused){ pauseGame(); return; }
+            gamePaused=false; lastFrame=0; accumulator=0;
+            document.getElementById('pauseRunnerBtn').textContent='مکث';
+            animationId=requestAnimationFrame(gameLoop);
+        }
+
         function startGame(){
             if(animationId) cancelAnimationFrame(animationId);
-            gameActive = true;
+            gameActive = true; gamePaused = false; runStarted = true;
+            lastFrame = 0; accumulator = 0; roadOffset = 0; runTicks = 0;
+            steering.left = steering.right = false;
+            document.getElementById('pauseRunnerBtn').textContent='مکث';
             enemies = [];
             coins = [];
             currentRunCoins = 0;
@@ -654,20 +705,38 @@
             const diff = settings.difficulty;
             const diffObj = difficultySettings[diff] || difficultySettings.normal;
             window.speedIncRate = diffObj.speedInc;
-            gameLoop();
+            drawScene();
+            animationId = requestAnimationFrame(gameLoop);
         }
-        
-        function gameLoop(){
+
+        // Fixed 60 Hz simulation, independent of screen refresh rate.
+        function gameLoop(timestamp){
+            if(!gameActive || gamePaused) return;
+            if(!lastFrame) lastFrame=timestamp;
+            accumulator += Math.min((timestamp-lastFrame)/1000, 0.1);
+            lastFrame=timestamp;
+            while(accumulator >= 1/60 && gameActive){
+                updateGame();
+                accumulator -= 1/60;
+            }
             if(!gameActive) return;
+            drawScene();
+            document.getElementById("currentSpeedVal").innerText = currentGameSpeed.toFixed(1);
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        function updateGame(){
+            playerX = Math.min(roadMaxX-CAR_W/2, Math.max(roadMinX+CAR_W/2, playerX + ((steering.right?1:0)-(steering.left?1:0))*7));
+            roadOffset=(roadOffset+currentGameSpeed)%55;
             speedIncreaseTimer++;
             if(speedIncreaseTimer > 15){
                 speedIncreaseTimer = 0;
                 let inc = (window.speedIncRate || 0.012) * getFinalSpeedMulti();
                 currentGameSpeed = Math.min(currentGameSpeed + inc, 15.5);
             }
-            // اسپاون
-            let spawnChance = (settings.difficulty==="hard"?1.4:1) * 3.2;
-            if(Math.random()*100 < spawnChance && enemies.length < 9) spawnEnemy();
+            // A short clear runway lets the player get ready before traffic arrives.
+            runTicks++;
+            let spawnChance = 208 / (difficultySettings[settings.difficulty] || difficultySettings.normal).spawnRate;
+            if(runTicks > 120 && Math.random()*100 < spawnChance && enemies.length < 9) spawnEnemy();
             if(Math.random()*100 < 4.5 && coins.length < 15) spawnCoin();
             
             for(let i=0;i<enemies.length;i++) enemies[i].y += currentGameSpeed;
@@ -687,7 +756,7 @@
                     document.getElementById("runCoinsVal").innerText = currentRunCoins;
                     coins.splice(i,1); i--;
                     if(settings.soundEnabled) playCoinSound();
-                    updateUI();
+                    document.getElementById("totalCoinsDisplay").innerText = totalCoins;
                 }
             }
             // برخورد
@@ -705,15 +774,14 @@
                     return;
                 }
             }
-            drawScene();
-            document.getElementById("currentSpeedVal").innerText = currentGameSpeed.toFixed(1);
-            animationId = requestAnimationFrame(gameLoop);
         }
         
         function spawnEnemy(){
             const possibleColors = ["#E34234","#2F5F8C","#D4AF37","#4DB6AC","#BF4E3C"];
             const color = possibleColors[Math.floor(Math.random()*5)];
-            const x = Math.random() * (roadMaxX - CAR_W - 20) + roadMinX + 10;
+            const x = Math.random() * (roadMaxX-roadMinX-CAR_W) + roadMinX + CAR_W/2;
+            // Prevent overlapping traffic at the top of the road.
+            if (enemies.some(e => e.y < 100 && Math.abs(e.x-x) < CAR_W*1.5)) return;
             enemies.push({x:x, y:-80, w:CAR_W, h:CAR_H, color:color});
         }
         function spawnCoin(){
@@ -723,30 +791,32 @@
         
         function drawScene(){
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            // چمن
-            ctx.fillStyle = settings.nightMode ? "#1e4a2f" : "#4caf50";
-            ctx.fillRect(0,0,canvas.width,canvas.height);
-            // خطوط چمن
-            ctx.fillStyle = settings.nightMode ? "#0f3b1f" : "#2e7d32";
-            for(let i=0;i<120;i++){
-                let x = Math.random() * canvas.width;
-                let y = Math.random() * canvas.height;
-                if(x < roadMinX-15 || x > roadMaxX+15) ctx.fillRect(x, y, 4, 12);
+            // Sunset palette inspired by the cover, keeping the road and hazards legible.
+            const verge = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            verge.addColorStop(0, settings.nightMode ? '#34254d' : '#68435f');
+            verge.addColorStop(1, settings.nightMode ? '#12182b' : '#302747');
+            ctx.fillStyle = verge; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = settings.nightMode ? '#6d526e' : '#e49d85';
+            for(let y=-40; y<canvas.height+40; y+=80){
+                ctx.fillRect(28, y+roadOffset, 5, 22);
+                ctx.fillRect(canvas.width-33, y+roadOffset, 5, 22);
             }
-            // جاده
-            ctx.fillStyle = settings.nightMode ? "#2f2f2f" : "#7a7a7a";
-            ctx.fillRect(roadMinX-15, 0, roadMaxX-roadMinX+30, canvas.height);
-            ctx.fillStyle = "#1e1e1e";
-            ctx.fillRect(roadMinX, 0, roadMaxX-roadMinX, canvas.height);
+            ctx.fillStyle = '#ad6475';
+            ctx.fillRect(roadMinX-8, 0, roadMaxX-roadMinX+16, canvas.height);
+            const road = ctx.createLinearGradient(0,0,0,canvas.height);
+            road.addColorStop(0, '#342d50'); road.addColorStop(1, '#141a30');
+            ctx.fillStyle = road; ctx.fillRect(roadMinX, 0, roadMaxX-roadMinX, canvas.height);
             ctx.beginPath();
             ctx.strokeStyle = "#FFF";
             ctx.lineWidth = 4;
             ctx.setLineDash([20,35]);
+            ctx.lineDashOffset = -roadOffset;
             ctx.moveTo((roadMinX+roadMaxX)/2,0);
             ctx.lineTo((roadMinX+roadMaxX)/2,canvas.height);
             ctx.stroke();
             ctx.setLineDash([]);
-            ctx.strokeStyle = "#B0B0B0";
+            ctx.lineDashOffset = 0;
+            ctx.strokeStyle = "#ff9ca4";
             ctx.strokeRect(roadMinX, 0, roadMaxX-roadMinX, canvas.height);
             // سکه‌ها
             for(let c of coins){
@@ -760,22 +830,30 @@
         }
         
         function drawCar(x,y,w,h,baseColor,isPlayer=false){
-            ctx.fillStyle = baseColor;
-            ctx.fillRect(x,y,w,h);
-            ctx.fillStyle = "#B0C4DE";
-            ctx.fillRect(x+6, y-5, w-12, 8);
-            ctx.fillRect(x+6, y+h-5, w-12, 8);
-            ctx.fillStyle = "#2d2d2d";
-            ctx.fillRect(x+8, y+12, 8, h-24);
-            ctx.fillRect(x+w-16, y+12, 8, h-24);
-            ctx.fillStyle = "#111";
-            ctx.beginPath(); ctx.arc(x+10, y+h-12, 10, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(x+w-10, y+h-12, 10, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(x+10, y+12, 10, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(x+w-10, y+12, 10, 0, Math.PI*2); ctx.fill();
-            if(isPlayer){ ctx.fillStyle = "#FFE484"; ctx.fillRect(x+12, y+h/2-4, w-24, 8); }
+            ctx.save();
+            // Shadow, wheels and rounded body make traffic easier to read at a glance.
+            ctx.fillStyle = 'rgba(0,0,0,.32)';
+            ctx.beginPath(); ctx.ellipse(x+w/2+3,y+h/2+6,w*.54,h*.5,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#111824';
+            for(const wy of [y+12,y+h-23]){
+                ctx.fillRect(x-4,wy,9,19); ctx.fillRect(x+w-5,wy,9,19);
+            }
+            const body=ctx.createLinearGradient(x,y,x+w,y);
+            body.addColorStop(0,'#172335'); body.addColorStop(.16,baseColor); body.addColorStop(.73,baseColor); body.addColorStop(1,'#172335');
+            ctx.fillStyle=body;
+            ctx.beginPath(); ctx.moveTo(x+11,y); ctx.lineTo(x+w-11,y);
+            ctx.quadraticCurveTo(x+w,y,x+w,y+12); ctx.lineTo(x+w,y+h-12);
+            ctx.quadraticCurveTo(x+w,y+h,x+w-11,y+h); ctx.lineTo(x+11,y+h);
+            ctx.quadraticCurveTo(x,y+h,x,y+h-12); ctx.lineTo(x,y+12); ctx.quadraticCurveTo(x,y,x+11,y); ctx.fill();
+            ctx.fillStyle='#bde6f1';
+            ctx.beginPath(); ctx.moveTo(x+9,y+19); ctx.lineTo(x+w-9,y+19); ctx.lineTo(x+w-13,y+31); ctx.lineTo(x+13,y+31); ctx.closePath(); ctx.fill();
+            ctx.fillStyle='#42657a'; ctx.fillRect(x+13,y+h-25,w-26,9);
+            ctx.fillStyle=isPlayer?'#fff4a3':'#ff7770';
+            ctx.fillRect(x+6,y+h-6,9,4); ctx.fillRect(x+w-15,y+h-6,9,4);
+            ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(x+12,y+7,w-24,3);
+            ctx.restore();
         }
-        
+
         // موزیک
         function setupMusic(){
             const fileInput = document.getElementById("musicFileInput");
@@ -863,7 +941,8 @@
                     showToast(`هدیه بعد از ${remain} ساعت`);
                 }
             });
-            document.getElementById("quickRestartBtn").addEventListener("click",()=>{ if(animationId) cancelAnimationFrame(animationId); startGame(); });
+            document.getElementById("pauseRunnerBtn").addEventListener("click",togglePause);
+            document.getElementById("quickRestartBtn").addEventListener("click",()=>{ saveGame(); updateUI(); startGame(); });
             document.getElementById("modalCloseBtn").addEventListener("click",()=>{
                 document.getElementById("gameOverModal").style.visibility = "hidden";
                 updateUI();
@@ -884,11 +963,10 @@
                     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
                     btn.classList.add("active");
                     if(tabId === "play"){
-                        if(animationId) cancelAnimationFrame(animationId);
-                        startGame();
+                        if (!runStarted) startGame();
+                        else if (gameActive && gamePaused) { /* resume explicitly */ }
                     } else {
-                        if(animationId && gameActive) cancelAnimationFrame(animationId);
-                        gameActive = false;
+                        if (gameActive && !gamePaused) pauseGame();
                     }
                 });
             });

@@ -1178,7 +1178,7 @@ main {
   const LEVEL_LEN = 2000;
   const PALETTES = [
     { title: 'باغ تاریک', sub: 'گل‌های سایه',
-      bg: ['#06120c', '#0d2217', '#040906'], fog: 'rgba(90,200,130,.10)', spore: '#7dffb0', star: '#c8ffe0',
+      bg: ['#061a22', '#0a302e', '#03110e'], fog: 'rgba(65,235,180,.10)', spore: '#7dffb0', star: '#c8ffe0',
       floor: '#00ff88', segHead: '#ff6600', seg: '#ffcc00', tint: null, root: 55 },
     { title: 'زیرزمین', sub: 'غارهای نمناک',
       bg: ['#170f09', '#2b1c10', '#0d0804'], fog: 'rgba(230,150,90,.09)', spore: '#ffb26b', star: '#ffd9b0',
@@ -2859,6 +2859,23 @@ main {
     const g = c.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, pal.bg[0]); g.addColorStop(0.55, pal.bg[1]); g.addColorStop(1, pal.bg[2]);
     c.fillStyle = g; c.fillRect(0, 0, W, H);
+    if (pal === PALETTES[0]) {
+      // Decorative, translucent forest canopy; gameplay objects are drawn on top.
+      c.save();
+      const halo = c.createRadialGradient(W*.5,H*.29,0,W*.5,H*.29,W*.65);
+      halo.addColorStop(0,'rgba(35,205,144,.11)'); halo.addColorStop(1,'rgba(4,20,18,0)');
+      c.fillStyle=halo; c.fillRect(0,0,W,H);
+      c.fillStyle='rgba(1,15,15,.32)';
+      for (let i=0;i<6;i++) {
+        const x=(i+.5)*W/6;
+        c.beginPath(); c.moveTo(x-15,0); c.lineTo(x+8,0); c.lineTo(x+22,H*.65); c.lineTo(x+9,H*.72); c.closePath(); c.fill();
+      }
+      // A distant glowing mushroom silhouette, separate from collidable mushrooms.
+      c.globalAlpha=.16; c.fillStyle='#48d99e';
+      c.beginPath(); c.moveTo(W*.47,H*.48); c.quadraticCurveTo(W*.48,H*.35,W*.46,H*.30); c.lineTo(W*.54,H*.30); c.quadraticCurveTo(W*.52,H*.35,W*.53,H*.48); c.closePath(); c.fill();
+      c.beginPath(); c.ellipse(W*.5,H*.29,W*.17,H*.055,0,Math.PI,0); c.closePath(); c.fill();
+      c.restore();
+    }
     /* ستاره‌ها */
     c.fillStyle = pal.star;
     for (let i = 0; i < wl.stars.length; i++) {

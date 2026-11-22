@@ -2471,6 +2471,7 @@ main {
     c.moveTo(verts[0][0], verts[0][1]);
     for (let i = 1; i < verts.length; i++) c.lineTo(verts[i][0], verts[i][1]);
     c.closePath();
+    c.fill();
     c.stroke();
   }
 
@@ -2479,7 +2480,8 @@ main {
       c.save();
       c.translate(x, y);
       c.rotate(a.rot);
-      c.strokeStyle = a.flashT > 0 ? '#ffd0a0' : '#ffffff';
+      c.fillStyle = '#221d43';
+      c.strokeStyle = a.flashT > 0 ? '#ffd0a0' : '#a9a5de';
       c.lineWidth = a.size === 'small' ? 1.2 : a.size === 'medium' ? 1.6 : 2;
       c.lineJoin = 'round';
       drawAsteroidShape(c, a.verts);
@@ -2563,8 +2565,9 @@ main {
   function renderWorld(wl, c, demo) {
     const W = wl.W, H = wl.H;
     c.setTransform(wl.dpr, 0, 0, wl.dpr, 0, 0);
-    c.fillStyle = '#000';
-    c.fillRect(0, 0, W, H);
+    const nebula = c.createRadialGradient(W*.55,H*.42,0,W*.55,H*.42,Math.max(W,H)*.8);
+    nebula.addColorStop(0,'#332763'); nebula.addColorStop(.48,'#151735'); nebula.addColorStop(1,'#040711');
+    c.fillStyle = nebula; c.fillRect(0, 0, W, H);
 
     c.save();
     /* shake */
