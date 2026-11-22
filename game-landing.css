@@ -1,0 +1,14 @@
+/* Shared visual language for the landing menus only; gameplay, inputs and game themes remain untouched. */
+.landing .glass-card{border-radius:26px;overflow:hidden;box-shadow:0 16px 40px #0003,inset 0 1px 0 #ffffff1c}
+.landing .art-half{overflow:hidden}.landing .art-half svg{transition:transform .3s ease}
+.landing .play-btn,.landing .mode-chip,.landing .menu-btn{border-radius:15px}
+.landing .play-btn:focus-visible,.landing .mode-chip:focus-visible,.landing .menu-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.landing .mode-chip,.landing .menu-btn{transition:border-color .18s ease,transform .18s ease}
+/* Game Runner has a different menu architecture. */
+.app-container .status-bar,.app-container .nav-tabs{border-radius:18px}.app-container .car-card,.app-container .setting-row,.app-container .upgrade-item{border-radius:18px}
+@media(hover:hover){.landing .glass-card:hover .art-half svg{transform:scale(1.025)}}
+@media(prefers-reduced-motion:reduce){.landing .art-half svg,.landing .mode-chip,.landing .menu-btn{transition:none!important}.landing .glass-card:hover .art-half svg{transform:none!important}}
+.landing .art-half>.landing-cover-art{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none;transition:transform .3s ease}
+.runner-cover{height:150px;overflow:hidden;border-radius:18px;margin:0 0 16px;background:#151b30}.runner-cover img{width:100%;height:100%;object-fit:cover;object-position:center 55%}
+@media(hover:hover){.landing .glass-card:hover .landing-cover-art{transform:scale(1.025)}}
+@media(prefers-reduced-motion:reduce){.landing .art-half>.landing-cover-art{transition:none!important}.landing .glass-card:hover .landing-cover-art{transform:none!important}}
