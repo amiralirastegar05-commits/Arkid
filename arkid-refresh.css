@@ -50,3 +50,37 @@
 :root[data-scheme=light] #profileShareBtn,:root[data-scheme=light] #shareProfileBtn{color:#fff;background:var(--gold)}
 :root[data-scheme=light] #profileModal .progress,:root[data-scheme=light] #statsModal .progress{background:#dfe3eb}
 @media(max-width:700px){#profileModal .about-card{min-height:0}}
+
+/* Game-card preview: no new timers or changes to the selected theme. */
+.games .card:not(.soon) .card-glance{position:absolute;inset:auto 0 0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;padding:30px 10px 10px;background:linear-gradient(0deg,rgba(4,9,18,.94),rgba(4,9,18,.65) 58%,transparent);color:#fff;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .18s ease,transform .18s ease}
+.card-glance-genre,.card-glance-best{display:block;min-width:0;font-size:10px;line-height:1.5;font-weight:700;text-shadow:0 1px 3px #000}
+.card-glance-genre{color:#fff}.card-glance-best{color:#ffe5a1;text-align:left;overflow-wrap:anywhere}
+@media(hover:hover){.games .card:not(.soon):hover .card-glance{opacity:1;transform:none}.games .card:not(.soon):hover .share-mini{bottom:48px}}
+.games .card:not(.soon):focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.games .card:not(.soon):focus-visible .card-glance{opacity:1;transform:none}
+.games .card:not(.soon):focus-visible .card-hover-overlay{opacity:1}
+.games .card:not(.soon):focus-visible .card-play-btn{transform:none}
+.games .card:not(.soon):focus-visible .share-mini{bottom:48px}
+@media(hover:none){
+  .games .card:hover:not(.soon) .card-cover>.game-cover-art{transform:none}
+  .games .card:not(.soon):active .card-glance,.games .card:not(.soon).is-pressed .card-glance{opacity:1;transform:none}
+  .games .card:not(.soon):active .share-mini,.games .card:not(.soon).is-pressed .share-mini{bottom:48px}
+  .games .card:not(.soon) .share-mini{opacity:1;pointer-events:auto}
+  .games .card:hover .card-hover-overlay{opacity:0}
+  .games .card:not(.soon):active .card-hover-overlay,.games .card:not(.soon).is-pressed .card-hover-overlay,.games .card:not(.soon):focus-visible .card-hover-overlay{opacity:1}
+  .games .card:not(.soon):active .card-cover>.game-cover-art,.games .card:not(.soon).is-pressed .card-cover>.game-cover-art{transform:scale(1.025)}
+}
+/* In the compact list the same information is already visible in the card body. */
+:root[data-layout=list] .games .card-glance{display:none}
+:root[data-layout=list] .games .card .share-mini{bottom:10px}
+@media(prefers-reduced-motion:reduce){
+  .games .card .card-glance,.games .card .card-hover-overlay,.games .card .card-play-btn{transition:none!important}
+  .games .card:not(.soon):active .card-cover>.game-cover-art,.games .card:not(.soon).is-pressed .card-cover>.game-cover-art{transform:none!important}
+}
+.au-no-motion .games .card .card-glance,.au-no-motion .games .card .card-hover-overlay,.au-no-motion .games .card .card-play-btn{transition:none!important}
+.au-no-motion .games .card:not(.soon):active .card-cover>.game-cover-art,.au-no-motion .games .card:not(.soon).is-pressed .card-cover>.game-cover-art{transform:none!important}
+
+.games .card-meta{gap:6px;flex-wrap:wrap}.games .card-meta .best{font-family:inherit;font-size:10px;white-space:nowrap}
+.games .card-play-btn{white-space:nowrap}
+
+@media(hover:none){.games .card.is-pressed .card-play-btn{transform:none}}
