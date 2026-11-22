@@ -1,0 +1,52 @@
+/* Independent game accents and art: no global theme variables are modified. */
+.game-cover-art,.game-cover-fallback{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.game-cover-fallback svg{display:block;width:100%;height:100%}
+.card-cover>.game-cover-art{transition:transform .38s ease}.card:hover:not(.soon) .card-cover>.game-cover-art{transform:scale(1.035)}
+.recent-card-cover,.gotd-cover,.boss-cover,.tgp-cover,.tournament-score-cover{overflow:hidden}
+.hero-game-accent{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;margin:8px 0 14px;color:var(--text-primary);background:color-mix(in srgb,var(--game-accent) 12%,transparent);border:1px solid color-mix(in srgb,var(--game-accent) 32%,transparent);border-radius:99px;font-size:10px}
+.hero-game-accent[hidden]{display:none}.hero-game-accent span:first-child{width:7px;height:7px;border-radius:50%;background:var(--game-accent)}
+#gameGuideModal .game-guide{border-top:3px solid var(--game-accent);background:radial-gradient(circle at 85% 0%,color-mix(in srgb,var(--game-accent) 17%,transparent),transparent 48%),var(--liquid-surface)}
+#guideArt{height:88px;width:70px;overflow:hidden;border-radius:14px;float:inline-start;margin:0 0 16px 16px;border:1px solid var(--liquid-line)}
+#gameLoadingScreen #auLoadingCover{width:96px;height:120px;margin:0 auto;overflow:hidden;border-radius:17px}
+/* The companion retains exactly the existing artwork and equipment. */
+.home-pet{border-radius:19px;padding:16px;background:linear-gradient(140deg,color-mix(in srgb,var(--gold) 8%,var(--liquid-panel)),var(--liquid-panel))}.home-pet strong{font-size:13px}.home-pet .pet-wardrobe{color:var(--gold);font-size:10px}
+/* Profile is an identity card and a separate progress dashboard. */
+#profileModal .about-card{width:min(740px,94vw);padding:30px;max-height:90dvh}
+#profileModal .about-card::before{display:none}
+#profileModal .profile-heading{font-size:23px;margin:0 0 18px}#profileModal .profile-heading svg{width:21px}
+#profileModal .profile-body{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;text-align:right;width:100%;max-width:none;margin:0;padding:0;background:none;border:0}
+#profileModal .profile-identity{position:relative;display:flex;align-items:center;gap:22px;min-width:0;padding:23px;border:1px solid var(--liquid-line);border-radius:24px;background:radial-gradient(circle at 15% 5%,color-mix(in srgb,var(--gold) 18%,transparent),transparent 43%),linear-gradient(135deg,var(--liquid-panel),var(--liquid-surface));overflow:hidden}
+.profile-avatar-area{display:flex;flex-direction:column;align-items:center;gap:9px;flex:none;z-index:1}#profileModal .profile-avatar{width:100px;height:100px;border-radius:28px;box-shadow:0 0 0 5px color-mix(in srgb,var(--gold) 12%,transparent),0 12px 25px #0003}
+#profileModal .avatar-change{min-height:38px;margin:0;border-radius:12px;padding:7px 10px;color:var(--text-primary);font-size:10px}
+.profile-identity-copy{min-width:0;flex:1}.profile-overline{display:block;direction:ltr;text-align:right;color:var(--gold);font:700 9px/1.4 system-ui,sans-serif;letter-spacing:.16em}
+#profileModal .profile-name-row{display:flex;justify-content:flex-start;width:100%;min-height:0;margin:6px 0}#profileModal .profile-name-button{justify-content:flex-start;padding:4px 0}#profileModal .profile-name-button b{font-size:clamp(22px,4vw,30px);line-height:1.5}#profileModal .profile-name-input{text-align:right;width:100%;font-size:18px}
+#profileModal .profile-level{font-size:12px;line-height:1.8;color:var(--gold)}#profileModal .profile-joined{border:0;margin:5px 0 0;padding:0;text-align:right;color:var(--text-secondary)}
+#profileModal .profile-xp{width:100%;padding:18px;border:1px solid var(--liquid-line);border-radius:20px;background:var(--liquid-panel)}
+.profile-xp-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.profile-xp-heading strong{display:block;margin-top:5px;font-size:14px}.profile-xp-heading>span{font-size:11px;color:var(--text-secondary)}
+#profileModal .profile-xp-label{margin-top:15px}#profileModal .profile-xp-value{font-size:11px}#profileModal .profile-xp .progress{height:8px;margin:8px 0}#profileModal .profile-xp-total{font-size:10px;text-align:right}
+.profile-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.profile-highlights>div{padding:15px;border:1px solid var(--liquid-line);border-radius:18px;background:var(--liquid-panel)}.profile-highlights small{display:block;color:var(--text-secondary);font-size:10px}.profile-highlights strong{display:block;margin-top:7px;font-size:19px;overflow-wrap:anywhere}
+#profileModal .profile-actions{width:100%;margin:0;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}#profileModal .profile-actions .gold-btn{grid-column:auto}#profileModal .profile-actions button{min-height:46px}
+#auShowcaseProfile{max-width:none;margin:14px 0 0;padding:14px 16px;border-radius:18px;border:1px solid var(--liquid-line);background:var(--liquid-panel);text-align:right}#auShowcaseProfile .au-profile-ring{display:none}#auShowcaseProfile button{min-height:42px;border-radius:12px}#auShowcaseProfile .au-showcase{justify-content:flex-start}
+/* Statistics uses readable cards and real existing counters, including the empty state. */
+#statsModal .about-card{width:min(940px,94vw);max-height:90dvh;text-align:right;padding:30px}
+#statsModal #statsTitle{font-size:23px;padding-inline-end:40px}#statsModal .stats-profile{margin:18px 0 0;padding:16px 18px;border-radius:20px;border:1px solid var(--liquid-line);background:linear-gradient(120deg,color-mix(in srgb,var(--gold) 13%,var(--liquid-panel)),var(--liquid-panel))}
+#statsModal .stats-profile .pixel-avatar{width:58px;height:58px;border-radius:17px}#statsModal .stats-profile b{font-size:17px}#statsModal .stats-intro{font-size:12px;color:var(--text-secondary);margin:12px 2px 16px}
+#statsModal .stats-cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}#statsModal .stats-big{text-align:right;background:var(--liquid-panel);border:1px solid var(--liquid-line);border-radius:18px;padding:16px;min-width:0}#statsModal .stats-big span{display:block;font-size:10px}#statsModal .stats-big b{margin-top:9px;font-size:clamp(16px,2.5vw,24px);color:var(--text-primary);overflow-wrap:anywhere}
+.stats-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}#statsModal .stats-section{min-width:0;margin:0;padding:18px;border:1px solid var(--liquid-line);border-radius:20px;background:var(--liquid-panel)}
+.stats-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}.stats-section-head small{color:var(--gold);font:700 9px/1.4 system-ui;letter-spacing:.14em}.stats-section-head h3{font-size:14px;margin:4px 0 0!important}.stats-section-head>span{font-size:10px;color:var(--text-secondary)}
+#statsModal .bar-row{grid-template-columns:minmax(0,100px) minmax(0,1fr) auto;gap:8px}#statsModal .bar-track{background:color-mix(in srgb,var(--text-primary) 8%,transparent)}#statsModal .score-row{background:var(--liquid-surface);border:1px solid var(--liquid-line)}#statsModal .stats-empty{font-size:11px;line-height:1.8;color:var(--text-secondary)}
+#statsModal .activity-grid{grid-template-columns:repeat(10,minmax(0,1fr));gap:5px}#statsModal .day-cell{border-radius:5px;background:color-mix(in srgb,var(--text-primary) 8%,var(--liquid-surface))}#statsModal .day-cell.l1{background:color-mix(in srgb,var(--gold) 25%,var(--liquid-surface))}#statsModal .day-cell.l2{background:color-mix(in srgb,var(--gold) 55%,var(--liquid-surface))}#statsModal .day-cell.l3{background:var(--gold)}
+#statsModal .stats-achievements .progress{margin:2px 0 14px}#statsModal .ach-mini span{background:var(--liquid-surface);border:1px solid var(--liquid-line)}#statsModal .share-actions{justify-content:flex-start;margin-top:15px}#statsModal .share-actions button{min-height:44px}
+/* Motion only on interaction; all movement honors both motion controls. */
+#shopModal .shop-tab,.home-actions button,.profile-actions button{transition:transform .18s ease,border-color .18s ease,background-color .18s ease}
+@media(hover:hover){#shopModal .shop-tab:hover,.home-actions button:hover,.profile-actions button:hover{transform:translateY(-2px)}}
+:root[data-scheme=light] #profileModal .profile-identity,:root[data-scheme=light] #statsModal .stats-profile{box-shadow:0 8px 24px #45406c0d}
+@media(max-width:700px){#profileModal .about-card,#statsModal .about-card{width:100%;max-height:92dvh;padding:23px 17px 26px;border-radius:26px}#profileModal .profile-identity{padding:18px;gap:16px}#profileModal .profile-avatar{width:76px;height:76px;border-radius:21px}#profileModal .profile-name-button b{font-size:22px}#profileModal .profile-actions{grid-template-columns:repeat(2,minmax(0,1fr))}#profileModal .profile-actions .gold-btn{grid-column:1/-1}#statsModal .stats-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.stats-panels{grid-template-columns:1fr}#statsModal .stats-section{padding:16px}.profile-highlights>div{padding:12px}.profile-highlights strong{font-size:16px}}
+@media(max-width:360px){#profileModal .profile-identity{gap:12px;padding:14px}#profileModal .profile-avatar{width:68px;height:68px}.profile-highlights{gap:6px}.profile-highlights>div{padding:10px}}
+@media(prefers-reduced-motion:reduce){.card-cover>.game-cover-art,#shopModal .shop-tab,.home-actions button,.profile-actions button{transition:none!important}.card:hover:not(.soon) .card-cover>.game-cover-art{transform:none!important}}
+.au-no-motion .card-cover>.game-cover-art,.au-no-motion #shopModal .shop-tab,.au-no-motion .home-actions button,.au-no-motion .profile-actions button{transition:none!important}.au-no-motion .card:hover:not(.soon) .card-cover>.game-cover-art{transform:none!important}
+@media(prefers-reduced-motion:reduce){#shopModal .shop-tab:hover,.home-actions button:hover,.profile-actions button:hover{transform:none!important}}
+.au-no-motion #shopModal .shop-tab:hover,.au-no-motion .home-actions button:hover,.au-no-motion .profile-actions button:hover{transform:none!important}
+:root[data-scheme=light] #profileShareBtn,:root[data-scheme=light] #shareProfileBtn{color:#fff;background:var(--gold)}
+:root[data-scheme=light] #profileModal .progress,:root[data-scheme=light] #statsModal .progress{background:#dfe3eb}
+@media(max-width:700px){#profileModal .about-card{min-height:0}}
