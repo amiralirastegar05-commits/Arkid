@@ -1,5 +1,5 @@
 /* ★ PWA: نسخهٔ مستقل؛ فایل‌های مفقود مانع نصب نمی‌شوند */
-const CACHE_VERSION='arcade-2026-11-v26';
+const CACHE_VERSION='arcade-2026-11-v27';
 const CORE=CACHE_VERSION+'-core',BANNERS=CACHE_VERSION+'-banners';
 const ROOT=new URL('./',self.location.href);
 const CORE_URLS=['./','index.html','arcade-gamepad.js','arcade-gamepad.css','arcade-upgrade.css','liquid-ui.css','arkid-refresh.css','game-landing.css','arcade-icons.css','arcade-polish.js','hub-enhancements.js','auth.css','auth.js','cloud/arcade-auth.js','cloud/config.js','cloud/snapshot.js','cloud/messages.js','cloud/entry-gate.js','cloud/entry-gate.css','cloud/restore.html','cloud/restore.css','cloud/restore.js','cloud/worker-diagnostic.js','cloud/worker-check.html','manifest.webmanifest','arcade-icon-192.png','arcade-icon-512.png','Ali_Grapph_medium.woff2','Ali_Grapph_bold.woff2','assets/game-covers/river-raid.webp','assets/game-covers/space-invaders.webp','assets/game-covers/mushroom-killer.webp','assets/game-covers/mushroom-platformer.webp','assets/game-covers/arcade-runner.svg','assets/game-covers/2048.webp','assets/game-covers/breakout.webp','assets/game-covers/snake.webp','assets/game-covers/asteroids.webp','assets/game-covers/pong.webp','assets/game-covers/tetris.svg','assets/game-covers/pacman.svg','assets/game-covers/game-runner.svg'];
