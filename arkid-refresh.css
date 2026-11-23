@@ -51,6 +51,18 @@
 :root[data-scheme=light] #profileModal .progress,:root[data-scheme=light] #statsModal .progress{background:#dfe3eb}
 @media(max-width:700px){#profileModal .about-card{min-height:0}}
 
+/* Short, non-interactive companion message in the home hero. */
+.hero .pet-reaction[hidden]{display:none}
+.hero .pet-reaction{grid-column:1 / -1;display:flex;align-items:center;gap:11px;width:fit-content;max-width:100%;margin-top:16px;padding:8px 12px 8px 16px;border:1px solid color-mix(in srgb,var(--gold) 30%,var(--liquid-line));border-radius:16px;background:color-mix(in srgb,var(--liquid-panel) 90%,var(--gold) 10%);color:var(--text-primary);animation:pet-reaction-in .22s ease-out both}
+.pet-reaction-art{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:13px;background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.pet-reaction-art svg{display:block;width:40px;height:42px}
+.pet-reaction-copy{display:grid;gap:3px;min-width:0;text-align:right;line-height:1.6}
+.pet-reaction-copy strong{color:var(--gold);font-size:11px;overflow-wrap:anywhere}.pet-reaction-copy span{font-size:12px;overflow-wrap:anywhere}
+@keyframes pet-reaction-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(max-width:700px){.hero .pet-reaction{margin-top:13px;padding:7px 10px;gap:9px}.pet-reaction-art{width:40px;height:40px}.pet-reaction-art svg{width:35px;height:37px}.pet-reaction-copy span{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.hero .pet-reaction,.pet-reaction-art *{animation:none!important}}
+.au-no-motion .hero .pet-reaction,.au-no-motion .pet-reaction-art *{animation:none!important}
+
 /* Game-card preview: no new timers or changes to the selected theme. */
 .games .card:not(.soon) .card-glance{position:absolute;inset:auto 0 0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;padding:30px 10px 10px;background:linear-gradient(0deg,rgba(4,9,18,.94),rgba(4,9,18,.65) 58%,transparent);color:#fff;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .18s ease,transform .18s ease}
 .card-glance-genre,.card-glance-best{display:block;min-width:0;font-size:10px;line-height:1.5;font-weight:700;text-shadow:0 1px 3px #000}

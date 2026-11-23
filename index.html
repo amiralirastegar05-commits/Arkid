@@ -1983,6 +1983,7 @@ body.crt-mode::after{content:'';position:fixed;inset:0;z-index:9998;pointer-even
       <button class="hero-cta" id="heroRandomBtn" type="button">🎲 شروع بازی تصادفی</button>
     </div>
     <div class="hero-art" aria-hidden="true"><svg viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="92" cy="79" r="64" fill="#8372E3" fill-opacity=".18"/><circle cx="92" cy="79" r="48" stroke="#B9A9FF" stroke-opacity=".36"/><path d="M41 76c4-17 14-23 32-23h38c18 0 29 6 33 23l6 29c3 14-9 22-20 14l-17-12H72l-18 12c-11 8-23 0-20-14l7-29Z" fill="#F4D570" stroke="#FFF0B6" stroke-width="3"/><path d="M63 73v20M53 83h20" stroke="#43345E" stroke-width="6" stroke-linecap="round"/><circle cx="117" cy="77" r="5" fill="#43345E"/><circle cx="129" cy="90" r="5" fill="#43345E"/><path d="M32 39l3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Zm112-10 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" fill="#D9C8FF"/><circle cx="29" cy="100" r="3" fill="#FD99B8"/><circle cx="150" cy="64" r="3" fill="#83D8E2"/></svg></div>
+    <div class="pet-reaction" id="petReaction" role="status" aria-live="polite" hidden><span class="pet-reaction-art" id="petReactionArt" aria-hidden="true"></span><span class="pet-reaction-copy"><strong id="petReactionName"></strong><span id="petReactionText"></span></span></div>
   </section>
 
   <section class="home-collection" aria-labelledby="homeCollectionTitle">
@@ -6427,7 +6428,35 @@ function auSeason(){const event=auEventNow();if(!AU.themes.includes(LS.get('arca
 let auRecordCandidate=LS.get('arcade_active_session',null);
 window.addEventListener('pagehide',()=>{const active=LS.get('arcade_active_session',null);if(active)auRecordCandidate=active},true);
 window.addEventListener('pageshow',()=>{const active=LS.get('arcade_active_session',null);if(active)auRecordCandidate=active},true);
-function auRecordCheck(){const active=auRecordCandidate;if(!active)return;if(LS.get('arcade_active_session',null))return;auRecordCandidate=null;const game=GAMES.find(g=>g.id===active.id),score=game?getTop(game.id):0;if(!game||score<=safeXP(active.highScoreBefore))return;const sig=game.id+':'+score;if(LS.get('arcade_last_record_notif','')===sig)return;LS.set('arcade_last_record_notif',sig);const el=document.createElement('aside');el.className='au-record lg-glass';el.setAttribute('role','status');el.innerHTML='<strong>🎉 رکورد جدید در '+esc(game.title)+'!</strong>'+auButton('مشاهدهٔ کارت','record-share','data-game="'+game.id+'"');document.body.append(el);setTimeout(()=>el.remove(),5000)}
+// Reactions are ephemeral, use the existing companion artwork, and never write pet data.
+const auReturningPlayer=LS.get('arcade_onboarded',false)===true;
+let auPetReactionPending=null,auPetReactionTimer=null;
+function auQueuePetReaction(kind,game){
+  const priority={welcome:1,return:2,record:3};
+  if(!priority[kind]||AU.settings.petVisible===false)return;
+  if(!auPetReactionPending||priority[kind]>=priority[auPetReactionPending.kind]) auPetReactionPending={kind,game:game||''};
+}
+function auHidePetReaction(){
+  if(auPetReactionTimer!==null)clearTimeout(auPetReactionTimer);
+  auPetReactionTimer=null;
+  const bubble=auEl('petReaction');if(bubble)bubble.hidden=true;
+}
+function auPetReactionTick(){
+  const bubble=auEl('petReaction');if(!bubble)return;
+  if(AU.settings.petVisible===false){auPetReactionPending=null;auHidePetReaction();return}
+  const ready=feedbackReady&&!document.hidden&&!bootIsActive()&&!modalStack.length&&!sideMenuOpen&&!launchInProgress&&!pendingNavigation&&!attractActive&&LS.get('arcade_onboarded',false)===true&&!LS.get('arcade_reward_pending',null);
+  if(!ready){if(!bubble.hidden)auHidePetReaction();return}
+  if(auReturningPlayer&&!auPetReactionPending&&!safeSessionGet('arkid_pet_greeted')&&!LS.get('arcade_active_session',null)&&!auRecordCandidate)auQueuePetReaction('welcome');
+  if(!auPetReactionPending||!bubble.hidden||!auEl('spinReminder').hidden||document.querySelector('.au-record'))return;
+  const rect=auEl('hero').getBoundingClientRect();if(rect.bottom<80||rect.top>innerHeight-80)return;
+  const reaction=auPetReactionPending;auPetReactionPending=null;
+  const pet=auPet();auEl('petReactionArt').innerHTML=auPetSVG(pet.type,auPetWorn(pet));
+  auEl('petReactionName').textContent=pet.name;
+  auEl('petReactionText').textContent=reaction.kind==='record'?'وای، رکورد جدید در '+reaction.game+'! آفرین!':reaction.kind==='return'?'خسته نباشی! '+reaction.game+' چطور بود؟':'خوش برگشتی! آماده‌ای برای یه بازی؟';
+  bubble.hidden=false;safeSessionSet('arkid_pet_greeted','1');
+  auPetReactionTimer=setTimeout(auHidePetReaction,8000);
+}
+function auRecordCheck(){const active=auRecordCandidate;if(!active)return;if(LS.get('arcade_active_session',null))return;auRecordCandidate=null;const game=GAMES.find(g=>g.id===active.id),score=game?getTop(game.id):0;if(!game)return;const ownSession=!active.owner||active.owner===hubSessionId;if(ownSession)auQueuePetReaction('return',game.title);if(score<=safeXP(active.highScoreBefore))return;const sig=game.id+':'+score;if(LS.get('arcade_last_record_notif','')===sig)return;LS.set('arcade_last_record_notif',sig);if(ownSession)auQueuePetReaction('record',game.title);const el=document.createElement('aside');el.className='au-record lg-glass';el.setAttribute('role','status');el.innerHTML='<strong>🎉 رکورد جدید در '+esc(game.title)+'!</strong>'+auButton('مشاهدهٔ کارت','record-share','data-game="'+game.id+'"');document.body.append(el);setTimeout(()=>el.remove(),5000)}
 /* ★ پالت فرمان و میان‌برهای قابل ویرایش */
 const auShortcutDefaults={shop:'s',settings:'?',leaderboard:'l',search:'/',games:'g',random:'r',stats:'a',profile:'p',about:'F1'};
 function auShortcuts(){const raw=auSafeObject(LS.get('arcade_shortcuts',{})),out={...auShortcutDefaults};for(const k of Object.keys(out))if(typeof raw[k]==='string'&&raw[k].length<20)out[k]=raw[k];return out}
@@ -6503,7 +6532,7 @@ function auInit(){
  setTimeout(auCountStats,100);auApplySettings();if(!AU.settings.sound)auSaveSettings({sound:false});setTimeout(auApplySettings,0);auRenderPins();auRenderChallenge();auProfileExtras();auSync(true);setInterval(()=>{if(!document.hidden)auSync()},1000);setInterval(auPetAvoidUi,250);
  if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){const registerOffline=()=>navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(reg=>{reg.active?.postMessage({type:'ARCADE_CACHE',urls:['./index.html','./arcade-gamepad.js','./arcade-gamepad.css','./arcade-upgrade.css',...GAMES.filter(g=>g.available).map(g=>g.file),...BANNERS.map(b=>b.src),...performance.getEntriesByType('resource').map(r=>r.name).filter(url=>/\.(woff2?|ttf|otf)(\?|$)/i.test(url))]})}).catch(()=>{});if(document.readyState==='complete')registerOffline();else window.addEventListener('load',registerOffline,{once:true});}
 }
-function auSync(force=false){if(!auMotion())pauseVisualEffects();const sig=getProfile().xp+':'+getPoints()+':'+getInventory().items.join(',')+':'+JSON.stringify(getEquipped())+':'+dateKey()+':'+Object.keys(achievements()).length;if(force||sig!==AU.lastState){AU.lastState=sig;auRenderPet();auRenderChallenge();auProfileExtras();auEnhanceShop();auTrailState();document.body.classList.toggle('au-glass-bg',getEquipped().bgTheme==='bg-theme-glass');document.querySelectorAll('.cosmetic-frame').forEach(el=>el.classList.toggle('au-frame-animated',getEquipped().frame==='frame-animated'));const unread=Math.max(0,Object.keys(achievements()).length-safeXP(LS.get('arcade_notification_seen',0)));auEl('auBell').classList.toggle('au-unread',unread>0);auEl('auBell').querySelector('b').textContent=faNum(unread);auEl('auBell').setAttribute('aria-label',faNum(unread)+' دستاورد جدید');auSeason()}document.querySelectorAll('[data-au-clock]').forEach(el=>el.textContent=auCountdown());auRenderPet();auRecordCheck();if(!bootIsActive()&&feedbackReady&&!modalStack.length&&!launchInProgress&&!AU.onboardShown){AU.onboardShown=true;if(LS.get('arcade_onboarded',false)!==true)auOnboarding();else{const pending=LS.get('arcade_reward_pending',null);if(pending){LS.remove('arcade_reward_pending');auPrizeModal(pending.label,'این جایزه پیش‌تر در حساب ثبت شده است.')}}}auUpdateSpinReminder()}
+function auSync(force=false){if(!auMotion())pauseVisualEffects();const sig=getProfile().xp+':'+getPoints()+':'+getInventory().items.join(',')+':'+JSON.stringify(getEquipped())+':'+dateKey()+':'+Object.keys(achievements()).length;if(force||sig!==AU.lastState){AU.lastState=sig;auRenderPet();auRenderChallenge();auProfileExtras();auEnhanceShop();auTrailState();document.body.classList.toggle('au-glass-bg',getEquipped().bgTheme==='bg-theme-glass');document.querySelectorAll('.cosmetic-frame').forEach(el=>el.classList.toggle('au-frame-animated',getEquipped().frame==='frame-animated'));const unread=Math.max(0,Object.keys(achievements()).length-safeXP(LS.get('arcade_notification_seen',0)));auEl('auBell').classList.toggle('au-unread',unread>0);auEl('auBell').querySelector('b').textContent=faNum(unread);auEl('auBell').setAttribute('aria-label',faNum(unread)+' دستاورد جدید');auSeason()}document.querySelectorAll('[data-au-clock]').forEach(el=>el.textContent=auCountdown());auRenderPet();auRecordCheck();if(!bootIsActive()&&feedbackReady&&!modalStack.length&&!launchInProgress&&!AU.onboardShown){AU.onboardShown=true;if(LS.get('arcade_onboarded',false)!==true)auOnboarding();else{const pending=LS.get('arcade_reward_pending',null);if(pending){LS.remove('arcade_reward_pending');auPrizeModal(pending.label,'این جایزه پیش‌تر در حساب ثبت شده است.')}}}auUpdateSpinReminder();auPetReactionTick()}
 auInit();
 // One open card at a time keeps the home screen compact; native details provide keyboard support.
 document.querySelectorAll('.home-card').forEach(card=>card.querySelector('summary').addEventListener('click',()=>{
