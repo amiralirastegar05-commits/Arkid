@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220" id="themeColor">
+  <meta name="description" content="دوز هوشمند، بازی فکری سه‌درسه با هوش مصنوعی و حالت دو نفره">
+  <title>دوز هوشمند | آرکید</title>
+  <link rel="stylesheet" href="tictactoe.css">
+  <script type="module" src="tictactoe.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a href="index.html" class="back" aria-label="بازگشت به آرکید">← <span>آرکید</span></a>
+  <span class="brand">SMART TIC-TAC-TOE <i>✦</i></span>
+  <span class="top-tag">یک بازی آرکیدی</span>
+</header>
+<main class="layout">
+  <section class="intro" aria-labelledby="title">
+    <div class="eyebrow"><span></span> سه در سه، اما با فکر</div>
+    <h1 id="title">دوز<br><em>هوشمند</em></h1>
+    <p class="lead">سه مهرهٔ هم‌علامت را در یک ردیف، ستون یا قطر کنار هم بگذار و هوش مصنوعی را زمین بزن!</p>
+    <div class="instructions"><div><b>۰۱</b><span>هر نوبت یک خانه را انتخاب کن.</span></div><div><b>۰۲</b><span>سه تا در یک خط یعنی برد.</span></div><div><b>۰۳</b><span>سختی حریف را از تنظیمات عوض کن.</span></div></div>
+    <div class="hint">لمس خانه <span>یا</span> کلیدهای جهت + Enter</div>
+    <button class="settings-link" id="settingsLink" type="button">⚙ تنظیمات و ظاهر بازی</button>
+  </section>
+  <section class="game-column" aria-label="بازی دوز هوشمند">
+    <div class="game-top">
+      <div class="turn-pill" id="turnPill"><span class="mark-chip" id="turnChip" aria-hidden="true">×</span><span id="turnText">نوبت تو</span></div>
+      <div class="game-actions">
+        <button id="settingsButton" class="icon" type="button" aria-label="تنظیمات و ظاهر بازی" aria-haspopup="dialog" aria-expanded="false">⚙</button>
+        <button id="newGameButton" class="icon" type="button" aria-label="شروع بازی تازه">↻</button>
+      </div>
+    </div>
+    <div class="scorebar">
+      <div><small>برد</small><strong id="wins">۰</strong></div>
+      <div><small>باخت</small><strong id="losses">۰</strong></div>
+      <div><small>مساوی</small><strong id="draws">۰</strong></div>
+      <div><small>بهترین رشته</small><strong id="best">۰</strong></div>
+    </div>
+    <div class="stage" id="stage" data-theme="neon">
+      <div class="board-wrap">
+        <div class="board" id="board" role="grid" aria-label="صفحهٔ دوز، ۹ خانه" aria-rowcount="3" aria-colcount="3"></div>
+        <svg class="strike off" id="strike" viewBox="0 0 300 300" aria-hidden="true"><line id="strikeLine" x1="0" y1="0" x2="0" y2="0"/></svg>
+      </div>
+      <div class="result" id="resultMessage" hidden>
+        <span class="result-icon" id="resultIcon" aria-hidden="true">✦</span>
+        <div class="result-copy"><strong id="resultTitle">بردی!</strong><p id="resultText"></p></div>
+        <button id="againButton" type="button">بازی دوباره ←</button>
+      </div>
+      <p class="stage-note" id="stageNote">نوبت توست؛ یک خانه را انتخاب کن.</p>
+    </div>
+    <p class="under-stage">سه تا در یک خط <span>·</span> حریف سخت هیچ اشتباهی نمی‌کند</p>
+    <p class="sr-only" role="status" aria-live="polite" id="status"></p>
+  </section>
+  <div class="side-note"><div class="mini-orbit">✦</div><span>فکر کن،<br>بعد بگذار.</span><small>MADE FOR PLAY</small></div>
+</main>
+<dialog class="sheet" id="settingsDialog" aria-labelledby="settingsTitle">
+  <div class="sheet-head"><h2 id="settingsTitle">تنظیمات بازی</h2><button class="icon" id="closeSettings" type="button" aria-label="بستن تنظیمات">×</button></div>
+  <div class="tabs" role="tablist" aria-label="بخش‌های تنظیمات">
+    <button type="button" role="tab" data-tab="game" aria-selected="true" class="on">بازی</button>
+    <button type="button" role="tab" data-tab="look" aria-selected="false">ظاهر</button>
+  </div>
+  <div class="sheet-body">
+    <div class="panel" id="panelGame" role="tabpanel" aria-label="تنظیمات بازی">
+      <fieldset><legend>حالت بازی</legend><div class="choices two">
+        <button type="button" data-mode="solo" aria-pressed="false">تک‌نفره<small>مقابل هوش مصنوعی</small></button>
+        <button type="button" data-mode="duo" aria-pressed="false">دو‌نفره<small>روی یک گوشی</small></button>
+      </div></fieldset>
+      <fieldset><legend>سختی حریف</legend><div class="choices">
+        <button type="button" data-difficulty="easy" aria-pressed="false">آسان<small>اشتباه می‌کند</small></button>
+        <button type="button" data-difficulty="normal" aria-pressed="false">معمولی<small>هوشمند</small></button>
+        <button type="button" data-difficulty="hard" aria-pressed="false">سخت<small>شکست‌ناپذیر</small></button>
+      </div></fieldset>
+      <div class="row"><div><b>صدا</b><small>گذاشتن مهره، برد و باخت</small></div><button type="button" class="switch" id="soundToggle" role="switch" aria-checked="true" aria-label="صدا"><span></span></button></div>
+    </div>
+    <div class="panel" id="panelLook" role="tabpanel" aria-label="ظاهر" hidden>
+      <fieldset><legend>تم صفحه</legend><div class="choices two">
+        <button type="button" data-theme-choice="neon" aria-pressed="false">شب نئون<small>فیروزه‌ای و طلایی</small></button>
+        <button type="button" data-theme-choice="amber" aria-pressed="false">کهربایی<small>گرم و کلاسیک</small></button>
+      </div></fieldset>
+      <p class="sheet-tip">مهره‌های × طلایی و ○ فیروزه‌ای‌اند؛ در تم کهربایی رنگ‌ها گرم‌تر می‌شوند.</p>
+    </div>
+  </div>
+  <p class="sheet-note">تنظیمات و آمار روی همین دستگاه ذخیره می‌شود و رکوردت حفظ می‌ماند.</p>
+</dialog>
+</body>
+</html>

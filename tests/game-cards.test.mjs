@@ -15,6 +15,14 @@ test('game card shows a labelled real best and genre with an accessible empty st
  const unavailable=card(0,{...game,available:false});assert.match(unavailable,/class="card soon/);assert.doesNotMatch(unavailable,/class="card-glance"/);
  const escaped=card(0,{...game,genre:'<unsafe>'});assert.match(escaped,/&lt;unsafe&gt;/);
 });
+test('the new badge is opt-in and marks only the freshly added game',()=>{
+ assert.doesNotMatch(card(0),/new-badge/);
+ assert.match(card(0,{...game,fresh:true}),/class="new-badge">جدید/);
+ assert.doesNotMatch(card(0,{...game,fresh:false}),/new-badge/);
+ assert.doesNotMatch(card(0,{...game,available:false,fresh:true}),/new-badge/);
+ assert.match(html,/id:'tictactoe'[^}]*cover:'tic', fresh:true/);
+ const flagged=(html.match(/fresh:true/g)||[]).length;assert.equal(flagged,1);
+});
 test('card preview supports hover, touch and keyboard, and respects motion and layouts',()=>{
  for(const piece of [':hover .card-glance',':active .card-glance',':focus-visible .card-glance','@media(prefers-reduced-motion:reduce)','.au-no-motion',':root[data-layout=list]'])assert.ok(css.includes(piece),piece);
  assert.match(html,/e\.target===card&&e\.key==='Enter'/);assert.match(html,/aria-label',game\.title\+'، '\+game\.genre/);
