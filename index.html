@@ -3159,20 +3159,20 @@ let sortMode = 'default';
 const GAMES = [
   { id:'tictactoe', title:'دوز هوشمند', sub:'SMART TIC-TAC-TOE', year:2026, genre:'فکری', genreTag:'puzzle', file:'tictactoe.html', available:true, cover:'tic', fresh:true },
   { id:'flappy', title:'پرندهٔ کوچولو', sub:'LITTLE FLIGHT', year:2026, genre:'آرکیدی', genreTag:'classic', file:'flappy.html', available:true, cover:'bird' },
-  { id:'river-raid',     title:'حمله رودخانه‌ای', sub:'RIVER RAID',     year:1982, genre:'شوتر عمودی', genreTag:'shooter', file:'river-raid.html',     available:true,  cover:'river' },
-  { id:'space-invaders', title:'تهاجم فضایی',     sub:'SPACE INVADERS', year:1978, genre:'شوتر',       genreTag:'shooter', file:'space-invaders.html', available:true,  cover:'invaders' },
+  { id:'river-raid',     title:'حمله رودخانه‌ای', sub:'RIVER RAID',     year:1982, genre:'شوتر عمودی', genreTag:'shooter', file:'river-raid.html',     available:true, cover:'river' },
+  { id:'space-invaders', title:'تهاجم فضایی',     sub:'SPACE INVADERS', year:1978, genre:'شوتر',       genreTag:'shooter', file:'space-invaders.html', available:true, cover:'invaders' },
   { id:'mushroom-killer',     title:'قارچ‌کش',         sub:'MUSHROOM KILLER',     year:2025, genre:'شوتر عمودی', genreTag:'shooter', file:'mushroom-killer.html',     available:true, cover:'mushroom' },
   { id:'mushroom-platformer', title:'قارچ‌کش پلتفرمر', sub:'MUSHROOM PLATFORMER', year:2025, genre:'پلتفرمر',    genreTag:'classic', file:'mushroom-platformer.html', available:true, cover:'platformer' },
   /* ★ ۲۰۴۸: افزودن بازی به هاب */
   { id:'arcade-runner', title:'آرکید رانر', sub:'ARCADE RUNNER', year:2025, genre:'موتورسواری', genreTag:'racing', file:'arcade-runner.html', available:true, cover:'runner' },
   { id:'2048', title:'۲۰۴۸', sub:'2048', year:2014, genre:'پازل', genreTag:'puzzle', file:'2048.html', available:true, cover:'puzzle2048' },
-  { id:'breakout',       title:'دیوارشکن',        sub:'BREAKOUT',       year:1976, genre:'کلاسیک',     genreTag:'classic', file:'breakout.html',       available:false, cover:'breakout' },
-  { id:'snake',          title:'مار',             sub:'SNAKE',          year:1997, genre:'کلاسیک',     genreTag:'classic', file:'snake.html',          available:false, cover:'snake' },
-  { id:'asteroids',      title:'سیارک‌ها',        sub:'ASTEROIDS',      year:1979, genre:'شوتر',       genreTag:'shooter', file:'asteroids.html',      available:false, cover:'asteroids' },
-  { id:'pong',           title:'پینگ‌پنگ',        sub:'PONG',           year:1972, genre:'کلاسیک',     genreTag:'classic', file:'pong.html',           available:false, cover:'pong' },
-  { id:'tetris',         title:'تتریس',           sub:'TETRIS',         year:1984, genre:'پازل',       genreTag:'puzzle',  file:'tetris.html',         available:false, cover:'tetris' },
-  { id:'pacman',         title:'پک‌من',           sub:'PAC-MAN',        year:1980, genre:'کلاسیک',     genreTag:'classic', file:'pacman.html',         available:false, cover:'pacman' },
-  { id:'game-runner',   title:'گیم رانر',       sub:'GAME RUNNER',    year:2024, genre:'مسابقه',     genreTag:'racing',  file:'game-runner.html',    available:false, cover:'racer' }
+  { id:'breakout',       title:'دیوارشکن',        sub:'BREAKOUT',       year:1976, genre:'کلاسیک',     genreTag:'classic', file:'breakout.html',       available:true, cover:'breakout' },
+  { id:'snake',          title:'مار',             sub:'SNAKE',          year:1997, genre:'کلاسیک',     genreTag:'classic', file:'snake.html',          available:true, cover:'snake' },
+  { id:'asteroids',      title:'سیارک‌ها',        sub:'ASTEROIDS',      year:1979, genre:'شوتر',       genreTag:'shooter', file:'asteroids.html',      available:true, cover:'asteroids' },
+  { id:'pong',           title:'پینگ‌پنگ',        sub:'PONG',           year:1972, genre:'کلاسیک',     genreTag:'classic', file:'pong.html',           available:true, cover:'pong' },
+  { id:'tetris',         title:'تتریس',           sub:'TETRIS',         year:1984, genre:'پازل',       genreTag:'puzzle',  file:'tetris.html',         available:true, cover:'tetris' },
+  { id:'pacman',         title:'پک‌من',           sub:'PAC-MAN',        year:1980, genre:'کلاسیک',     genreTag:'classic', file:'pacman.html',         available:true, cover:'pacman' },
+  { id:'game-runner',   title:'گیم رانر',       sub:'GAME RUNNER',    year:2024, genre:'مسابقه',     genreTag:'racing',  file:'game-runner.html',    available:true, cover:'racer' }
 ];
 
 /* ---- کاورها (SVG inline) ---- */
@@ -3203,14 +3203,19 @@ COVERS.tic = () => `<svg viewBox="0 0 220 280" xmlns="http://www.w3.org/2000/svg
 COVERS.bird = () => `<svg viewBox="0 0 220 280" xmlns="http://www.w3.org/2000/svg"><rect width="220" height="280" fill="#a4dce4"/><circle cx="170" cy="48" r="25" fill="#fff5cd"/><path d="M0 230 Q60 150 120 230 Q170 170 220 220 V280 H0" fill="#70ad9b"/><path d="M160 0h38v87h-38zM160 190h38v90h-38z" fill="#53c5a0" stroke="#267f74" stroke-width="3"/><g transform="translate(70 137)"><ellipse rx="19" ry="17" fill="#f8bd57" stroke="#cf8445" stroke-width="2"/><ellipse cx="-8" cy="5" rx="10" ry="7" fill="#ffe6a2"/><circle cx="8" cy="-5" r="7" fill="#fffdf4"/><circle cx="10" cy="-5" r="2.5" fill="#27344a"/><path d="M15 2l12 4-12 5z" fill="#ec8b57"/></g></svg>`;
 // The original inline art is retained as an offline fallback.
 const ORIGINAL_COVERS = {...COVERS};
+const GENERIC_COVER = `<svg viewBox="0 0 220 280" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="cover-fallback" x2="0" y2="1"><stop stop-color="#1a2740"/><stop offset="1" stop-color="#090e18"/></linearGradient></defs><rect width="220" height="280" fill="url(#cover-fallback)"/><circle cx="110" cy="124" r="46" fill="#f5c5181f" stroke="#f5c51855"/><text x="110" y="140" text-anchor="middle" font-size="40" fill="#f5c518">✦</text><rect x="58" y="196" width="104" height="4" rx="2" fill="#ffffff26"/></svg>`;
+const coverFallback = key => ORIGINAL_COVERS[key] ? ORIGINAL_COVERS[key]() : GENERIC_COVER;
+const FAILED_COVERS = new Set();
+const GAME_ART_FALLBACK = {river:'river-raid.jpg',invaders:'space-invaders.jpg',mushroom:'mushroom-killer.jpg',platformer:'mushroom-platformer.jpg',puzzle2048:'2048.jpg',breakout:'breakout.jpg',snake:'snake.jpg',asteroids:'asteroids.jpg',pong:'pong.jpg'};
 const GAME_ART = {tic:'tictactoe.svg',bird:'flappy.svg',river:'river-raid.webp',invaders:'space-invaders.webp',mushroom:'mushroom-killer.webp',platformer:'mushroom-platformer.webp',runner:'arcade-runner.svg',puzzle2048:'2048.webp',breakout:'breakout.webp',snake:'snake.webp',asteroids:'asteroids.webp',pong:'pong.webp',tetris:'tetris.svg',pacman:'pacman.svg',racer:'game-runner.svg'};
-Object.keys(GAME_ART).forEach(key => { COVERS[key] = () => `<img class="game-cover-art" data-cover="${key}" src="assets/game-covers/${GAME_ART[key]}" alt="" loading="lazy" decoding="async">`; });
+Object.keys(GAME_ART).forEach(key => { const fallback = GAME_ART_FALLBACK[key]; COVERS[key] = () => FAILED_COVERS.has(key) ? coverFallback(key) : `<img class="game-cover-art" data-cover="${key}"${fallback?` data-fallback="assets/game-covers/${fallback}"`:''} src="assets/game-covers/${GAME_ART[key]}" alt="" loading="lazy" decoding="async">`; });
 document.addEventListener('error',event => {
   const image=event.target;
   if (!(image instanceof HTMLImageElement) || !image.matches('.game-cover-art[data-cover]')) return;
-  const fallback=ORIGINAL_COVERS[image.dataset.cover];
-  if (!fallback) return;
-  const holder=document.createElement('span'); holder.className='game-cover-fallback'; holder.innerHTML=fallback(); image.replaceWith(holder);
+  // اگر مرورگر webp را نشناسد یا فایل اصلی نیامده باشد، همان تصویر با JPEG می‌آید.
+  if (image.dataset.fallback && image.dataset.fallbackTried !== '1') { image.dataset.fallbackTried = '1'; image.src = image.dataset.fallback; return; }
+  FAILED_COVERS.add(image.dataset.cover);
+  const holder=document.createElement('span'); holder.className='game-cover-fallback'; holder.innerHTML=coverFallback(image.dataset.cover); image.replaceWith(holder);
 },true);
 // An accent is scoped to the hero/guide only; the player's purchased theme is untouched.
 const GAME_ACCENTS = {'tictactoe':'#7de9ff','flappy':'#68c9ba','river-raid':'#49c8be','space-invaders':'#a893ff','mushroom-killer':'#57d99a','mushroom-platformer':'#72be78','arcade-runner':'#cf82ed','2048':'#dca54d','breakout':'#f27b91','snake':'#54cfa1','asteroids':'#8d9bf4','pong':'#60bde1','tetris':'#a991eb','pacman':'#dba83c','game-runner':'#dd9070'};
@@ -4387,10 +4392,11 @@ async function checkOneFile(game) {
   } catch(e) { return null; }
   finally { if (timeout !== null) clearTimeout(timeout); }
 }
-function probeGameFiles() {
+function probeGameFiles(pending) {
+  const list = Array.isArray(pending) && pending.length ? pending : GAMES;
   // نبودن فایل بازی‌های «به‌زودی» خطای برنامه نیست. بررسی اختیاری در Worker
   // انجام می‌شود تا 404های مورد انتظار، کنسولِ سند و رابط اصلی را درگیر نکنند.
-  if (typeof Worker !== 'function' || typeof URL.createObjectURL !== 'function') return Promise.all(GAMES.map(checkOneFile));
+  if (typeof Worker !== 'function' || typeof URL.createObjectURL !== 'function') return Promise.all(list.map(checkOneFile));
   const script = `self.onmessage = async function(event) {
     const results = await Promise.all(event.data.map(async function(url) {
       const controller = new AbortController();
@@ -4410,7 +4416,7 @@ function probeGameFiles() {
       finished = true; clearTimeout(timeout);
       if (worker) worker.terminate();
       if (url) URL.revokeObjectURL(url);
-      resolve(GAMES.map((g,index) => values[index] === true ? true : values[index] === false ? false : null));
+      resolve(list.map((g,index) => values[index] === true ? true : values[index] === false ? false : null));
     };
     try {
       url = URL.createObjectURL(new Blob([script],{ type: 'text/javascript' }));
@@ -4419,7 +4425,7 @@ function probeGameFiles() {
       worker.onerror = event => { event.preventDefault(); finish([]); };
       worker.onmessageerror = () => finish([]);
       timeout = setTimeout(() => finish([]),7500);
-      worker.postMessage(GAMES.map(game => {
+      worker.postMessage(list.map(game => {
         const target = new URL(game.file,location.href); target.searchParams.set('_t',String(Date.now())); return target.href;
       }));
     } catch(e) { finish([]); }
@@ -4428,19 +4434,22 @@ function probeGameFiles() {
 async function checkGameFiles(opts) {
   opts = opts || {};
   const silent = !!opts.silent;
+  // همهٔ بازی‌های همراه سایت موجودند؛ شبکه فقط برای بازی‌های «به‌زودی» بررسی می‌شود
+  // تا یک HEAD ناموفق هیچ کارت موجودی را به «به زودی» تبدیل نکند.
+  if (!GAMES.some(game => !game.available)) { filesChecked = true; return; }
   // فایل محلی و پیش‌نمایش sandbox شبکهٔ هم‌مبدأ ندارند؛ پرچم‌های فعلی حفظ می‌شوند.
   if (!/^https?:$/.test(location.protocol) || window.origin === 'null' || navigator.onLine === false) { filesChecked = true; return; }
   if (checkPromise) return checkPromise;
   filesChecked = false;
   const changed = [];
   const run = (async () => {
+    const pending = GAMES.filter(game => !game.available);
     if (!silent) { if (!document.querySelector('.card')) renderGrid(); document.querySelectorAll('.card').forEach(card => card.classList.add('skeleton')); }
-    const existence = await probeGameFiles();
-    GAMES.forEach((game,index) => {
-      const previous = game.available, exists = existence[index];
-      if (exists === true) { if (!game.available) setAddedDate(game.id); game.available = true; }
-      else if (exists === false) game.available = false;
-      if (!previous && game.available) { changed.push(game); newFoundGames.add(game.id); }
+    const existence = await probeGameFiles(pending);
+    pending.forEach((game,index) => {
+      if (existence[index] !== true) return;
+      setAddedDate(game.id); game.available = true;
+      changed.push(game); newFoundGames.add(game.id);
     });
     filesChecked = true; checkAchievements(); renderAll();
     if (document.getElementById('achModal').classList.contains('show')) renderAchievementCards();
@@ -6535,7 +6544,11 @@ function auInit(){
  /* ★ صوت قدیمی از اجرای شنونده‌های پک قبلی در حالت mute منع می‌شود؛ توابع دست‌نخورده‌اند */
  if(!LS.get('arcade_pet',null))LS.set('arcade_pet',auPet());
  setTimeout(auCountStats,100);auApplySettings();if(!AU.settings.sound)auSaveSettings({sound:false});setTimeout(auApplySettings,0);auRenderPins();auRenderChallenge();auProfileExtras();auSync(true);setInterval(()=>{if(!document.hidden)auSync()},1000);setInterval(auPetAvoidUi,250);
- if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){const registerOffline=()=>navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(reg=>{reg.active?.postMessage({type:'ARCADE_CACHE',urls:['./index.html','./arcade-gamepad.js','./arcade-gamepad.css','./arcade-upgrade.css',...GAMES.filter(g=>g.available).map(g=>g.file),...BANNERS.map(b=>b.src),...performance.getEntriesByType('resource').map(r=>r.name).filter(url=>/\.(woff2?|ttf|otf)(\?|$)/i.test(url))]})}).catch(()=>{});if(document.readyState==='complete')registerOffline();else window.addEventListener('load',registerOffline,{once:true});}
+ if('serviceWorker'in navigator&&/^https?:$/.test(location.protocol)){const hadController=!!navigator.serviceWorker.controller;
+ const registerOffline=()=>navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(reg=>{try{reg.update?.()}catch(_){} reg.active?.postMessage({type:'ARCADE_CACHE',urls:['./index.html','./arcade-gamepad.js','./arcade-gamepad.css','./arcade-upgrade.css',...GAMES.filter(g=>g.available).map(g=>g.file),...BANNERS.map(b=>b.src),...performance.getEntriesByType('resource').map(r=>r.name).filter(url=>/\.(woff2?|ttf|otf)(\?|$)/i.test(url))]})}).catch(()=>{});
+ // وقتی نسخهٔ تازه‌ای از سایت منتشر می‌شود، هاب یک بار خودکار تازه می‌شود
+ // تا کارت‌ها و عکس‌های قدیمی از کش قبلی نمانند.
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadController||sessionStorage.getItem('arcade_sw_reloaded')==='1')return;sessionStorage.setItem('arcade_sw_reloaded','1');location.reload()});if(document.readyState==='complete')registerOffline();else window.addEventListener('load',registerOffline,{once:true});}
 }
 function auSync(force=false){if(!auMotion())pauseVisualEffects();const sig=getProfile().xp+':'+getPoints()+':'+getInventory().items.join(',')+':'+JSON.stringify(getEquipped())+':'+dateKey()+':'+Object.keys(achievements()).length;if(force||sig!==AU.lastState){AU.lastState=sig;auRenderPet();auRenderChallenge();auProfileExtras();auEnhanceShop();auTrailState();document.body.classList.toggle('au-glass-bg',getEquipped().bgTheme==='bg-theme-glass');document.querySelectorAll('.cosmetic-frame').forEach(el=>el.classList.toggle('au-frame-animated',getEquipped().frame==='frame-animated'));const unread=Math.max(0,Object.keys(achievements()).length-safeXP(LS.get('arcade_notification_seen',0)));auEl('auBell').classList.toggle('au-unread',unread>0);auEl('auBell').querySelector('b').textContent=faNum(unread);auEl('auBell').setAttribute('aria-label',faNum(unread)+' دستاورد جدید');auSeason()}document.querySelectorAll('[data-au-clock]').forEach(el=>el.textContent=auCountdown());auRenderPet();auRecordCheck();if(!bootIsActive()&&feedbackReady&&!modalStack.length&&!launchInProgress&&!AU.onboardShown){AU.onboardShown=true;if(LS.get('arcade_onboarded',false)!==true)auOnboarding();else{const pending=LS.get('arcade_reward_pending',null);if(pending){LS.remove('arcade_reward_pending');auPrizeModal(pending.label,'این جایزه پیش‌تر در حساب ثبت شده است.')}}}auUpdateSpinReminder();auPetReactionTick()}
 auInit();
