@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111b35">
+  <meta name="description" content="پرندهٔ کوچولو، بازی پرواز بین موانع آرکید">
+  <title>پرندهٔ کوچولو | آرکید</title>
+  <link rel="stylesheet" href="flappy.css">
+  <script type="module" src="flappy.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a href="index.html" class="back" aria-label="بازگشت به آرکید">← <span>آرکید</span></a>
+  <span class="brand">LITTLE FLIGHT <i>✦</i></span>
+  <span class="top-tag">یک بازی آرکیدی</span>
+</header>
+<main class="layout">
+  <section class="intro" aria-labelledby="title">
+    <div class="eyebrow"><span></span> یک پرواز کوچک، یک رکورد بزرگ</div>
+    <h1 id="title">پرندهٔ<br><em>کوچولو</em></h1>
+    <p class="lead">بال بزن، از بین لوله‌ها رد شو و ببین تا کجا می‌تونی پرواز کنی!</p>
+    <div class="instructions"><div><b>۰۱</b><span>با هر ضربه پرنده بالا می‌ره.</span></div><div><b>۰۲</b><span>از هر جفت لوله یک امتیاز بگیر.</span></div><div><b>۰۳</b><span>به لوله‌ها و زمین برخورد نکن.</span></div></div>
+    <div class="hint">لمس صفحه <span>یا</span> کلید فاصله / ↑</div>
+  </section>
+  <section class="game-column" aria-label="بازی پرندهٔ کوچولو">
+    <div class="game-top"><div><span class="dot"></span> پرواز آزاد <small>FLIGHT MODE</small></div><button id="pauseButton" class="pause" type="button" aria-label="توقف بازی" disabled>Ⅱ</button></div>
+    <div class="scorebar"><div><small>امتیاز</small><strong id="score">۰</strong></div><span class="score-separator"></span><div><small>بهترین پرواز</small><strong id="best">۰</strong></div><span class="score-star" aria-hidden="true">✦</span></div>
+    <div class="stage" id="stage">
+      <canvas id="game" width="360" height="600" aria-label="محوطهٔ بازی؛ برای بال زدن لمس کن یا کلید فاصله را بزن">مرورگرت از بازی پشتیبانی نمی‌کند.</canvas>
+      <div class="message" id="readyMessage"><div class="message-inner"><span class="message-icon">✦</span><strong>آمادهٔ پروازی؟</strong><p>برای شروع و بال زدن، صفحه رو لمس کن</p><button id="startButton" type="button">بزن بریم ←</button><small>یا کلید فاصله را بزن</small></div></div>
+      <div class="message" id="pauseMessage" hidden><div class="message-inner"><span class="message-icon">Ⅱ</span><strong>یه نفس تازه کن</strong><p>بازی متوقف شده.</p><button id="resumeButton" type="button">ادامهٔ پرواز ←</button></div></div>
+      <div class="message" id="overMessage" hidden><div class="message-inner"><span class="message-icon">✦</span><strong>پروازت تموم شد!</strong><p>امتیاز این پرواز: <b id="finalScore">۰</b></p><button id="retryButton" type="button">دوباره پرواز کن ←</button><a href="index.html">بازگشت به آرکید</a></div></div>
+    </div>
+    <p class="under-stage" id="help">یک ضربه برای هر بال زدن <span>·</span> فاصله / ↑ در کیبورد</p>
+    <p class="sr-only" role="status" aria-live="polite" id="status"></p>
+  </section>
+  <div class="side-note"><div class="mini-orbit">✦</div><span>هر بار کمی<br>بالاتر پرواز کن.</span><small>MADE FOR PLAY</small></div>
+</main>
+</body>
+</html>

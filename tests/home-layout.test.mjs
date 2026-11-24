@@ -31,7 +31,7 @@ test('pet, pinned games, action handlers and offline cache remain wired after re
   assert.match(html,/getElementById\('homeProfileBtn'\)\.addEventListener\('click',openProfileModal\)/);
   assert.match(html,/getElementById\('homeStatsBtn'\)\.addEventListener\('click',openStats\)/);
   assert.match(css,/#homePetSlot \.au-pet\[hidden\]\{display:none\}/);
-  assert.match(sw,/arcade-2026-11-v27/);
+  assert.match(sw,/arcade-2026-11-v28/);
 });
 
 test('card motion is short, interaction-only, and honors both motion settings',()=>{
