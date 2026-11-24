@@ -19,9 +19,9 @@ test('pumpkin unlock no longer depends on date and preserves existing secret unl
 
 test('all game artworks exist, can fall back offline and are included in the new cache',async()=>{
  const map=between('const GAME_ART =','Object.keys(GAME_ART)');
- const files=[...map.matchAll(/'([a-z0-9-]+\.(?:webp|svg))'/g)].map(m=>m[1]);assert.equal(files.length,13);
+ const files=[...map.matchAll(/'([a-z0-9-]+\.(?:webp|svg))'/g)].map(m=>m[1]);assert.equal(files.length,14);
  for(const file of files){await access(new URL('../assets/game-covers/'+file,import.meta.url));assert.ok(sw.includes('assets/game-covers/'+file));}
- assert.match(html,/ORIGINAL_COVERS\[image\.dataset\.cover\]/);assert.match(sw,/arcade-2026-11-v27/);
+ assert.match(html,/ORIGINAL_COVERS\[image\.dataset\.cover\]/);assert.match(sw,/arcade-2026-11-v29/);
 });
 
 test('per-game accent is scoped to hero and guide without mutating purchased theme',()=>{

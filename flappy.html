@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111b35" id="themeColor">
+  <meta name="description" content="پرندهٔ کوچولو، بازی پرواز بین موانع آرکید">
+  <title>پرندهٔ کوچولو | آرکید</title>
+  <link rel="stylesheet" href="flappy.css">
+  <script type="module" src="flappy.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a href="index.html" class="back" aria-label="بازگشت به آرکید">← <span>آرکید</span></a>
+  <span class="brand">LITTLE FLIGHT <i>✦</i></span>
+  <span class="top-tag">یک بازی آرکیدی</span>
+</header>
+<main class="layout">
+  <section class="intro" aria-labelledby="title">
+    <div class="eyebrow"><span></span> یک پرواز کوچک، یک رکورد بزرگ</div>
+    <h1 id="title">پرندهٔ<br><em>کوچولو</em></h1>
+    <p class="lead">بال بزن، از بین لوله‌ها رد شو و ببین تا کجا می‌تونی پرواز کنی!</p>
+    <div class="instructions"><div><b>۰۱</b><span>با هر ضربه پرنده بالا می‌ره.</span></div><div><b>۰۲</b><span>از هر جفت لوله یک امتیاز بگیر.</span></div><div><b>۰۳</b><span>به لوله‌ها و زمین برخورد نکن.</span></div></div>
+    <div class="hint">لمس صفحه <span>یا</span> کلید فاصله / ↑</div>
+    <button class="settings-link" id="settingsLink" type="button">⚙ تنظیمات و ظاهر بازی</button>
+  </section>
+  <section class="game-column" aria-label="بازی پرندهٔ کوچولو">
+    <div class="game-top"><div><span class="dot"></span> پرواز آزاد <small>FLIGHT MODE</small></div><div class="game-actions"><button id="settingsButton" class="icon" type="button" aria-label="تنظیمات و شخصی‌سازی" aria-haspopup="dialog" aria-expanded="false">⚙</button><button id="pauseButton" class="pause" type="button" aria-label="توقف بازی" disabled>Ⅱ</button></div></div>
+    <div class="scorebar"><div><small>امتیاز</small><strong id="score">۰</strong></div><span class="score-separator"></span><div><small>بهترین پرواز</small><strong id="best">۰</strong></div><span class="score-star" aria-hidden="true">✦</span></div>
+    <div class="stage" id="stage">
+      <canvas id="game" width="360" height="600" aria-label="محوطهٔ بازی؛ برای بال زدن لمس کن یا کلید فاصله را بزن">مرورگرت از بازی پشتیبانی نمی‌کند.</canvas>
+      <div class="message" id="readyMessage"><div class="message-inner"><span class="message-icon">✦</span><strong>آمادهٔ پروازی؟</strong><p>برای شروع و بال زدن، صفحه رو لمس کن</p><button id="startButton" type="button">بزن بریم ←</button><small>یا کلید فاصله را بزن</small></div></div>
+      <div class="message" id="pauseMessage" hidden><div class="message-inner"><span class="message-icon">Ⅱ</span><strong>یه نفس تازه کن</strong><p>بازی متوقف شده.</p><button id="resumeButton" type="button">ادامهٔ پرواز ←</button></div></div>
+      <div class="message" id="overMessage" hidden><div class="message-inner"><span class="message-icon">✦</span><strong>پروازت تموم شد!</strong><p>امتیاز این پرواز: <b id="finalScore">۰</b></p><button id="retryButton" type="button">دوباره پرواز کن ←</button><a href="index.html">بازگشت به آرکید</a></div></div>
+    </div>
+    <p class="under-stage" id="help">یک ضربه برای هر بال زدن <span>·</span> فاصله / ↑ در کیبورد</p>
+    <p class="sr-only" role="status" aria-live="polite" id="status"></p>
+  </section>
+  <div class="side-note"><div class="mini-orbit">✦</div><span>هر بار کمی<br>بالاتر پرواز کن.</span><small>MADE FOR PLAY</small></div>
+</main>
+<dialog class="sheet" id="settingsDialog" aria-labelledby="settingsTitle">
+  <div class="sheet-head"><h2 id="settingsTitle">تنظیمات بازی</h2><button class="icon" id="closeSettings" type="button" aria-label="بستن تنظیمات">×</button></div>
+  <div class="tabs" role="tablist" aria-label="بخش‌های تنظیمات">
+    <button type="button" role="tab" data-tab="general" aria-selected="true" class="on">تنظیمات</button>
+    <button type="button" role="tab" data-tab="look" aria-selected="false">شخصی‌سازی</button>
+  </div>
+  <div class="sheet-body">
+    <div class="panel" id="panelGeneral" role="tabpanel" aria-label="تنظیمات بازی">
+      <fieldset><legend>سختی بازی</legend><div class="choices">
+        <button type="button" data-difficulty="easy" aria-pressed="false">آرام<small>شکاف بازتر</small></button>
+        <button type="button" data-difficulty="normal" aria-pressed="false">معمولی<small>تعادل</small></button>
+        <button type="button" data-difficulty="hard" aria-pressed="false">سخت<small>سریع‌تر</small></button>
+      </div></fieldset>
+      <div class="row"><div><b>صدا</b><small>بال زدن، امتیاز و برخورد</small></div><button type="button" class="switch" id="soundToggle" role="switch" aria-checked="true" aria-label="صدا"><span></span></button></div>
+      <div class="row"><div><b>حرکت ابرها</b><small>انیمیشن آرام پس‌زمینه</small></div><button type="button" class="switch" id="motionToggle" role="switch" aria-checked="true" aria-label="حرکت ابرها"><span></span></button></div>
+    </div>
+    <div class="panel" id="panelLook" role="tabpanel" aria-label="شخصی‌سازی" hidden>
+      <fieldset><legend>تم بازی</legend><div class="choices">
+        <button type="button" data-theme-choice="day" aria-pressed="false">روز روشن<small>آسمان آبی</small></button>
+        <button type="button" data-theme-choice="night" aria-pressed="false">شب نئون<small>ماه و ستاره</small></button>
+      </div></fieldset>
+      <fieldset><legend>رنگ پرنده</legend><div class="skins">
+        <button type="button" data-skin-choice="sunny" aria-pressed="false"><i style="--a:#f8bd57;--b:#c76f39"></i>آفتابی</button>
+        <button type="button" data-skin-choice="sky" aria-pressed="false"><i style="--a:#7ec8f2;--b:#4f9bc9"></i>آسمانی</button>
+        <button type="button" data-skin-choice="rose" aria-pressed="false"><i style="--a:#f4a0ba;--b:#cf6d8f"></i>صورتی</button>
+        <button type="button" data-skin-choice="mint" aria-pressed="false"><i style="--a:#93e3b7;--b:#5cb68a"></i>نعنایی</button>
+      </div></fieldset>
+      <div class="row"><div><b>دنبالهٔ نور</b><small>رد روشن پشت پرنده</small></div><button type="button" class="switch" id="trailToggle" role="switch" aria-checked="true" aria-label="دنبالهٔ نور"><span></span></button></div>
+    </div>
+  </div>
+  <p class="sheet-note">تنظیمات روی همین دستگاه ذخیره می‌شود و رکوردت حفظ می‌ماند.</p>
+</dialog>
+</body>
+</html>

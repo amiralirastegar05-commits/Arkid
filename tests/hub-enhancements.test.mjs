@@ -37,7 +37,7 @@ test('all hub games have a guide, and only an explicit launch performs navigatio
   const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
   const games=html.slice(html.indexOf('const GAMES = ['),html.indexOf('/* ---- کاورها'));
   const ids=[...games.matchAll(/\bid:'([^']+)'/g)].map(m=>m[1]);
-  assert.equal(ids.length,13); for(const id of ids) assert.equal(api.guides[id]?.length,2,id);
+  assert.equal(ids.length,14); for(const id of ids) assert.equal(api.guides[id]?.length,2,id);
   const guide=html.slice(html.indexOf('function launch(g, forceGotd'),html.indexOf('async function launchConfirmed'));
   assert.doesNotMatch(guide,/trackLaunch|location\.href|arcade_plays/); assert.match(guide,/pending\.tournamentContext/);
   assert.match(html,/if \(id === 'gameGuideModal'\) pendingGameGuide = null/);
